@@ -22,12 +22,28 @@ public class CompilerException extends RuntimeException {
     private Throwable m_originalException;
 
     /**
+     * Optional location hint
+     */
+    private Location m_location;
+
+    /**
      * Sets the message for the exception.
      *
      * @param message the message
      */
     public CompilerException(final String message) {
         super(message);
+    }
+
+    /**
+     * Sets the message and location for the exception.
+     *
+     * @param message the message
+     * @param location
+     */
+    public CompilerException(final String message, Location location) {
+        super(message);
+        m_location = location;
     }
 
     /**
@@ -69,6 +85,27 @@ public class CompilerException extends RuntimeException {
         super.printStackTrace(pw);
         if (m_originalException != null) {
             m_originalException.printStackTrace(pw);
+        }
+    }
+
+    public Location getLocation() {
+        return m_location;
+    }
+
+    /**
+     * Error reporting
+     */
+    public static class Location {
+        String className;
+        String file;
+        int lineNumber;
+
+        public static Location render(String className, String file, int line) {
+            Location location = new Location();
+            location.className = className;
+            location.file = file;
+            location.lineNumber = line;
+            return location;
         }
     }
 }

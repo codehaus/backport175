@@ -50,14 +50,31 @@ public class AnnotationC {
     private static final String FILE_SEPARATOR = File.separator;
 
     /**
-     * Verbose logging.
+     * Compilation event handler
      */
-    private static boolean s_verbose = false;
+    private IEventHandler m_handler;
 
     /**
-     * The class loader.
+     * The class loader
      */
-    private static ClassLoader s_loader;
+    private ClassLoader m_loader;
+
+    /**
+     * The parser for src files
+     */
+    private JavaDocParser m_javaDocParser;
+
+    /**
+     * The annotation repository
+     */
+    private AnnotationInterfaceRepository m_repository;
+
+    private AnnotationC(ClassLoader loader, JavaDocParser parser, AnnotationInterfaceRepository repository, IEventHandler handler) {
+        m_loader = loader;
+        m_javaDocParser = parser;
+        m_repository = repository;
+        m_handler = handler;
+    }
 
     /**
      * Runs the compiler from the command line.
@@ -81,6 +98,7 @@ public class AnnotationC {
         String[] propertiesFiles = (String[])propertiesFilesList.toArray(new String[0]);
 
         compile(
+                "true".equals((String)commandLineOptions.get(COMMAND_LINE_OPTION_VERBOSE)),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRC),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRCFILES),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRCINCLUDES),
@@ -91,8 +109,9 @@ public class AnnotationC {
     }
 
     /**
-     * Compiles the annotations.
+     * Compiles the annotations, called from the main method.
      *
+     * @param verbose
      * @param srcDirList
      * @param srcFileList
      * @param classPath
@@ -100,6 +119,7 @@ public class AnnotationC {
      * @param annotationPropetiesFiles
      */
     private static void compile(
+            final boolean verbose,
             final String srcDirList,
             final String srcFileList,
             final String srcFileIncludes,
@@ -131,64 +151,86 @@ public class AnnotationC {
             srcFiles = loadSourceList(srcFileIncludes);
         }
 
-        compile(s_verbose, srcDirs, srcFiles, split(classPath, File.pathSeparator), destDir, annotationPropetiesFiles);
+        compile(srcDirs, srcFiles, split(classPath, File.pathSeparator), destDir, annotationPropetiesFiles,
+                new StdEventHandler(verbose));
     }
 
     /**
      * Compiles the annotations.
      *
-     * @param verbose
      * @param srcDirs
      * @param srcFiles
      * @param classpath
      * @param destDir
      * @param annotationPropertiesFiles
+     * @param handler
      */
     public static void compile(
-            final boolean verbose,
             final String[] srcDirs,
             final String[] srcFiles,
             final String[] classpath,
             final String destDir,
-            final String[] annotationPropertiesFiles) {
+            final String[] annotationPropertiesFiles,
+            final IEventHandler handler) {
 
-        s_verbose = verbose;
         URL[] classPath = new URL[classpath.length];
+        final ClassLoader compilationLoader;
         try {
             for (int i = 0; i < classpath.length; i++) {
                 classPath[i] = new File(classpath[i]).toURL();
             }
-            s_loader = new URLClassLoader(classPath, AnnotationC.class.getClassLoader());
+            compilationLoader = new URLClassLoader(classPath, AnnotationC.class.getClassLoader());
         } catch (MalformedURLException e) {
             String message = "URL [" + classPath + "] is not valid: " + e.toString();
-            logError(message);
-            throw new CompilerException(message, e);
+            handler.error(new CompilerException(message, e));
+            return;
         }
 
         String destDirToUse = destDir;
         if (destDir == null) {
             if (classpath.length != 1) {
-                throw new CompilerException("destDir must be specified since classpath is composite");
+                handler.error(new CompilerException("destDir must be specified since classpath is composite"));
+                return;
             }
             destDirToUse = classpath[0];
         }
 
-        JavaDocParser.addClassLoaderToSearchPath(s_loader);
+        // set up the parser sources
+        final JavaDocParser javaDocParser = new JavaDocParser();
+        try {
+            // classloader
+            javaDocParser.addClassLoaderToSearchPath(compilationLoader);
 
-        logInfo("parsing source dirs:");
-        for (int i = 0; i < srcDirs.length; i++) {
-            logInfo("    " + srcDirs[i]);
+            // src dirs
+            StringBuffer logDirs = new StringBuffer("parsing source dirs:");
+            for (int i = 0; i < srcDirs.length; i++) {
+                logDirs.append("\n\t" + srcDirs[i]);
+            }
+            handler.info(logDirs.toString(), null);
+            javaDocParser.addSourceTrees(srcDirs);
+
+            // src files
+            logDirs = new StringBuffer();
+            for (int i = 0; i < srcFiles.length; i++) {
+                logDirs.append("\n\t" + srcFiles[i]);
+                javaDocParser.addSource(srcFiles[i]);
+            }
+            if (srcFiles.length > 0) {
+                handler.info(logDirs.toString(), null);
+            }
+
+            final AnnotationInterfaceRepository repository = new AnnotationInterfaceRepository(handler);
+            repository.registerPropertiesFiles(annotationPropertiesFiles, compilationLoader);
+
+            AnnotationC compiler = new AnnotationC(compilationLoader, javaDocParser, repository, handler);
+            compiler.doCompile(classPath, destDirToUse);
+        } catch (CompilerException e) {
+            handler.error(e);
+            return;
+        } catch (Throwable t) {
+            handler.error(new CompilerException("Unexpected", t));
+            return;
         }
-        JavaDocParser.addSourceTrees(srcDirs);
-
-        for (int i = 0; i < srcFiles.length; i++) {
-            logInfo("    " + srcFiles[i]);
-            JavaDocParser.addSource(srcFiles[i]);
-        }
-
-        AnnotationInterfaceRepository.registerPropertiesFiles(annotationPropertiesFiles, s_loader);
-
-        doCompile(classPath, destDirToUse);
     }
 
     /**
@@ -197,12 +239,11 @@ public class AnnotationC {
      * @param classPath
      * @param destDir
      */
-    private static void doCompile(final URL[] classPath, final String destDir) {
+    private void doCompile(final URL[] classPath, final String destDir) {
         logInfo("compiling annotations...");
-        logInfo("note: if no output is seen, then nothing is compiled");
 
         // get all the classes
-        JavaClass[] classes = JavaDocParser.getJavaClasses();
+        JavaClass[] classes = m_javaDocParser.getJavaClasses();
         for (int i = 0; i < classes.length; i++) {
             JavaClass clazz = classes[i];
             logInfo("parsing class [" + clazz.getFullyQualifiedName() + ']');
@@ -228,12 +269,16 @@ public class AnnotationC {
                     // write enhanced class to disk
                     enhancer.write(destDir);
                 }
-            } catch (Throwable e) {
-                e.printStackTrace();
-                logWarning(
-                        "could not compile annotations for class ["
-                        + clazz.getFullyQualifiedName() + "] due to: " + e.toString()
+            } catch (CompilerException e) {
+                m_handler.error(e);
+                return;
+            } catch (Throwable t) {
+                m_handler.error(new CompilerException(
+                        "could not compile annotations for class ["//FIXME location
+                        + clazz.getFullyQualifiedName() + "] due to: " + t.toString()
+                        )
                 );
+                return;
             }
         }
         logInfo("compiled classes written to " + destDir);
@@ -246,16 +291,16 @@ public class AnnotationC {
      * @param enhancer
      * @param clazz
      */
-    private static void handleClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
+    private void handleClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
         DocletTag[] tags = clazz.getTags();
         for (int i = 0; i < tags.length; i++) {
             RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertClassAnnotation(rawAnnotation);
+            enhancer.insertClassAnnotation(rawAnnotation, tags[i].getLineNumber());
             logInfo(
-                    "    processing class annotation [" + rawAnnotation.getName() + " @ "
+                    "\tprocessing class annotation [" + rawAnnotation.getName() + " @ "
                     + clazz.getFullyQualifiedName() + ']'
             );
         }
@@ -267,16 +312,16 @@ public class AnnotationC {
      * @param enhancer
      * @param method
      */
-    private static void handleMethodAnnotations(final AnnotationEnhancer enhancer, final JavaMethod method) {
+    private void handleMethodAnnotations(final AnnotationEnhancer enhancer, final JavaMethod method) {
         DocletTag[] tags = method.getTags();
         for (int i = 0; i < tags.length; i++) {
             RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertMethodAnnotation(method, rawAnnotation);
+            enhancer.insertMethodAnnotation(method, rawAnnotation, tags[i].getLineNumber());
             logInfo(
-                    "    processing method annotation [" + rawAnnotation.getName() + " @ "
+                    "\tprocessing method annotation [" + rawAnnotation.getName() + " @ "
                     + method.getParentClass().getName() + '.' +
                     method.getName()
                     + ']'
@@ -290,16 +335,16 @@ public class AnnotationC {
      * @param enhancer
      * @param constructor
      */
-    private static void handleConstructorAnnotations(final AnnotationEnhancer enhancer, final JavaMethod constructor) {
+    private void handleConstructorAnnotations(final AnnotationEnhancer enhancer, final JavaMethod constructor) {
         DocletTag[] tags = constructor.getTags();
         for (int i = 0; i < tags.length; i++) {
             RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertConstructorAnnotation(constructor, rawAnnotation);
+            enhancer.insertConstructorAnnotation(constructor, rawAnnotation, tags[i].getLineNumber());
             logInfo(
-                    "    processing constructor annotation [" + rawAnnotation.getName() + " @ "
+                    "\tprocessing constructor annotation [" + rawAnnotation.getName() + " @ "
                     + constructor.getParentClass().getName() + '.' +
                     constructor.getName()
                     + ']'
@@ -313,15 +358,15 @@ public class AnnotationC {
      * @param enhancer
      * @param field
      */
-    private static void handleFieldAnnotations(final AnnotationEnhancer enhancer, final JavaField field) {
+    private void handleFieldAnnotations(final AnnotationEnhancer enhancer, final JavaField field) {
         DocletTag[] tags = field.getTags();
         for (int i = 0; i < tags.length; i++) {
             RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertFieldAnnotation(field, rawAnnotation);
-            logInfo("    processing field annotation [" + rawAnnotation.getName() + " @ " + field.getName() + ']');
+            enhancer.insertFieldAnnotation(field, rawAnnotation, tags[i].getLineNumber());
+            logInfo("\tprocessing field annotation [" + rawAnnotation.getName() + " @ " + field.getName() + ']');
         }
     }
 
@@ -331,7 +376,7 @@ public class AnnotationC {
      * @param enhancer
      * @param clazz
      */
-    private static void handleInnerClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
+    private void handleInnerClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
         JavaClass[] innerClasses = clazz.getInnerClasses();
         for (int i = 0; i < innerClasses.length; i++) {
             handleClassAnnotations(enhancer, innerClasses[i]);
@@ -344,14 +389,14 @@ public class AnnotationC {
      * @param tag the doclet tag
      * @return the raw annotation data
      */
-    private static RawAnnotation getRawAnnotation(final DocletTag tag) {
+    private RawAnnotation getRawAnnotation(final DocletTag tag) {
         String annotationName = tag.getName();
         int index = annotationName.indexOf('(');
         if (index != -1) {
             annotationName = annotationName.substring(0, index);
         }
 
-        Class annotationInterface = AnnotationInterfaceRepository.getAnnotationInterfaceFor(annotationName, s_loader);
+        Class annotationInterface = m_repository.getAnnotationInterfaceFor(annotationName, m_loader);
         if (annotationInterface == null) {
             // not found, and the AnnotationInterfaceRepository.ANNOTATION_IGNORED has been populated
             logInfo("JavaDoc tag [" + annotationName + "] is not treated as an annotation - class could not be resolved");
@@ -398,52 +443,29 @@ public class AnnotationC {
         final Map arguments = new HashMap();
         try {
             for (int i = 0; i < args.length; i++) {
+                //-verbose has no value
                 if (args[i].equals(COMMAND_LINE_OPTION_VERBOSE)) {
-                    s_verbose = true;
+                    arguments.put(COMMAND_LINE_OPTION_VERBOSE, "true");
                 } else if (args[i].startsWith(COMMAND_LINE_OPTION_DASH)) {
-                    String option = args[i++];
-                    String value = args[i];
+                    String option = args[i];
+                    String value = args[++i];
                     arguments.put(option, value);
                 }
             }
         } catch (Exception e) {
-            logError("options list to compiler is not valid");
+            System.err.println("options list to compiler is not valid");
             System.exit(1);
         }
         return arguments;
     }
 
     /**
-     * Logs an INFO message.
+     * Logs an INFO message (helper)
      *
      * @param message the message
      */
-    public static void logInfo(final String message) {
-        if (s_verbose) {
-            System.out.println("backport175::INFO - " + message);
-        }
-    }
-
-    /**
-     * Logs an ERROR message.
-     *
-     * @param message the message
-     */
-    public static void logError(final String message) {
-        if (s_verbose) {
-            System.err.println("backport175::ERROR - " + message);
-        }
-    }
-
-    /**
-     * Logs an WARNING message.
-     *
-     * @param message the message
-     */
-    public static void logWarning(final String message) {
-        if (s_verbose) {
-            System.err.println("backport175::WARNING - " + message);
-        }
+    public void logInfo(final String message) {
+        m_handler.info(message, null);
     }
 
     /**
@@ -494,7 +516,7 @@ public class AnnotationC {
                 if (line.length() > 0) {
                     tmpFile = new File(currentDir, line);
                     if (!tmpFile.isFile()) {
-                        logWarning("file not found: [" + tmpFile + "]");
+                        System.err.println("file not found: [" + tmpFile + "]");
                     } else {
                         files.add(tmpFile.getAbsolutePath());
                     }
@@ -513,5 +535,35 @@ public class AnnotationC {
             }
         }
         return (String[])files.toArray(new String[files.size()]);
+    }
+
+    public static interface IEventHandler {
+        void info(String message, CompilerException.Location location);
+        void error(CompilerException exception);
+    }
+
+    public static class StdEventHandler implements IEventHandler {
+
+        private boolean m_verbose = false;
+
+        public StdEventHandler(boolean isVerbose) {
+            m_verbose = isVerbose;
+        }
+
+        public void info(String message, CompilerException.Location location) {
+            //TODO
+            System.out.println("INFO: " + message);
+        }
+
+        public void error(CompilerException exception) {
+            if (exception.getLocation() != null) {
+                System.err.println("ERROR: with " + exception.getLocation().className
+                    + " in " + exception.getLocation().file
+                    + ", line " + exception.getLocation().lineNumber
+                );
+            }
+
+            exception.printStackTrace();
+        }
     }
 }

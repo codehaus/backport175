@@ -28,15 +28,15 @@ public class JavaDocParser {
     /**
      * The JavaDoc javadoc.
      */
-    private static final JavaDocBuilder JAVA_DOC_PARSER = new JavaDocBuilder();
+    private final JavaDocBuilder m_javaDocParser = new JavaDocBuilder();
 
     /**
      * Adds the given ClassLoader to the search path
      *
      * @param loader
      */
-    public static void addClassLoaderToSearchPath(final ClassLoader loader) {
-        JAVA_DOC_PARSER.getClassLibrary().addClassLoader(loader);
+    public void addClassLoaderToSearchPath(final ClassLoader loader) {
+        m_javaDocParser.getClassLibrary().addClassLoader(loader);
     }
 
     /**
@@ -44,10 +44,10 @@ public class JavaDocParser {
      *
      * @param srcDirs the source trees
      */
-    public static void addSourceTrees(final String[] srcDirs) {
+    public void addSourceTrees(final String[] srcDirs) {
         for (int i = 0; i < srcDirs.length; i++) {
             try {
-                JAVA_DOC_PARSER.addSourceTree(new File(srcDirs[i]));
+                m_javaDocParser.addSourceTree(new File(srcDirs[i]));
             } catch (Exception e) {
                 throw new SourceParseException("source file in source tree [" + srcDirs[i] + "] could not be parsed - current javadoc does not understant Java 5 specific code (annotation, enums etc)", e);
             }
@@ -59,9 +59,9 @@ public class JavaDocParser {
      *
      * @param srcFile the source file
      */
-    public static void addSource(final String srcFile) {
+    public void addSource(final String srcFile) {
         try {
-            JAVA_DOC_PARSER.addSource(new File(srcFile));
+            m_javaDocParser.addSource(new File(srcFile));
         } catch (Exception e) {
             throw new SourceParseException("source file [" + srcFile + "] could not be parsed - current javadoc does not understant Java 5 specific code (annotation, enums etc)", e);
         }
@@ -72,8 +72,8 @@ public class JavaDocParser {
      *
      * @return an array with all classes
      */
-    public static JavaClass[] getJavaClasses() {
-        Collection classes = JAVA_DOC_PARSER.getClassLibrary().all();
+    public JavaClass[] getJavaClasses() {
+        Collection classes = m_javaDocParser.getClassLibrary().all();
         Collection javaClasses = new ArrayList();
         String className;
         for (Iterator it = classes.iterator(); it.hasNext();) {
@@ -81,7 +81,7 @@ public class JavaDocParser {
             if (JAVA_LANG_OBJECT_CLASS_NAME.equals(className)) {
                 continue;
             }
-            JavaClass clazz = JAVA_DOC_PARSER.getClassByName(className);
+            JavaClass clazz = m_javaDocParser.getClassByName(className);
             javaClasses.add(clazz);
         }
         return (JavaClass[])javaClasses.toArray(new JavaClass[]{});
