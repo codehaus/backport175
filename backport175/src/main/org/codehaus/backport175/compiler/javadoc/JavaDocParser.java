@@ -63,7 +63,7 @@ public class JavaDocParser {
         try {
             m_javaDocParser.addSource(new File(srcFile));
         } catch (Exception e) {
-            throw new SourceParseException("source file [" + srcFile + "] could not be parsed - current javadoc does not understant Java 5 specific code (annotation, enums etc)", e);
+            throw new SourceParseException("source file [" + srcFile + "] could not be parsed due to: " + e.toString(), e);
         }
     }
 

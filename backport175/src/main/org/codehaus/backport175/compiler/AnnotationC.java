@@ -99,7 +99,7 @@ public class AnnotationC {
         String[] propertiesFiles = (String[])propertiesFilesList.toArray(new String[0]);
 
         compile(
-                "true".equals((String)commandLineOptions.get(COMMAND_LINE_OPTION_VERBOSE)),
+                "true".equals(commandLineOptions.get(COMMAND_LINE_OPTION_VERBOSE)),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRC),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRCFILES),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRCINCLUDES),
@@ -440,7 +440,7 @@ public class AnnotationC {
         System.out.println(
                 "       -src <path to src dir> - provides the list of source directories separated by 'File.pathSeparator'"
         );
-        System.out.println("       -srcpath <list of files> - provides a comma separated list of source files");
+        System.out.println("       -srcfiles <list of files> - provides a comma separated list of source files");
         System.out.println(
                 "       -srcincludes <path to file> - provides the path to a file containing the list of source files (one name per line)"
         );
