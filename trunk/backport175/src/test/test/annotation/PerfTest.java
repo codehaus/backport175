@@ -31,10 +31,10 @@ public class PerfTest {
 
     public static void main(String[] args) {
         org.codehaus.backport175.reader.Annotations.getAnnotation(
-                "test.annotation.Annotations$VoidTyped", method
+                "test.annotation.TestAnnotations$VoidTyped", method
         );
         org.codehaus.backport175.reader.Annotations.getAnnotation(
-                "test.annotation.Annotations$VoidTyped", constructor
+                "test.annotation.TestAnnotations$VoidTyped", constructor
         );
         testNoCache();
         testCache();
@@ -45,7 +45,7 @@ public class PerfTest {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < INVOCATIONS; i++) {
             Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
-                    "test.annotation.Annotations$VoidTyped", method
+                    "test.annotation.TestAnnotations$VoidTyped", method
             );
         }
         long time = System.currentTimeMillis() - startTime;
@@ -57,7 +57,7 @@ public class PerfTest {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < INVOCATIONS; i++) {
             Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
-                    "test.annotation.Annotations$VoidTyped", constructor
+                    "test.annotation.TestAnnotations$VoidTyped", constructor
             );
         }
         long time = System.currentTimeMillis() - startTime;
