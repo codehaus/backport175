@@ -75,4 +75,11 @@ public class RawAnnotation {
     public int hashCode() {
         return m_annotationClass.hashCode();
     }
+
+    public String toString() {
+        StringBuffer sb = new StringBuffer("@");
+        sb.append(getName());
+        sb.append('(').append(getValue()).append(')');
+        return sb.toString();
+    }
 }
