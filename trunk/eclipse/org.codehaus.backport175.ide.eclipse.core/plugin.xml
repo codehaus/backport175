@@ -139,7 +139,7 @@
          point="org.eclipse.ui.ide.markerImageProviders">
       <imageprovider
             markertype="org.codehaus.backport175.ide.eclipse.core.annotation"
-            icon="icons/advice.gif"
+            icon="icons/annotation.gif"
             id="org.codehaus.backport175.ide.eclipse.core.annotation.imageprovider">
       </imageprovider>
    </extension>
