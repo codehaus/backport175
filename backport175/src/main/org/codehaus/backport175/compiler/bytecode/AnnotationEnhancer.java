@@ -360,12 +360,11 @@ public class AnnotationEnhancer {
                 String fieldDesc = getFieldDesc(annotationInfo.field);
                 if (annotationInfo.field.getName().equals(name) &&
                     fieldDesc.equals(desc)) {
-                    final Class annotationInterface = annotationInfo.annotation.getAnnotationClass();
                     final AnnotationVisitor bytecodeMunger = fieldVisitor.visitAnnotation(
-                            Type.getDescriptor(annotationInterface),
+                            Type.getDescriptor(annotationInfo.annotation.getAnnotationClass()),
                             true
                     );
-                    AnnotationParser.parse(bytecodeMunger, annotationInterface, annotationInfo.annotation);
+                    AnnotationParser.parse(bytecodeMunger, annotationInfo.annotation);
                     bytecodeMunger.visitEnd();
                     m_messageHandler.accept(SourceLocation.render(annotationInfo.annotation));
                 }
@@ -384,12 +383,11 @@ public class AnnotationEnhancer {
                 for (Iterator it = m_constructorAnnotations.iterator(); it.hasNext();) {
                     final MethodAnnotationInfo annotationInfo = (MethodAnnotationInfo)it.next();
                     if (getMethodDesc(annotationInfo.method).equals(desc)) {
-                        final Class annIntf = annotationInfo.annotation.getAnnotationClass();
                         final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
-                                Type.getDescriptor(annIntf),
+                                Type.getDescriptor(annotationInfo.annotation.getAnnotationClass()),
                                 true
                         );
-                        AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
+                        AnnotationParser.parse(bytecodeMunger, annotationInfo.annotation);
                         bytecodeMunger.visitEnd();
                         m_messageHandler.accept(SourceLocation.render(annotationInfo.annotation));
                     }
@@ -399,12 +397,17 @@ public class AnnotationEnhancer {
                     final MethodAnnotationInfo annotationInfo = (MethodAnnotationInfo)it.next();
                     if (annotationInfo.method.getName().equals(name) &&
                         getMethodDesc(annotationInfo.method).equals(desc)) {
-                        final Class annIntf = annotationInfo.annotation.getAnnotationClass();
-                        final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
-                                Type.getDescriptor(annIntf),
-                                true
-                        );
-                        AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
+                        final AnnotationVisitor bytecodeMunger;
+                        if (annotationInfo.annotation.isAnnotationDefaultValue()) {
+                            bytecodeMunger = methodVisitor.visitAnnotationDefault();
+                            AnnotationParser.parse(bytecodeMunger, annotationInfo.annotation, Type.getReturnType(desc).getDescriptor());
+                        } else {
+                            bytecodeMunger = methodVisitor.visitAnnotation(
+                                    Type.getDescriptor(annotationInfo.annotation.getAnnotationClass()),
+                                    true
+                            );
+                            AnnotationParser.parse(bytecodeMunger, annotationInfo.annotation);
+                        }
                         bytecodeMunger.visitEnd();
                         m_messageHandler.accept(SourceLocation.render(annotationInfo.annotation));
                     }
@@ -416,12 +419,11 @@ public class AnnotationEnhancer {
         public void visitEnd() {
             for (Iterator it = m_classAnnotations.iterator(); it.hasNext();) {
                 final RawAnnotation rawAnnotation = (RawAnnotation)it.next();
-                final Class annIntf = rawAnnotation.getAnnotationClass();
                 final AnnotationVisitor bytecodeMunger = visitAnnotation(
-                        Type.getDescriptor(annIntf),
+                        Type.getDescriptor(rawAnnotation.getAnnotationClass()),
                         true
                 );
-                AnnotationParser.parse(bytecodeMunger, annIntf, rawAnnotation);
+                AnnotationParser.parse(bytecodeMunger, rawAnnotation);
                 bytecodeMunger.visitEnd();
                 m_messageHandler.accept(SourceLocation.render(rawAnnotation));
             }

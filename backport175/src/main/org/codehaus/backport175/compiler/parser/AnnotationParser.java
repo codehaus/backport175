@@ -10,6 +10,7 @@ package org.codehaus.backport175.compiler.parser;
 import org.codehaus.backport175.compiler.parser.ast.*;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
 import org.codehaus.backport175.compiler.SourceLocation;
+import org.codehaus.backport175.DefaultValue;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.AnnotationVisitor;
 
@@ -19,6 +20,7 @@ import java.lang.reflect.Array;
  * The annotation visitor. Visits the annotation elements and adds them to the bytecode of the class.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
+ * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class AnnotationParser implements AnnotationParserVisitor {
 
@@ -47,14 +49,22 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * Parses the raw annotation.
      *
      * @param bytecodeMunger
-     * @param annotationInterface
      * @param rawAnnotation
      */
-    public static void parse(
-            final AnnotationVisitor bytecodeMunger,
-            final Class annotationInterface,
-            final RawAnnotation rawAnnotation) {
-        final String interfaceName = annotationInterface.getName();
+    public static void parse(final AnnotationVisitor bytecodeMunger, final RawAnnotation rawAnnotation) {
+        parse(bytecodeMunger, rawAnnotation, null);
+    }
+
+    /**
+     * Parses the raw annotation for an annotation default value, whose type checking depends
+     * on the annotation element method desc if specified.
+     *
+     * @param bytecodeMunger
+     * @param rawAnnotation
+     * @param desc expected type for annotation default value. If null, assume we visit a regular annotation
+     */
+    public static void parse(final AnnotationVisitor bytecodeMunger, final RawAnnotation rawAnnotation, String desc) {
+        final String interfaceName = rawAnnotation.getAnnotationClass().getName().replace('/', '.');
         final String rawAnnotationValue = rawAnnotation.getValue();
 
         final StringBuffer representation = new StringBuffer("@");
@@ -65,7 +75,19 @@ public class AnnotationParser implements AnnotationParserVisitor {
         representation.append(')');
 
         try {
-            final AnnotationParser annotationParser = new AnnotationParser(bytecodeMunger, annotationInterface);
+            final AnnotationParser annotationParser;
+            if (desc != null) {
+                annotationParser = new AnnotationDefaultValueParser(
+                    bytecodeMunger,
+                    rawAnnotation.getAnnotationClass(),
+                    desc
+                );
+            } else {
+                annotationParser = new AnnotationParser(
+                        bytecodeMunger,
+                        rawAnnotation.getAnnotationClass()
+                );
+            }
             annotationParser.visit(PARSER.parse(representation.toString()), null);
         } catch (AnnotationValidationException ave) {
             // update the source location
@@ -235,7 +257,6 @@ public class AnnotationParser implements AnnotationParserVisitor {
         return null;
     }
 
-
     /**
      * Returns the expected type for an annotation value.
      *
@@ -298,7 +319,9 @@ public class AnnotationParser implements AnnotationParserVisitor {
 
         AnnotationValidator.validateAnnotation(newCtx);
 
-        handleAnnotation(node, newCtx);
+        AnnotationParser newParser = new AnnotationParser(newMunger, annotationType);
+        newParser.handleAnnotation(node, newCtx);
+
         newMunger.visitEnd();
     }
 
@@ -335,7 +358,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             isComponentPrimitive = false;
             try {
-                componentClass = Class.forName(componentClassName, false, ClassLoader.getSystemClassLoader());
+                componentClass = forName(componentClassName, ctx.annotationType);
             } catch (ClassNotFoundException e) {
                 throw new ParseException(
                         "could not load class [" + componentClassName + "] due to: " + e.toString(), e
@@ -369,7 +392,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         String className = identifier.substring(0, index);
         String fieldName = identifier.substring(index + 1, identifier.length());
         try {
-            Class clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+            Class clazz = forName(className, ctx.annotationType);
             ctx.munger.visitEnum(ctx.elementName, Type.getDescriptor(clazz), fieldName);
         } catch (Exception e) {
             throw new ParseException(
@@ -396,8 +419,128 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * @param bytecodeVisitor
      * @param annotationClass
      */
-    protected AnnotationParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass) {
+    private AnnotationParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass) {
         m_bytecodeMunger = bytecodeVisitor;
         m_annotationClass = annotationClass;
+    }
+
+    /**
+     * A specific parser that does type checking based on the annotation element method to handle
+     * annotation default value
+     *
+     * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+     */
+    private static class AnnotationDefaultValueParser extends AnnotationParser {
+
+        /**
+         * The annotation value expected type descripor
+         */
+        private final String m_typeDesc;
+
+        /**
+         * The annotation value expected class, lazily set upon first lookup
+         */
+        private Class m_typeClassLazy = null;
+
+        /**
+         * Constructor
+         *
+         * @param bytecodeVisitor
+         * @param annotationClass
+         * @param desc
+         */
+        private AnnotationDefaultValueParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass, final String desc) {
+            super(bytecodeVisitor, annotationClass);
+            m_typeDesc = desc;
+        }
+
+        /**
+         * Returns the expected type for an annotation value.
+         *
+         * @param annotationInterface
+         * @param valueName
+         * @return the expected type
+         */
+        protected Class getElementTypeFor(final Class annotationInterface, final String valueName) {
+            if (annotationInterface == null) {
+                throw new IllegalArgumentException("annotation interface can not be null");
+            }
+            if (valueName == null) {
+                throw new IllegalArgumentException("value name can not be null");
+            }
+            if (!valueName.equals(DEFAULT_VALUE_NAME)) {
+                throw new IllegalArgumentException("value name must be 'value' for annotation default value");
+            }
+            if (m_typeClassLazy == null) {
+                m_typeClassLazy = getClassFromTypeDesc(m_typeDesc, m_annotationClass);
+            }
+
+            return m_typeClassLazy;
+        }
+    }
+
+    /**
+     * Returns the class for a given type descriptor, looking from the annotationClass class loader
+     *
+     * @param typeDesc
+     * @param annotationClass
+     * @return
+     */
+    private static Class getClassFromTypeDesc(String typeDesc, Class annotationClass) {
+        Type type = Type.getType(typeDesc);
+        int dimension = typeDesc.startsWith("[")?type.getDimensions():0;
+        Type componentType = typeDesc.startsWith("[")?type.getElementType():type;
+
+        Class componentClass;
+        if (componentType.equals(Type.LONG_TYPE)) {
+            componentClass = long.class;
+        } else if (componentType.equals(Type.INT_TYPE)) {
+            componentClass = int.class;
+        } else if (componentType.equals(Type.SHORT_TYPE)) {
+            componentClass = short.class;
+        } else if (componentType.equals(Type.DOUBLE_TYPE)) {
+            componentClass = double.class;
+        } else if (componentType.equals(Type.FLOAT_TYPE)) {
+            componentClass = float.class;
+        } else if (componentType.equals(Type.BYTE_TYPE)) {
+            componentClass = byte.class;
+        } else if (componentType.equals(Type.CHAR_TYPE)) {
+            componentClass = char.class;
+        } else if (componentType.equals(Type.BOOLEAN_TYPE)) {
+            componentClass = boolean.class;
+        } else if (componentType.equals(Type.getType(String.class))) {
+            componentClass = String.class;
+        } else {
+            try {
+                componentClass = forName(componentType.getClassName(), annotationClass);
+            } catch (ClassNotFoundException e) {
+                throw new ParseException("could not load class for type [" + typeDesc + "] due to: " + e.toString(), e);
+            }
+        }
+
+        if (dimension <= 0) {
+            return componentClass;
+        } else {
+            Class arrayClass = Array.newInstance(componentClass, new int[dimension]).getClass();
+            return arrayClass;
+        }
+    }
+
+    /**
+     * Do a Class.forName, from the annotation class loader or the thread class loader
+     * if the annotation belongs to boot class loader.
+     *
+     * @param name the class name to load
+     * @param annotationClass the annotation class to look from
+     * @return
+     */
+    private static Class forName(String name, Class annotationClass) throws ClassNotFoundException {
+        final ClassLoader loader;
+        if (annotationClass.getClassLoader() != null) {
+            loader = annotationClass.getClassLoader();
+        } else {
+            loader = Thread.currentThread().getContextClassLoader();
+        }
+        return Class.forName(name, false, loader);
     }
 }
