@@ -43,10 +43,10 @@ public class BpProjectComponent implements ProjectComponent, JDOMExternalizable 
      * @param project
      */
     public BpProjectComponent(Project project) {
-        m_project = project;
-    }
+	BpLog.logTrace("ctor " + project);
 
-    public void projectOpened() {
+        m_project = project;
+
         m_compiler = new BpCompiler(m_project);
 
         m_compilationStatusListener = new CompilationStatusListener() {
@@ -54,6 +54,9 @@ public class BpProjectComponent implements ProjectComponent, JDOMExternalizable 
                 m_compiler.addMarkers();
             }
         };
+    }
+
+    public void projectOpened() {
     }
 
     public void projectClosed() {
@@ -71,7 +74,8 @@ public class BpProjectComponent implements ProjectComponent, JDOMExternalizable 
     }
 
     public void readExternal(Element element) throws InvalidDataException {
-        m_isActivated = JDOMExternalizer.readBoolean(element, getComponentName()+":isActivated");
+        boolean config = JDOMExternalizer.readBoolean(element, getComponentName()+":isActivated");
+	changeTo(config); 
     }
 
     public void writeExternal(Element element) throws WriteExternalException {
@@ -83,6 +87,7 @@ public class BpProjectComponent implements ProjectComponent, JDOMExternalizable 
     }
 
     private void changeTo(boolean activate) {
+	BpLog.logTrace("to " + activate + " for " + m_project + " / " + m_isActivated);
         if (activate != m_isActivated) {
             CompilerManager compilerManager = CompilerManager.getInstance(m_project);
             if (activate) {

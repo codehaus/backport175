@@ -52,7 +52,7 @@ public class BufferedMessageHandler implements MessageHandler {
     }
 
     public void info(String string) {
-        ;// don't care
+        BpLog.logTrace(string);// don't care
     }
 
     public void error(CompilerException compilerException) {

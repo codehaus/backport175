@@ -1,9 +1,10 @@
 <!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
 <idea-plugin>
-  <name>Plugin name here</name>
-  <description>short description of the plugin</description>
+  <name>Backport175</name>
+  <description>Backport175 Annotation compiler</description>
   <version>1.0</version>
-  <vendor>YourCompany</vendor>
+  <vendor>Jonas Bonér, Alexandre Vasseur, http://backport175.codehaus.org</vendor>
+
   <idea-version since-build="3000"/>
 
     <project-components>

@@ -16,7 +16,7 @@ import com.intellij.openapi.compiler.TimestampValidityState;
 import com.intellij.openapi.compiler.ValidityStateFactory;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
@@ -79,7 +79,7 @@ public class BpCompiler implements ClassInstrumentingCompiler {
         // when Anno interface changes
         List item = new ArrayList();
         CompileScope compileScope = compileContext.getCompileScope();
-        VirtualFile[] files = compileScope.getFiles(StdFileTypes.JAVA, true);
+        VirtualFile[] files = compileScope.getFiles(FileTypeManager.getInstance().getFileTypeByExtension("JAVA"), true);
         for (int i = 0; i < files.length; i++) {
             final VirtualFile file = files[i];
             item.add(
@@ -95,6 +95,8 @@ public class BpCompiler implements ClassInstrumentingCompiler {
             );
         }
 
+        BpLog.logTrace("getProcessingItems.." + item.size());
+
         return (ProcessingItem[]) item.toArray(new ProcessingItem[]{});
     }
 
@@ -105,7 +107,9 @@ public class BpCompiler implements ClassInstrumentingCompiler {
         // correctly compiled
         final List processedItems = new ArrayList();
 
-        for (int i = 0; i < processingItems.length; i++) {
+        BpLog.logTrace("process.." + processingItems.length);
+
+	for (int i = 0; i < processingItems.length; i++) {
             final ProcessingItem processingItem = processingItems[i];
             try {
                 // run in an IDEA read action since we access VirtualFiles..
@@ -113,6 +117,13 @@ public class BpCompiler implements ClassInstrumentingCompiler {
                         new ActionRunner.InterruptibleRunnable() {
                     public void run() throws Exception {
                         VirtualFile vf = processingItem.getFile();
+			
+			BpLog.logTrace("do " + vf.getPath());
+
+			//IDEA v4.5
+			// we end up in having non java files here.. despite getProcessingItems()
+			if (vf.getPath().endsWith(".java")) {
+			
 
                         compileContext.addMessage(
                                 CompilerMessageCategory.INFORMATION,
@@ -202,6 +213,11 @@ public class BpCompiler implements ClassInstrumentingCompiler {
                         if (!vfHasError) {
                             processedItems.add(processingItem);
                         }
+
+			} // end if ".java"
+			else {
+				BpLog.logTrace("skip " + vf.getPath());
+			}
                     }
                 }
                 );
@@ -274,6 +290,13 @@ public class BpCompiler implements ClassInstrumentingCompiler {
         return "Backport175 AnnotationC compiler";
     }
 
+
+    // IDEA v4
+    public boolean validateConfiguration() {
+        return true;
+    }
+
+    // IDEA v5
     public boolean validateConfiguration(CompileScope compileScope) {
         //        // debug some
         //        VirtualFile[] files = compileScope.getFiles(StdFileTypes.JAVA, true);
