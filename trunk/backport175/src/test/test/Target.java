@@ -7,6 +7,10 @@
  **************************************************************************************/
 package test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+
 /**
  * @test.reader.TestAnnotations.VoidTyped
  * @Simple(val="foo", s="bar")
@@ -67,12 +71,24 @@ public class Target {
      *      typeArr={test.Target[].class, test.Target.class}
      * )
      */
-//    @Target.Test(test="test")
     public void method() {
     }
 
-//    @java.lang.reader.Retention(java.lang.reader.RetentionPolicy.RUNTIME)
-//    public static @interface Test {
-//        String test();
-//    }
+
+    public static final Field FIELD;
+    public static final Method METHOD;
+    public static final Constructor CONSTRUCTOR;
+
+    static {
+        try {
+            FIELD = Target.class.getDeclaredField("field");
+            METHOD = Target.class.getDeclaredMethod("method", new Class[]{});
+            CONSTRUCTOR = Target.class.getDeclaredConstructor(new Class[]{});
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.toString());
+        }
+    }
+
+
 }

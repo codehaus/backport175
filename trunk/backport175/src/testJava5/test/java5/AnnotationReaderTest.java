@@ -19,58 +19,85 @@ import java.lang.reflect.Constructor;
  */
 public class AnnotationReaderTest extends TestCase {
 
-    private static final Field field;
-    private static final Method method;
-    private static final Constructor constructor;
-
-    static {
-        try {
-            field = Target.class.getDeclaredField("field");
-            method = Target.class.getDeclaredMethod("method", new Class[]{});
-            constructor = Target.class.getDeclaredConstructor(new Class[]{});
-        } catch (Exception e) {
-            fail(e.toString());
-            throw new RuntimeException(e.toString());
-        }
-    }
-
     public AnnotationReaderTest(String name) {
         super(name);
     }
 
     public void testClassAnnReflection() {
-        Class klass = Target.class;
-        java.lang.annotation.Annotation[] annotations = klass.getAnnotations();
-        assertTrue(annotations.length > 1);
+        java.lang.annotation.Annotation[] annotations = Target5.class.getAnnotations();
+        assertEquals(1, annotations.length);
     }
 
     public void testMethodAnnReflection() {
-        java.lang.annotation.Annotation[] annotations = method.getAnnotations();
-        assertTrue(annotations.length > 0);
+        java.lang.annotation.Annotation[] annotations = Target5.METHOD.getAnnotations();
+        assertEquals(1, annotations.length);
     }
 
     public void testJava5ClassAnnotation() {
         Annotation reader = org.codehaus.backport175.reader.Annotations.getAnnotation(
-                test.java5.Target.Test.class, Target.class
+                Target5.Test.class, Target5.class
         );
         Class type = reader.annotationType();
-        assertEquals(Target.Test.class, type);
+        assertEquals(Target5.Test.class, type);
 
-        Target.Test test = (Target.Test)reader;
+        Target5.Test test = (Target5.Test)reader;
         assertEquals("test", test.test());
     }
 
     public void testJava5ConstructorAnnotation() {
-        assertFalse(true);
+        Annotation reader = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                Target5.Test.class, Target5.CONSTRUCTOR
+        );
+        Class type = reader.annotationType();
+        assertEquals(Target5.Test.class, type);
+
+        Target5.Test test = (Target5.Test)reader;
+        assertEquals("test", test.test());
     }
 
     public void testJava5MethodAnnotation() {
-        assertFalse(true);
+        Annotation reader = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                Target5.Test.class, Target5.METHOD
+        );
+        Class type = reader.annotationType();
+        assertEquals(Target5.Test.class, type);
+
+        Target5.Test test = (Target5.Test)reader;
+        assertEquals("test", test.test());
     }
 
     public void testJava5FieldAnnotation() {
-        assertFalse(true);
+        Annotation reader = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                Target5.Test.class, Target5.FIELD
+        );
+        Class type = reader.annotationType();
+        assertEquals(Target5.Test.class, type);
+
+        Target5.Test test = (Target5.Test)reader;
+        assertEquals("test", test.test());
     }
+
+    // === for testing Java 5 reflection compatibility ===
+
+    //FIXME does not work right now
+    public void testAnnotationCCompiledClassAnnReflection() {
+        java.lang.annotation.Annotation[] annotations = test.Target.class.getAnnotations();
+        assertTrue(annotations.length > 1);
+    }
+
+
+    //FIXME
+    public void testAnnotationCCompiledMembersAnnReflection() {
+        java.lang.annotation.Annotation[] annotations = test.Target.METHOD.getAnnotations();
+        assertTrue(annotations.length > 0);
+
+        annotations = test.Target.FIELD.getAnnotations();
+        assertTrue(annotations.length > 0);
+
+        annotations = test.Target.CONSTRUCTOR.getAnnotations();
+        assertTrue(annotations.length > 0);
+    }
+
 
     public static void main(String[] args) {
         junit.textui.TestRunner.run(suite());
