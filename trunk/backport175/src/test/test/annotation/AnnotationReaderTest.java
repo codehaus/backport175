@@ -13,6 +13,8 @@ import junit.framework.TestCase;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
@@ -40,14 +42,15 @@ public class AnnotationReaderTest extends TestCase {
         Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
                 "test.annotation.Annotations$Complex", method
         );
-        assertEquals("@test.annotation.Annotations$Complex("+
-                     "i=111, " +
-                     "doubleArr=[1.1, 2.2, 3.3, 4.4], " +
-                     "type=double[][][].class, " +
-                     "enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION, " +
-                     "typeArr=[test.annotation.Target[].class, test.annotation.Target.class]" +
-                     ")",
-                     annotation.toString()
+        assertEquals(
+                "@test.annotation.Annotations$Complex(" +
+                "i=111, " +
+                "doubleArr=[1.1, 2.2, 3.3, 4.4], " +
+                "type=double[][][].class, " +
+                "enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION, " +
+                "typeArr=[test.annotation.Target[].class, test.annotation.Target.class]" +
+                ")",
+                annotation.toString()
         );
     }
 
@@ -152,6 +155,23 @@ public class AnnotationReaderTest extends TestCase {
         assertEquals("bar", simpleAnnArray[1].val());
     }
 
+    public void testClassAnnArray() {
+        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
+        Set set = new HashSet();
+        for (int i = 0; i < annotations.length; i++) {
+            set.add(annotations[i].annotationType());
+        }
+        assertTrue(set.contains(Annotations.NestedAnnotationArray.class));
+        assertTrue(set.contains(Annotations.VoidTyped.class));
+        assertTrue(set.contains(Annotations.Complex.class));
+        assertTrue(set.contains(Annotations.StringArray.class));
+        assertTrue(set.contains(Annotations.DefaultString.class));
+        assertTrue(set.contains(Annotations.Simple.class));
+        assertTrue(set.contains(Annotations.NestedAnnotation.class));
+        assertTrue(set.contains(Annotations.LongArray.class));
+        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
+    }
+
     public void testFieldAnn1() {
         Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
                 "test.annotation.Annotations$VoidTyped", field
@@ -251,6 +271,23 @@ public class AnnotationReaderTest extends TestCase {
         Annotations.Simple[] simpleAnnArray = ann.annArr();
         assertEquals("foo", simpleAnnArray[0].val());
         assertEquals("bar", simpleAnnArray[1].val());
+    }
+
+    public void testFieldAnnArray() {
+        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(field);
+        Set set = new HashSet();
+        for (int i = 0; i < annotations.length; i++) {
+            set.add(annotations[i].annotationType());
+        }
+        assertTrue(set.contains(Annotations.NestedAnnotationArray.class));
+        assertTrue(set.contains(Annotations.VoidTyped.class));
+        assertTrue(set.contains(Annotations.Complex.class));
+        assertTrue(set.contains(Annotations.StringArray.class));
+        assertTrue(set.contains(Annotations.DefaultString.class));
+        assertTrue(set.contains(Annotations.Simple.class));
+        assertTrue(set.contains(Annotations.NestedAnnotation.class));
+        assertTrue(set.contains(Annotations.LongArray.class));
+        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(field);
     }
 
     public void testMethodAnn1() {
@@ -360,6 +397,23 @@ public class AnnotationReaderTest extends TestCase {
 
         AnnotationElement.Type enumRef = ann.enumeration();
         assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
+    }
+
+    public void testMethodAnnArray() {
+        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(method);
+        Set set = new HashSet();
+        for (int i = 0; i < annotations.length; i++) {
+            set.add(annotations[i].annotationType());
+        }
+        assertTrue(set.contains(Annotations.NestedAnnotationArray.class));
+        assertTrue(set.contains(Annotations.VoidTyped.class));
+        assertTrue(set.contains(Annotations.Complex.class));
+        assertTrue(set.contains(Annotations.StringArray.class));
+        assertTrue(set.contains(Annotations.DefaultString.class));
+        assertTrue(set.contains(Annotations.Simple.class));
+        assertTrue(set.contains(Annotations.NestedAnnotation.class));
+        assertTrue(set.contains(Annotations.LongArray.class));
+        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(method);
     }
 
     // === for testing Java 5 reflection compatibility ===

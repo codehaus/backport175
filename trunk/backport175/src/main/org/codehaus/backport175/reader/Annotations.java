@@ -22,6 +22,27 @@ import java.lang.reflect.Method;
 public final class Annotations {
 
     /**
+     * Return all the annotations for a specific class.
+     *
+     * @param klass          the java.lang.Class object to find the annotations on.
+     * @return an array with the annotations
+     */
+    public static Annotation[] getAnnotations(final Class klass) {
+        return AnnotationReader.getReaderFor(klass).getAnnotations();
+    }
+
+    /**
+     * Return the annotation with a specific name for a specific class.
+     *
+     * @param annotation the annotation class
+     * @param klass      the java.lang.Class object to find the annotation on.
+     * @return the annotation or null
+     */
+    public static Annotation getAnnotation(final Class annotation, final Class klass) {
+        return getAnnotation(getAnnnotationName(annotation), klass);
+    }
+
+    /**
      * Return the annotation with a specific name for a specific class.
      *
      * @param annotationName the annotation name
@@ -34,14 +55,24 @@ public final class Annotations {
     }
 
     /**
-     * Return the annotation with a specific name for a specific class.
+     * Return all the annotations for a specific method.
+     *
+     * @param method the java.lang.reflect.Method object to find the annotations on.
+     * @return an array with the annotations
+     */
+    public static Annotation[] getAnnotations(final Method method) {
+        return AnnotationReader.getReaderFor(method.getDeclaringClass()).getAnnotations(method);
+    }
+
+    /**
+     * Return the annotation with a specific name for a specific method.
      *
      * @param annotation the annotation class
-     * @param klass      the java.lang.Class object to find the annotation on.
+     * @param method     the java.lang.refect.Method object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Class klass) {
-        return getAnnotation(getAnnnotationName(annotation), klass);
+    public static Annotation getAnnotation(final Class annotation, final Method method) {
+        return getAnnotation(getAnnnotationName(annotation), method);
     }
 
     /**
@@ -57,14 +88,14 @@ public final class Annotations {
     }
 
     /**
-     * Return the annotation with a specific name for a specific method.
+     * Return the annotation with a specific name for a specific constructor.
      *
-     * @param annotation the annotation class
-     * @param method     the java.lang.refect.Method object to find the annotation on.
+     * @param annotation  the annotation class
+     * @param constructor the java.lang.refect.Constructor object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Method method) {
-        return getAnnotation(getAnnnotationName(annotation), method);
+    public static Annotation getAnnotation(final Class annotation, final Constructor constructor) {
+        return getAnnotation(getAnnnotationName(annotation), constructor);
     }
 
     /**
@@ -80,14 +111,24 @@ public final class Annotations {
     }
 
     /**
-     * Return the annotation with a specific name for a specific constructor.
+      * Return all the annotations for a specific field.
+      *
+      * @param field the java.lang.reflect.Field object to find the annotations on.
+      * @return an array with the annotations
+      */
+     public static Annotation[] getAnnotations(final Field field) {
+         return AnnotationReader.getReaderFor(field.getDeclaringClass()).getAnnotations(field);
+     }
+
+    /**
+     * Return the annotation with a specific name for a specific field.
      *
-     * @param annotation  the annotation class
-     * @param constructor the java.lang.refect.Constructor object to find the annotation on.
+     * @param annotation the annotation class
+     * @param field      the java.lang.reflect.Field object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Constructor constructor) {
-        return getAnnotation(getAnnnotationName(annotation), constructor);
+    public static Annotation getAnnotation(final Class annotation, final Field field) {
+        return getAnnotation(getAnnnotationName(annotation), field);
     }
 
     /**
@@ -100,17 +141,6 @@ public final class Annotations {
     public static Annotation getAnnotation(final String annotationName, final Field field) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(field.getDeclaringClass());
         return reader.getAnnotation(annotationName, field);
-    }
-
-    /**
-     * Return the annotation with a specific name for a specific field.
-     *
-     * @param annotation the annotation class
-     * @param field      the java.lang.reflect.Field object to find the annotation on.
-     * @return the annotation or null
-     */
-    public static Annotation getAnnotation(final Class annotation, final Field field) {
-        return getAnnotation(getAnnnotationName(annotation), field);
     }
 
     /**

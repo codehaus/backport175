@@ -7,9 +7,9 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler.javadoc;
 
-import com.thoughtworks.qdox.JavaDocBuilder;
 import com.thoughtworks.qdox.model.DocletTag;
 import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.JavaDocBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
