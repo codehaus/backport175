@@ -21,6 +21,7 @@
             description="Backport175 Annotations compilation - http://backport175.codehaus.org"
             id="org.codehaus.backport175.ide.intellij.ToggleBpCompilerAction">
             <add-to-group anchor="after" group-id="BuildMenu" relative-to-action="Compile"/>
+            <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="Compile"/>
         </action>
     </actions>
 

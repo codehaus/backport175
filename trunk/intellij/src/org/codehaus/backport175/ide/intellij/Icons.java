@@ -10,6 +10,8 @@ package org.codehaus.backport175.ide.intellij;
 import javax.swing.*;
 
 /**
+ * Icon helper
+ *
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class Icons {
