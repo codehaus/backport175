@@ -575,7 +575,7 @@ public class AnnotationC {
     }
 
     /**
-     * Handles info and error messages.
+     * Handles message reporting.
      */
     public static interface MessageHandler {
 
@@ -615,23 +615,23 @@ public class AnnotationC {
 
         private boolean m_verbose = false;
 
-        public StdMessageHandler(boolean isVerbose) {
+        public StdMessageHandler(final boolean isVerbose) {
             m_verbose = isVerbose;
         }
 
-        public void info(String message) {
+        public void info(final String message) {
             if (m_verbose) {
                 System.out.println("INFO: " + message);
             }
         }
 
-        public void warning(String message) {
+        public void warning(final String message) {
             if (m_verbose) {
                 System.out.println("WARNING: " + message);
             }
         }
 
-        public void error(CompilerException exception) {
+        public void error(final CompilerException exception) {
             if (exception.getLocation() != null) {
                 System.err.println("ERROR: " + exception.getLocation().toString());
             } else {
@@ -640,7 +640,7 @@ public class AnnotationC {
             exception.printStackTrace();
         }
 
-        public void accept(SourceLocation sourceLocation) {
+        public void accept(final SourceLocation sourceLocation) {
             // FIXME what does this method do?
         }
     }
