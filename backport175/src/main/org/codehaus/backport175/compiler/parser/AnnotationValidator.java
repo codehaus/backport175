@@ -18,119 +18,124 @@ public class AnnotationValidator {
     /**
      * Validates a string value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateString(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateString(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != String.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, String.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, String.class.getName()));
         }
     }
 
     /**
      * Validates a long value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateLong(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateLong(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != long.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, long.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, long.class.getName()));
         }
     }
 
     /**
-     * Validates an integer value type.
+     * Validates a int value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateInteger(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateInteger(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != int.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, int.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, int.class.getName()));
         }
     }
 
     /**
      * Validates a double value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateDouble(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateDouble(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != double.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, double.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, double.class.getName()));
         }
     }
 
     /**
      * Validates a float value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateFloat(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
-        if (expectedType != int.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, float.class.getName(), expectedType)
-            );
+    public static void validateFloat(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
+        if (expectedType != float.class) {
+            throw new AnnotationValidationException(createErrorMessage(ctx, float.class.getName()));
         }
     }
 
     /**
-     * Validates a character value type.
+     * Validates a char value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateCharacter(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateCharacter(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != char.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, char.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, char.class.getName()));
         }
     }
 
     /**
      * Validates a boolean value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateBoolean(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateBoolean(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != boolean.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, boolean.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, boolean.class.getName()));
         }
     }
 
     /**
-     * Validates an array value type.
+     * Validates a boolean value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateArray(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
-        if (expectedType.isArray()) {
+    public static void validateArray(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        if (!ctx.expectedType.isArray()) {
+            throw new AnnotationValidationException(createErrorMessage(ctx, "array type"));
+        }
+        if (ctx.expectedType.getComponentType().isArray()) {
             throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, "array type", expectedType)
+                    "multi-dimensional array types are not supported: " +
+                    createErrorMessage(ctx, "multi-dimensional array")
             );
         }
     }
@@ -138,79 +143,74 @@ public class AnnotationValidator {
     /**
      * Validates an annotation value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateAnnotation(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
-        if (expectedType.isInterface()) { // TODO can we do better than this?
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, "annotation interface type", expectedType)
-            );
+    public static void validateAnnotation(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
+        if (!expectedType.isInterface()) {
+            throw new AnnotationValidationException(createErrorMessage(ctx, "annotation interface type"));
         }
     }
 
     /**
      * Validates a class value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateClass(final Class annotationInterface, final String valueName) {
-        Class expectedType = getExpectedTypeFor(annotationInterface, valueName);
+    public static void validateClass(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
         if (expectedType != Class.class) {
-            throw new AnnotationValidationException(
-                    createErrorMessage(annotationInterface, valueName, Class.class.getName(), expectedType)
-            );
+            throw new AnnotationValidationException(createErrorMessage(ctx, Class.class.getName()));
         }
     }
 
     /**
      * Validates an enum value type.
      *
-     * @param annotationInterface
-     * @param valueName
+     * @param ctx
      */
-    public static void validateEnum(final Class annotationInterface, final String valueName) {
+    public static void validateEnum(final ParseContext ctx) {
         // TODO how to validate enum? needed? enum value can be of ANY type
     }
 
     /**
-     * Returns the expected type for an annotation value.
+     * Returns the expected type, returns component elements for arrays.
      *
-     * @param annotationInterface
-     * @param valueName
-     * @return the expected type
+     * @param ctx
+     * @return
      */
-    private static Class getExpectedTypeFor(final Class annotationInterface, final String valueName) {
-        final Class type;
+    private static Class getExpectedType(final ParseContext ctx) {
         try {
-            type = annotationInterface.getDeclaredMethod(valueName, new Class[]{}).getReturnType();
-        } catch (NoSuchMethodException e) {
-            throw new ParseException(
-                    "no method in annotation interface [" + annotationInterface.getName() +
-                    "] matches the value name [" + valueName + "]"
-            );
+            Class expectedType = ctx.expectedType;
+            if (expectedType.isArray()) {
+                expectedType = expectedType.getComponentType();
+            }
+            return expectedType;
+        } catch (Exception e) {
+            System.out.println("ctx = " + ctx);
+            System.out.println("ctx.elementName = " + ctx.elementName);
+            System.out.println("ctx.expectedType = " + ctx.expectedType);
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            return null;
         }
-        return type;
     }
 
     /**
      * Creates a generic error message.
      *
-     * @param annotationInterface
-     * @param valueName
-     * @param expectedType
-     * @param actualType
+     * @param ctx
+     * @param actualTypeName
      * @return the message
      */
-    private static String createErrorMessage(
-            final Class annotationInterface,
-            final String valueName,
-            final String expectedType,
-            final Class actualType) {
-        return new StringBuffer().append("value [").append(valueName).append("] in annotation [").
-                append(annotationInterface.getName()).append("] does not have correct type: expected [")
-                .append(expectedType).append("] was [").append(actualType.getName()).append("]").toString();
+    private static String createErrorMessage(final ParseContext ctx, final String actualTypeName) {
+        return new StringBuffer().append("value [").append(ctx.elementName).append("] in annotation [").
+                append(ctx.annotationType.getName()).append("] does not have correct type: expected [")
+                .append(ctx.expectedType.getName()).append("] was [").append(actualTypeName).append("]").toString();
     }
 }
