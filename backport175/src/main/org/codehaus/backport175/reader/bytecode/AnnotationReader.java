@@ -842,32 +842,13 @@ public class AnnotationReader {
         final String className = classKey.getName();
         final ClassLoader loader = classKey.getClassLoader();
         final byte[] bytes;
-        BytecodeProvider bytecodeProvider = null;
-//        try {
-//            Object provider = CLASS_SPECIFIC_BYTECODE_PROVIDER.get(classKey);
-//            if (provider != null) {
-//                bytecodeProvider = ((BytecodeProvider) provider);
-//                bytes = bytecodeProvider.getBytecode(className, loader);
-//            } else {
-//                bytecodeProvider = BYTECODE_PROVIDER;
-//                bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
-//            }
-//        } catch (Exception e) {
-//            throw new ReaderException(
-//                    "could not retrieve the bytecode for class [" + className + "] from the bytecode provider [" +
-//                    bytecodeProvider.getClass().getName() + "]", e
-//            );
-//        }
-
         try {
             bytes = getBytecodeFor(className, loader);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new ReaderException(
                     "could not retrieve the bytecode for class [" + className + "]", e
             );
         }
-
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter writer = new ClassWriter(true);
         classReader.accept(new AnnotationRetrievingVisitor(writer), false);
