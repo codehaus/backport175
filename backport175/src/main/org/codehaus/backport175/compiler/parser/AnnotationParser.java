@@ -82,7 +82,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         try {
             final AnnotationParser annotationParser = new AnnotationParser(bytecodeMunger, annotationInterface);
             annotationParser.visit(PARSER.parse(representation.toString()), null);
-        } catch (org.codehaus.backport175.compiler.parser.ast.ParseException e) {
+        } catch (Throwable e) {
             throw new ParseException(
                     "cannot parse annotation [" + representation.toString() + "] due to: " + e.toString(),
                     e,
