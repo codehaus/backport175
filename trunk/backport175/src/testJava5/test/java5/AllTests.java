@@ -5,11 +5,12 @@
  * The software in this package is published under the terms of Apache License Version 2.0 *
  * a copy of which has been included with this distribution in the license.txt file.       *
  *******************************************************************************************/
-package test.annotation;
+package test.java5;
 
 import junit.framework.TestCase;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import test.java5.performance.PerfTest;
 
 /**
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
@@ -17,11 +18,10 @@ import junit.framework.TestSuite;
 public class AllTests extends TestCase {
 
     public static Test suite() {
-        TestSuite suite = new TestSuite("All tests");
+        TestSuite suite = new TestSuite("All tests Java5");
 
+        suite.addTestSuite(PerfTest.class);
         suite.addTestSuite(AnnotationReaderTest.class);
-        suite.addTestSuite(NoDuplicateTest.class);
-        suite.addTestSuite(ProxyTest.class);
 
         return suite;
     }
