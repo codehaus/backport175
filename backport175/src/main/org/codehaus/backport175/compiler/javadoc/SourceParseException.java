@@ -7,6 +7,8 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler.javadoc;
 
+import org.codehaus.backport175.compiler.CompilerException;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
@@ -15,11 +17,7 @@ import java.io.PrintWriter;
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */
-public class SourceParseException extends RuntimeException {
-    /**
-     * Original exception which caused this exception.
-     */
-    private Throwable m_originalException;
+public class SourceParseException extends CompilerException {
 
     /**
      * Sets the message for the exception.
@@ -37,38 +35,6 @@ public class SourceParseException extends RuntimeException {
      * @param throwable the original exception
      */
     public SourceParseException(String message, Throwable throwable) {
-        super(message);
-        m_originalException = throwable;
-    }
-
-    /**
-     * Print the full stack trace, including the original exception.
-     */
-    public void printStackTrace() {
-        printStackTrace(System.err);
-    }
-
-    /**
-     * Print the full stack trace, including the original exception.
-     *
-     * @param ps the byte stream in which to print the stack trace
-     */
-    public void printStackTrace(PrintStream ps) {
-        super.printStackTrace(ps);
-        if (m_originalException != null) {
-            m_originalException.printStackTrace(ps);
-        }
-    }
-
-    /**
-     * Print the full stack trace, including the original exception.
-     *
-     * @param pw the character stream in which to print the stack trace
-     */
-    public void printStackTrace(PrintWriter pw) {
-        super.printStackTrace(pw);
-        if (m_originalException != null) {
-            m_originalException.printStackTrace(pw);
-        }
+        super(message, throwable);
     }
 }

@@ -16,6 +16,7 @@ import org.apache.tools.ant.BuildException;
 import org.codehaus.backport175.compiler.bytecode.AnnotationEnhancer;
 import org.codehaus.backport175.compiler.javadoc.JavaDocParser;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
+import org.codehaus.backport175.compiler.javadoc.SourceParseException;
 import org.codehaus.backport175.compiler.parser.ParseException;
 
 import java.io.BufferedReader;
@@ -225,6 +226,9 @@ public class AnnotationC {
 
             AnnotationC compiler = new AnnotationC(compilationLoader, javaDocParser, repository, handler);
             compiler.doCompile(classPath, destDirToUse);
+        } catch (SourceParseException src) {
+            handler.error(src);
+            return;
         } catch (CompilerException e) {
             handler.error(e);
             return;
@@ -576,5 +580,6 @@ public class AnnotationC {
             }
             exception.printStackTrace();
         }
+
     }
 }

@@ -35,6 +35,7 @@
         <property name="basedir" value="."/>
         <property name="src.dir" value="${basedir}/src"/>
         <property name="test.src.dir" value="${basedir}/src/test"/>
+        <property name="testJava5.src.dir" value="${basedir}/src/testJava5"/>
         <property name="build.dir" value="${basedir}/target"/>
         <property name="lib.dir" value="${basedir}/lib"/>
         <property name="config.dir" value="${basedir}/config"/>
@@ -55,8 +56,12 @@
         <property name="lib.dir" value="${basedir}/lib"/>
         <property name="main.classes" value="${build.dir}/classes"/>
         <property name="test.classes" value="${build.dir}/test-classes"/>
+        <property name="testJava5.classes" value="${build.dir}/testJava5-classes"/>
         <property name="samples.classes" value="${build.dir}/samples-classes"/>
         <property environment="env"/>
+        <condition property="java5" value="yes">
+            <contains string="${java.version}" substring="1.5"/>
+        </condition>
     </target>
     <!-- ============================================================== -->
     <!-- clean -->
@@ -64,11 +69,13 @@
     <target name="clean" depends="init">
         <delete dir="${main.classes}"/>
         <delete dir="${test.classes}"/>
+        <delete dir="${testJava5.classes}"/>
         <delete dir="${samples.classes}"/>
         <delete dir="${build.dir}"/>
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${main.classes}"/>
         <mkdir dir="${test.classes}"/>
+        <mkdir dir="${testJava5.classes}"/>
         <mkdir dir="${samples.classes}"/>
     </target>
     <!-- ============================================================== -->
@@ -103,6 +110,19 @@
             <rule pattern="org.objectweb.asm.**" result="org.codehaus.${name}.@0"/>
         </jarjar>
         <unjar src="${test.classes}.jar" dest="${test.classes}" overwrite="true"/>
+
+        <antcall target="compile:testJava5"/>
+    </target>
+    <target name="compile:testJava5" if="java5">
+        <mkdir dir="${testJava5.classes}"/>
+        <javac destdir="${testJava5.classes}" debug="on">
+            <src path="${testJava5.src.dir}"/>
+            <classpath>
+                <pathelement path="${test.classes}"/>
+                <pathelement path="${main.classes}"/>
+                <path refid="project.class.path"/>
+            </classpath>
+        </javac>
     </target>
     <!-- ============================================================== -->
     <!-- compiles all -->
@@ -151,6 +171,16 @@
         <java fork="true" classname="test.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
+                <pathelement path="${test.classes}"/>
+            </classpath>
+        </java>
+        <antcall target="testJava5"/>
+    </target>
+    <target name="testJava5">
+        <java fork="true" classname="test.java5.AllTests">
+            <classpath>
+                <path refid="project.class.path"/>
+                <pathelement path="${testJava5.classes}"/>
                 <pathelement path="${test.classes}"/>
             </classpath>
         </java>
