@@ -193,11 +193,13 @@ public class AnnotationReader {
      */
     public boolean isAnnotationPresent(final Class annotationType, final Constructor constructor) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
-        if (((Map)m_constructorAnnotationElements.get(key)).containsKey(annotationType.getName())) {
-            return true;
-        } else {
-            return false;
+        Object map = m_constructorAnnotationElements.get(key);
+        if (map != null) {
+            if (((Map)map).containsKey(annotationType.getName())) {
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -235,12 +237,17 @@ public class AnnotationReader {
      */
     public Annotation[] getAnnotations(final Constructor constructor) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
-        final Collection annotationElements = ((Map)m_constructorAnnotationElements.get(key)).values();
-        if (annotationElements.isEmpty()) {
+        Object map = m_constructorAnnotationElements.get(key);
+        if (map != null) {
+            final Collection annotationElements = ((Map)m_constructorAnnotationElements.get(key)).values();
+            if (annotationElements.isEmpty()) {
+                return EMPTY_ANNOTATION_ARRAY;
+            }
+            final Map cache = getAnnotationCacheFor(constructor);
+            return getAnnotations(annotationElements, cache);
+        } else {
             return EMPTY_ANNOTATION_ARRAY;
         }
-        final Map cache = getAnnotationCacheFor(constructor);
-        return getAnnotations(annotationElements, cache);
     }
 
     /**
@@ -251,11 +258,13 @@ public class AnnotationReader {
      */
     public boolean isAnnotationPresent(final Class annotationType, final Method method) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
-        if (((Map)m_methodAnnotationElements.get(key)).containsKey(annotationType.getName())) {
-            return true;
-        } else {
-            return false;
+        Object map = m_methodAnnotationElements.get(key);
+        if (map != null) {
+            if (((Map)m_methodAnnotationElements.get(key)).containsKey(annotationType.getName())) {
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -297,12 +306,17 @@ public class AnnotationReader {
      */
     public Annotation[] getAnnotations(final Method method) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
-        final Collection annotationElements = ((Map)m_methodAnnotationElements.get(key)).values();
-        if (annotationElements.isEmpty()) {
+        Object map = m_methodAnnotationElements.get(key);
+        if (map != null) {
+            final Collection annotationElements = ((Map)map).values();
+            if (annotationElements.isEmpty()) {
+                return EMPTY_ANNOTATION_ARRAY;
+            }
+            final Map cache = getAnnotationCacheFor(method);
+            return getAnnotations(annotationElements, cache);
+        } else {
             return EMPTY_ANNOTATION_ARRAY;
         }
-        final Map cache = getAnnotationCacheFor(method);
-        return getAnnotations(annotationElements, cache);
     }
 
     /**
@@ -313,11 +327,13 @@ public class AnnotationReader {
      */
     public boolean isAnnotationPresent(final Class annotationType, final Field field) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
-        if (((Map)m_fieldAnnotationElements.get(key)).containsKey(annotationType.getName())) {
-            return true;
-        } else {
-            return false;
+        Object map = m_fieldAnnotationElements.get(key);
+        if (map != null) {
+            if (((Map)map).containsKey(annotationType.getName())) {
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -359,12 +375,17 @@ public class AnnotationReader {
      */
     public Annotation[] getAnnotations(final Field field) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
-        final Collection annotationElements = ((Map)m_fieldAnnotationElements.get(key)).values();
-        if (annotationElements.isEmpty()) {
+        Object map = m_fieldAnnotationElements.get(key);
+        if (map != null) {
+            final Collection annotationElements = ((Map)map).values();
+            if (annotationElements.isEmpty()) {
+                return EMPTY_ANNOTATION_ARRAY;
+            }
+            final Map cache = getAnnotationCacheFor(field);
+            return getAnnotations(annotationElements, cache);
+        } else {
             return EMPTY_ANNOTATION_ARRAY;
         }
-        final Map cache = getAnnotationCacheFor(field);
-        return getAnnotations(annotationElements, cache);
     }
 
     /**
