@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="org.codehaus.backport175.ide.eclipse.core"
+   name="Backport175 Core Plug-in"
+   version="1.0.1"
+   provider-name="Jonas Bonér, Alexandre Vasseur"
+   class="org.codehaus.backport175.ide.eclipse.core.BpCorePlugin">
+
+   <runtime>
+      <library name="backport175-eclipse.jar">
+         <export name="*"/>
+      </library>
+      <library name="lib/backport175-1.0-beta1.jar">
+         <export name="*"/>
+      </library>
+   </runtime>
+
+   <requires>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.ui.intro"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.jdt"/>
+      <import plugin="org.eclipse.jdt.ui"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.eclipse.jdt.ui"/>
+      <import plugin="org.eclipse.debug.core"/>
+      <import plugin="org.eclipse.jdt.debug"/>
+      <import plugin="org.eclipse.jdt.debug.ui"/>
+      <import plugin="org.eclipse.debug.ui"/>
+      <import plugin="org.eclipse.jdt.launching"/>
+      <import plugin="org.eclipse.jdt"/>
+      <import plugin="org.eclipse.ui.intro"/>
+   </requires>
+
+   <extension
+         id="project.BpProjectNature"
+         name="Backport175 Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.codehaus.backport175.ide.eclipse.core.project.BpProjectNature">
+         </run>
+      </runtime>
+      <builder
+            id="org.codehaus.backport175.ide.eclipse.core.project.BpAnnotationBuilder">
+      </builder>
+   </extension>
+   <extension
+         id="project.BpAnnotationBuilder"
+         name="Backport175 Annotations compiler"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run
+               class="org.codehaus.backport175.ide.eclipse.core.project.BpAnnotationBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IProject"
+            adaptable="true"
+            id="actions.ToggleProjectNatureActionDelegateContribution">
+         <visibility>
+            <and>
+               <objectState
+                     name="nature"
+                     value="org.eclipse.jdt.core.javanature">
+               </objectState>
+               <not>
+                  <objectState
+                        name="nature"
+                        value="org.codehaus.backport175.ide.eclipse.core.project.BpProjectNature">
+                  </objectState>
+               </not>
+            </and>
+         </visibility>
+         <action
+               label="Enable Backport175 Annotations"
+               class="org.codehaus.backport175.ide.eclipse.core.actions.ToggleProjectNatureActionDelegate"
+               enablesFor="1"
+               id="actions.ToggleProjectNatureActionDelegate">
+         </action>
+      </objectContribution>
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IProject"
+            adaptable="true"
+            id="actions.ToggleProjectNatureActionDelegateContribution">
+         <visibility>
+            <objectState
+                  name="nature"
+                  value="org.codehaus.backport175.ide.eclipse.core.project.BpProjectNature">
+            </objectState>
+         </visibility>
+         <action
+               label="Disable Backport175 Annotations"
+               class="org.codehaus.backport175.ide.eclipse.core.actions.ToggleProjectNatureActionDelegate"
+               enablesFor="1"
+               id="actions.ToggleProjectNatureActionDelegate">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         id="annotation"
+         name="Annotation"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <persistent
+            value="false">
+      </persistent>
+   </extension>
+   <extension
+         id="annotationProblem"
+         name="AnnotationProblem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="false">
+      </persistent>
+   </extension>
+   <extension
+         name="Annotation image provider"
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            markertype="org.codehaus.backport175.ide.eclipse.core.annotation"
+            icon="icons/advice.gif"
+            id="org.codehaus.backport175.ide.eclipse.core.annotation.imageprovider">
+      </imageprovider>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+            markerType="org.codehaus.backport175.ide.eclipse.core.annotation"
+            class="org.codehaus.backport175.ide.eclipse.ui.AnnotationMarkerResolution">
+      </markerResolutionGenerator>
+   </extension>
+</plugin>
