@@ -219,6 +219,10 @@ public class AnnotationReader {
         // not in cache - create a new DP and put in cache
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
         final Map annotations = (Map)m_constructorAnnotationElements.get(key);
+        if (annotations == null) {
+            // no such annotation
+            return null;
+        }
         Object annotationElement = annotations.get(annotationName);
         if (annotationElement != null) {
             Annotation annotation = ProxyFactory.newAnnotationProxy(
@@ -288,6 +292,10 @@ public class AnnotationReader {
         // not in cache - create a new DP and put in cache
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
         final Map annotations = (Map)m_methodAnnotationElements.get(key);
+        if (annotations == null) {
+            // no such annotation
+            return null;
+        }
         Object annotationElement = annotations.get(annotationName);
         if (annotationElement != null) {
             Annotation annotation = ProxyFactory.newAnnotationProxy(
@@ -357,6 +365,10 @@ public class AnnotationReader {
          // not in cache - create a new DP and put in cache
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
         final Map annotations = (Map)m_fieldAnnotationElements.get(key);
+        if (annotations == null) {
+            // no such annotation
+            return null;
+        }
         Object annotationElement = annotations.get(annotationName);
         if (annotationElement != null) {
             Annotation annotation = ProxyFactory.newAnnotationProxy(

@@ -29,6 +29,7 @@ import com.thoughtworks.qdox.model.*;
  * java.lang.reader.RetentionPolicy.RUNTIME} annotations.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+ * @author <a href="mailto:alex@gnilux.com">Alexandre Vasseur </a>
  */
 public class AnnotationEnhancer {
 
@@ -80,9 +81,20 @@ public class AnnotationEnhancer {
      * @return true if the class was succefully loaded, false otherwise
      */
     public boolean initialize(final String className, final URL[] classPath) {
+        return initialize(className, new URLClassLoader(classPath));
+    }
+
+    /**
+     * Initializes the enhancer. Must always be called before use.
+     *
+     * @param className the class name
+     * @param loader
+     * @return true if the class was succefully loaded, false otherwise
+     */
+    public boolean initialize(final String className, final ClassLoader loader) {
         try {
             m_className = className;
-            m_loader = new URLClassLoader(classPath);
+            m_loader = loader;
             m_classFileName = className.replace('.', '/') + ".class";
             InputStream classAsStream = m_loader.getResourceAsStream(m_classFileName);
             if (classAsStream == null) {
@@ -303,6 +315,23 @@ public class AnnotationEnhancer {
             super(cv);
         }
 
+        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+            // handles runtime retention to expose 1.4 annotations under 1.5
+            boolean hasRetention = false;
+            for (Iterator iterator = m_classAnnotations.iterator(); iterator.hasNext();) {
+                RawAnnotation rawAnnotation = (RawAnnotation) iterator.next();
+                if (rawAnnotation.getName().equals("java.lang.annotation.Retention")) {
+                    hasRetention = true;
+                    break;
+                }
+            }
+            if (hasRetention) {
+                access |= org.objectweb.asm.Opcodes.ACC_ANNOTATION;
+                interfaces = new String[]{"java/lang/annotation/Annotation"};
+            }
+            super.visit(version, access, name, signature, superName, interfaces);
+        }
+
         public FieldVisitor visitField(
                 final int access,
                 final String name,
@@ -521,5 +550,9 @@ public class AnnotationEnhancer {
 
     public String getClassFileName() {
         return m_classFileName;
+    }
+
+    public ClassLoader getClassLoader() {
+        return m_loader;
     }
 }

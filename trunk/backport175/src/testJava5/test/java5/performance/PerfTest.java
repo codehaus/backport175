@@ -23,6 +23,7 @@ public class PerfTest extends TestCase {
     public void setUp() {
         // warm up
         Annotations.getAnnotation("test.reader.TestAnnotations$VoidTyped", Target.METHOD);
+        Target5.METHOD.getAnnotation(Target5.Test.class);
     }
 
     public void testAccessAnnotation() {

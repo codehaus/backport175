@@ -452,6 +452,11 @@ public class AnnotationReaderTest extends TestCase {
         assertFalse(Annotations.isAnnotationPresent(Target.class, Target.METHOD));
     }
 
+    public void testMethodNoSuchAnn() throws Throwable {
+        Method m = AnnotationReaderTest.class.getDeclaredMethod("testToString", new Class[]{});
+        Annotations.getAnnotation("waza", m);
+    }
+
     public void testMethodAnn1() {
         Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$VoidTyped", Target.METHOD
@@ -613,6 +618,25 @@ public class AnnotationReaderTest extends TestCase {
         assertEquals(Target.class, types[1]);
         enumRef = ann.enumeration();
         assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
+    }
+
+    public void testNestedClassAnn() {
+        Annotation annotation = Annotations.getAnnotation(Nested.Anno.class, Nested.class);
+        assertNotNull(annotation);
+        assertEquals("nested", ((Nested.Anno)annotation).value());
+
+        //test enclosing doesn't have it..
+        annotation = Annotations.getAnnotation(Nested.Anno.class, AnnotationReaderTest.class);
+        assertEquals(null, annotation);
+    }
+
+    /**
+     * @test.reader.AnnotationReaderTest.Nested.Anno("nested")
+     */
+    public static class Nested {
+        public static interface Anno {
+            String value();
+        }
     }
 
     public static void main(String[] args) {
