@@ -187,6 +187,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             string = node.getValue();
         }
+        string = unescapeQuotes(string);
 
         ctx.munger.visit(ctx.elementName, string);
         return null;
@@ -543,4 +544,31 @@ public class AnnotationParser implements AnnotationParserVisitor {
         }
         return Class.forName(name, false, loader);
     }
+
+    /**
+     * Unescaped escaped double quotes
+     *  
+     * @param string
+     * @return
+     */
+    private static String unescapeQuotes(String string) {
+        final int index = string.indexOf("\\\"");
+        if (index >= 0) {
+            char[] newString = new char[string.length()-1];
+            int j = 0;
+            for (int i = 0; i < string.length(); i++) {
+                if (i == index) {
+                    newString[j] = '\"';
+                    i++;
+                } else {
+                    newString[j] = string.charAt(i);
+                }
+                j++;
+            }
+            return unescapeQuotes(new String(newString));
+        } else {
+            return string;
+        }
+    }
+
 }

@@ -107,11 +107,23 @@ public class JavaDocParser {
             throw new SourceParseException("annotation not well-formed, needs to end with a closing parenthesis [" + rawAnnotationString + "]");
         }
 
-        final String value;
+        String value;
         if (contentStartIndex != -1) {
             value = rawAnnotationString.substring(contentStartIndex + 1, rawAnnotationString.length() - 1);
         } else {
-            value = "";
+            value = tag.getValue();
+            if (value.length()>0 && !value.startsWith("\"")) {
+                StringBuffer sb = new StringBuffer("\"");
+                for (int i = 0; i < value.length(); i++) {
+                    char c = value.charAt(i);
+                    if (c == '\"') {
+                        sb.append("\\\"");
+                    } else {
+                        sb.append(c);
+                    }
+                }
+                value = sb.append("\"").toString();
+            }
         }
         return new RawAnnotation(annotationClass, value, tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
     }

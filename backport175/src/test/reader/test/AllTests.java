@@ -14,6 +14,7 @@ import test.filtering.MemberFilteringTest;
 import test.noduplicate.NoDuplicateTest;
 import test.proxy.ProxyTest;
 import test.reader.AnnotationReaderTest;
+import test.reader.DocletSyntaxTest;
 import test.primitives.PrimitiveTest;
 import test.nested.NestedTest;
 import test.defaultvalue.DefaultTest;
@@ -34,6 +35,7 @@ public class AllTests extends TestCase {
         suite.addTestSuite(PrimitiveTest.class);
         suite.addTestSuite(NestedTest.class);
         suite.addTestSuite(DefaultTest.class);
+        suite.addTestSuite(DocletSyntaxTest.class);
 
         return suite;
     }
