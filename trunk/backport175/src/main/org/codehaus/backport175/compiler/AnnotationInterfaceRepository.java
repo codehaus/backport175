@@ -39,9 +39,9 @@ public class AnnotationInterfaceRepository {
     /**
      * The handler we report to
      */
-    private AnnotationC.IEventHandler m_handler;
+    private AnnotationC.EventHandler m_handler;
 
-    public AnnotationInterfaceRepository(AnnotationC.IEventHandler handler) {
+    public AnnotationInterfaceRepository(AnnotationC.EventHandler handler) {
         m_handler = handler;
     }
 
@@ -62,7 +62,7 @@ public class AnnotationInterfaceRepository {
                 }
             }
         }
-        m_handler.info("register annotation [" + name + " :: " + interfaceClass + ']', null);
+        m_handler.info("register annotation [" + name + " :: " + interfaceClass + ']');
         m_aliasInterfaceMap.put(name, interfaceClass);
     }
 

@@ -7,8 +7,6 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler;
 
-import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
-
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
@@ -27,7 +25,7 @@ public class CompilerException extends RuntimeException {
     /**
      * Optional location hint
      */
-    protected Location m_location;
+    protected SourceLocation m_sourceLocation;
 
     /**
      * Sets the message for the exception.
@@ -42,11 +40,11 @@ public class CompilerException extends RuntimeException {
      * Sets the message and location for the exception.
      *
      * @param message the message
-     * @param location
+     * @param sourceLocation
      */
-    public CompilerException(final String message, Location location) {
+    public CompilerException(final String message, final SourceLocation sourceLocation) {
         super(message);
-        m_location = location;
+        m_sourceLocation = sourceLocation;
     }
 
     /**
@@ -55,7 +53,7 @@ public class CompilerException extends RuntimeException {
      * @param message   the detail of the error message
      * @param throwable the original exception
      */
-    public CompilerException(String message, Throwable throwable) {
+    public CompilerException(final String message, final Throwable throwable) {
         super(message);
         m_originalException = throwable;
     }
@@ -72,7 +70,7 @@ public class CompilerException extends RuntimeException {
      *
      * @param ps the byte stream in which to print the stack trace
      */
-    public void printStackTrace(PrintStream ps) {
+    public void printStackTrace(final PrintStream ps) {
         super.printStackTrace(ps);
         if (m_originalException != null) {
             m_originalException.printStackTrace(ps);
@@ -84,43 +82,19 @@ public class CompilerException extends RuntimeException {
      *
      * @param pw the character stream in which to print the stack trace
      */
-    public void printStackTrace(PrintWriter pw) {
+    public void printStackTrace(final PrintWriter pw) {
         super.printStackTrace(pw);
         if (m_originalException != null) {
             m_originalException.printStackTrace(pw);
         }
     }
 
-    public Location getLocation() {
-        return m_location;
-    }
-
     /**
-     * Error reporting
+     * Returns the source location for the exception.
+     *
+     * @return
      */
-    public static class Location {
-        public String className;
-        public String file;
-        public int lineNumber;
-        public String annotationClassName;
-
-        public static Location render(RawAnnotation annotation) {
-            Location location = new Location();
-            location.className = annotation.getEnclosingClassName();
-            location.file = annotation.getEnclosingClassFile();
-            location.lineNumber = annotation.getLineNumber();
-            location.annotationClassName = annotation.getName();
-            return location;
-        }
-
-        public String toString() {
-            StringBuffer sb = new StringBuffer();
-            sb.append(className);
-            sb.append(':');
-            sb.append(lineNumber);
-            sb.append(" @");
-            sb.append(annotationClassName);
-            return sb.toString();
-        }
+    public SourceLocation getLocation() {
+        return m_sourceLocation;
     }
 }
