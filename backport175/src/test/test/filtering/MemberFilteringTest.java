@@ -1,0 +1,114 @@
+/*******************************************************************************************
+ * Copyright (c) Jonas Bonér, Alexandre Vasseur. All rights reserved.                      *
+ * http://backport175.codehaus.org                                                         *
+ * --------------------------------------------------------------------------------------- *
+ * The software in this package is published under the terms of Apache License Version 2.0 *
+ * a copy of which has been included with this distribution in the license.txt file.       *
+ *******************************************************************************************/
+package test.filtering;
+
+import junit.framework.TestCase;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+
+/**
+ * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+ */
+public class MemberFilteringTest extends TestCase {
+
+    public static interface A {}
+    public static interface B {}
+
+    private static Field fieldA;
+    private static Field fieldB;
+    private static Method methodA;
+    private static Method methodB;
+    private static Constructor ctorA;
+    private static Constructor ctorB;
+
+    static {
+        try {
+            fieldA = Target.class.getDeclaredField("A");
+            fieldB = Target.class.getDeclaredField("B");
+            ctorA = Target.class.getDeclaredConstructor(new Class[0]);
+            ctorB = Target.class.getDeclaredConstructor(new Class[]{int[][].class, Object[].class, boolean.class});
+            methodA = Target.class.getDeclaredMethod(
+                    "A",
+                    new Class[]{
+                        String.class, int.class, double.class,
+                        float.class, byte.class, char.class,
+                        short.class, long.class, boolean.class
+                    }
+            );
+            methodB = Target.class.getDeclaredMethod(
+                    "B",
+                    new Class[]{
+                        String.class, int.class, double.class,
+                        float.class, byte.class, char.class,
+                        short.class, long.class, boolean.class
+                    }
+            );
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+    }
+
+    public MemberFilteringTest(String name) {
+        super(name);
+    }
+
+    public void testConstructorAnnotationFilter() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, ctorA));
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, ctorB));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, ctorA));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, ctorB));
+    }
+
+    public void testMethodAnnotationFilter() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, methodA));
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, methodB));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, methodA));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, methodB));
+    }
+
+    public void testFieldAnnotationFilter() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, fieldA));
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, fieldB));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, fieldA));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, fieldB));
+    }
+
+    // === for testing Java 5 reflection compatibility ===
+
+//    public void testClassAnnReflection() {
+//        Class klass = Target.class;
+//        java.lang.reader.Annotation[] annotations = klass.getAnnotations();
+//        assertTrue(annotations.length > 1);
+//    }
+//
+//    public void testMethodAnnReflection() {
+//        java.lang.reader.Annotation[] annotations = method.getAnnotations();
+//        assertTrue(annotations.length > 0);
+//    }
+//
+//    public void testReadRealJava5Ann() {
+//        Annotation reader = org.codehaus.backport175.reader.TestAnnotations.getAnnotation(
+//                "test.reader.Target$Test", Target.class
+//        );
+//        Class type = reader.annotationType();
+//        assertEquals(Target.Test.class, type);
+//
+//        Target.Test test = (Target.Test)reader;
+//        assertEquals("test", test.test());
+//    }
+
+    public static void main(String[] args) {
+        junit.textui.TestRunner.run(suite());
+    }
+
+    public static junit.framework.Test suite() {
+        return new junit.framework.TestSuite(MemberFilteringTest.class);
+    }
+}
