@@ -388,7 +388,7 @@ public class AnnotationC {
     }
 
     /**
-     * Processes the doclet tags and creates a raw reader to use for further processing.
+     * Processes the doclet tags and creates a raw annotation to use for further processing.
      *
      * @param tag the doclet tag
      * @param enclosingClassName
@@ -434,7 +434,7 @@ public class AnnotationC {
                 "       -dest <path to destination dir> - optional, if omitted the compiled classes will be written to the initial directory"
         );
         System.out.println(
-                "       -config <property file with aliases to the FQN of the reader interfaces> - optional"
+                "       -config <property file with aliases to the FQN of the annotation interfaces> - optional"
         );
         System.out.println("       -verbose - activates compilation status information");
         System.out.println("");

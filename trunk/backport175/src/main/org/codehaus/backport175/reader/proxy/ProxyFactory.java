@@ -21,11 +21,11 @@ import java.lang.reflect.Proxy;
 public class ProxyFactory {
 
     /**
-     * Creates a new proxy for the reader specified.
+     * Creates a new proxy for the annotation specified.
      *
-     * @param annotation the reader data structure abstraction
+     * @param annotation the annotation data structure abstraction
      * @param loader the class loader for the target class
-     * @return the proxy for the reader
+     * @return the proxy for the annotation
      */
     public static Annotation newAnnotationProxy(final AnnotationElement.Annotation annotation,
                                                 final ClassLoader loader) {
@@ -33,7 +33,7 @@ public class ProxyFactory {
         try {
             interfaceClass = Class.forName(annotation.getInterfaceName(), false, loader);
         } catch (ClassNotFoundException e) {
-            throw new ResolveAnnotationException("reader interface [" + annotation.getInterfaceName() + "] could not be found");
+            throw new ResolveAnnotationException("annotation interface [" + annotation.getInterfaceName() + "] could not be found");
         }
         final InvocationHandler handler = new JavaDocAnnotationInvocationHander(interfaceClass, annotation);
         final Object annotationProxy = Proxy.newProxyInstance(

@@ -621,6 +621,7 @@ public class AnnotationReader {
          * Swap to the 'tracing' visitor for simple debugging.
          *
          * @param annotation
+         * 
          * @return
          */
         private AnnotationVisitor createAnnotationVisitor(final AnnotationElement.Annotation annotation) {
