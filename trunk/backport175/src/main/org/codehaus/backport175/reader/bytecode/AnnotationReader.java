@@ -30,13 +30,15 @@ import java.lang.reflect.Constructor;
 public class AnnotationReader {
 
     private static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
+    private static final AnnotationElement.Annotation[] EMPTY_ANNOTATION_ELEMENT_ARRAY =
+            new AnnotationElement.Annotation[0];
     private static final String INIT_METHOD_NAME = "<init>";
 
     public static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
     private static final Map READERS = new WeakHashMap();
 
-    private final WeakReference m_classRef;
+    private final ClassInfo m_classInfo;
 
     // ===========================================================================
     // Implementation notes:
@@ -84,12 +86,37 @@ public class AnnotationReader {
      * @return the annotation reader
      */
     public static AnnotationReader getReaderFor(final Class klass) {
+        return getReaderFor(new ClassInfo(klass.getName(), klass.getClassLoader()));
+    }
+
+    /**
+     * Returns the annotation reader for the class specified.
+     * <p/>
+     * The annotation reader is created and cached if non-existant.
+     *
+     * @param className
+     * @param loader
+     * @return the annotation reader
+     */
+    public static AnnotationReader getReaderFor(final String className, final ClassLoader loader) {
+        return getReaderFor(new ClassInfo(className, loader));
+    }
+
+    /**
+     * Returns the annotation reader for the class specified.
+     * <p/>
+     * The annotation reader is created and cached if non-existant.
+     *
+     * @param classInfo
+     * @return the annotation reader
+     */
+    public static AnnotationReader getReaderFor(final ClassInfo classInfo) {
         final AnnotationReader reader;
-        Object value = READERS.get(klass);
+        Object value = READERS.get(classInfo);
         if (value == null) {
             synchronized (READERS) {
-                reader = new AnnotationReader(klass);
-                READERS.put(klass, reader);
+                reader = new AnnotationReader(classInfo);
+                READERS.put(classInfo, reader);
             }
         } else {
             reader = (AnnotationReader)value;
@@ -106,6 +133,21 @@ public class AnnotationReader {
      */
     public static void refresh(final Class klass) {
         AnnotationReader reader = getReaderFor(klass);
+        synchronized (reader) {
+            reader.refresh();
+        }
+    }
+
+    /**
+     * Resets the annotation reader for the class specified and triggers a new parsing of the newly read bytecode.
+     * <p/>
+     * This method calls <code>parse</code> and is therefore all the is needed to invoke to get a fully updated reader.
+     *
+     * @param className
+     * @param loader
+     */
+    public static void refresh(final String className, final ClassLoader loader) {
+        AnnotationReader reader = getReaderFor(className, loader);
         synchronized (reader) {
             reader.refresh();
         }
@@ -140,11 +182,11 @@ public class AnnotationReader {
     /**
      * Checks if an annotation is present at a specific class.
      *
-     * @param annotationType the annotation type
+     * @param annotationName the annotation name
      * @return true if the annotation is present else false
      */
-    public boolean isAnnotationPresent(final Class annotationType) {
-        return m_classAnnotationElements.containsKey(annotationType.getName());
+    public boolean isAnnotationPresent(final String annotationName) {
+        return m_classAnnotationElements.containsKey(annotationName);
     }
 
     /**
@@ -162,10 +204,7 @@ public class AnnotationReader {
             final AnnotationElement.Annotation annotationInfo =
                     (AnnotationElement.Annotation)m_classAnnotationElements.get(annotationName);
             if (annotationInfo != null) {
-                annotation = ProxyFactory.newAnnotationProxy(
-                        annotationInfo,
-                        ((Class)m_classRef.get()).getClassLoader()
-                );
+                annotation = ProxyFactory.newAnnotationProxy(annotationInfo, m_classInfo.getClassLoader());
                 m_classAnnotationCache.put(annotationName, annotation);
                 return annotation;
             } else {
@@ -190,14 +229,15 @@ public class AnnotationReader {
     /**
      * Checks if an annotation is present at a specific constructor.
      *
-     * @param annotationType the annotation type
+     * @param annotationName the annotation name
+     * @param constructor    the java.lang.reflect.Constructor object to find the annotations on.
      * @return true if the annotation is present else false
      */
-    public boolean isAnnotationPresent(final Class annotationType, final Constructor constructor) {
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
+    public boolean isAnnotationPresent(final String annotationName, final Constructor constructor) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(constructor);
         Object map = m_constructorAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationType.getName())) {
+            if (((Map)map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -207,7 +247,8 @@ public class AnnotationReader {
     /**
      * Returns the constructor annotation with the name specified for the constructor specified.
      *
-     * @param annotationName
+     * @param annotationName the annotation name
+     * @param constructor    the java.lang.reflect.Constructor object to find the annotations on.
      * @return the constructor annotation
      */
     public Annotation getAnnotation(final String annotationName, final Constructor constructor) {
@@ -217,7 +258,7 @@ public class AnnotationReader {
             return (Annotation)cachedAnnotation;
         }
         // not in cache - create a new DP and put in cache
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(constructor);
         final Map annotations = (Map)m_constructorAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
@@ -242,7 +283,7 @@ public class AnnotationReader {
      * @return an array with the constructor annotations
      */
     public Annotation[] getAnnotations(final Constructor constructor) {
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(constructor);
         Object map = m_constructorAnnotationElements.get(key);
         if (map != null) {
             final Collection annotationElements = ((Map)m_constructorAnnotationElements.get(key)).values();
@@ -259,14 +300,15 @@ public class AnnotationReader {
     /**
      * Checks if an annotation is present at a specific method.
      *
-     * @param annotationType the annotation type
+     * @param annotationName the annotation name
+     * @param method         the java.lang.reflect.Method object to find the annotations on.
      * @return true if the annotation is present else false
      */
-    public boolean isAnnotationPresent(final Class annotationType, final Method method) {
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
+    public boolean isAnnotationPresent(final String annotationName, final Method method) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(method);
         Object map = m_methodAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)m_methodAnnotationElements.get(key)).containsKey(annotationType.getName())) {
+            if (((Map)m_methodAnnotationElements.get(key)).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -276,7 +318,8 @@ public class AnnotationReader {
     /**
      * Returns the method annotation with the name specified for the method specified.
      *
-     * @param annotationName
+     * @param annotationName the annotation name
+     * @param method         the java.lang.reflect.Method object to find the annotations on.
      * @return the method annotation
      */
     public Annotation getAnnotation(final String annotationName, final Method method) {
@@ -290,7 +333,7 @@ public class AnnotationReader {
             return (Annotation)cachedAnnotation;
         }
         // not in cache - create a new DP and put in cache
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(method);
         final Map annotations = (Map)m_methodAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
@@ -315,7 +358,7 @@ public class AnnotationReader {
      * @return an array with the method annotations
      */
     public Annotation[] getAnnotations(final Method method) {
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(method);
         Object map = m_methodAnnotationElements.get(key);
         if (map != null) {
             final Collection annotationElements = ((Map)map).values();
@@ -332,14 +375,15 @@ public class AnnotationReader {
     /**
      * Checks if an annotation is present at a specific field.
      *
-     * @param annotationType the annotation type
+     * @param annotationName the annotation name
+     * @param field          the java.lang.reflect.Field object to find the annotations on.
      * @return true if the annotation is present else false
      */
-    public boolean isAnnotationPresent(final Class annotationType, final Field field) {
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
+    public boolean isAnnotationPresent(final String annotationName, final Field field) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(field);
         Object map = m_fieldAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationType.getName())) {
+            if (((Map)map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -349,7 +393,8 @@ public class AnnotationReader {
     /**
      * Returns the field annotation with the name specified for the field specified.
      *
-     * @param annotationName
+     * @param annotationName the annotation name
+     * @param field          the java.lang.reflect.Field object to find the annotations on.
      * @return the field annotation
      */
     public Annotation getAnnotation(final String annotationName, final Field field) {
@@ -362,8 +407,8 @@ public class AnnotationReader {
         if (cachedAnnotation != null) {
             return (Annotation)cachedAnnotation;
         }
-         // not in cache - create a new DP and put in cache
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
+        // not in cache - create a new DP and put in cache
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(field);
         final Map annotations = (Map)m_fieldAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
@@ -388,7 +433,7 @@ public class AnnotationReader {
      * @return an array with the field annotations
      */
     public Annotation[] getAnnotations(final Field field) {
-        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(field);
         Object map = m_fieldAnnotationElements.get(key);
         if (map != null) {
             final Collection annotationElements = ((Map)map).values();
@@ -399,6 +444,199 @@ public class AnnotationReader {
             return getAnnotations(annotationElements, cache);
         } else {
             return EMPTY_ANNOTATION_ARRAY;
+        }
+    }
+
+    /**
+     * Checks if an annotation is present at a specific constructor.
+     *
+     * @param annotationName the annotation name
+     * @param desc           the constructor desc
+     * @return true if the annotation is present else false
+     */
+    public boolean isConstructorAnnotationPresent(final String annotationName, final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(desc);
+        Object map = m_constructorAnnotationElements.get(key);
+        if (map != null) {
+            if (((Map)map).containsKey(annotationName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the annotation with the name specified for the constructor specified.
+     *
+     * @param annotationName the annotation name
+     * @param desc           the constructor desc
+     * @return the constructor annotation element
+     */
+    public AnnotationElement.Annotation getConstructorAnnotationElement(
+            final String annotationName, final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(desc);
+        final Map annotations = (Map)m_constructorAnnotationElements.get(key);
+        if (annotations == null) {
+            // no such annotation
+            return null;
+        }
+        return (AnnotationElement.Annotation)annotations.get(annotationName);
+    }
+
+    /**
+     * Returns all the constructor annotation elements.
+     *
+     * @param desc the constructor desc
+     * @return an array with the constructor annotation elements
+     */
+    public AnnotationElement.Annotation[] getConstructorAnnotationElements(final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(desc);
+        Object map = m_constructorAnnotationElements.get(key);
+        if (map != null) {
+            final Collection annotations = ((Map)m_constructorAnnotationElements.get(key)).values();
+            if (annotations.isEmpty()) {
+                return EMPTY_ANNOTATION_ELEMENT_ARRAY;
+            }
+            int i = 0;
+            final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
+            for (Iterator it = annotations.iterator(); it.hasNext();) {
+                elementArray[i++] = (AnnotationElement.Annotation)it.next();
+            }
+            return elementArray;
+        } else {
+            return EMPTY_ANNOTATION_ELEMENT_ARRAY;
+        }
+    }
+
+    /**
+     * Checks if an annotation is present at a specific method.
+     *
+     * @param annotationName the annotation name
+     * @param name           the method name
+     * @param desc           the method desc
+     * @return true if the annotation is present else false
+     */
+    public boolean isMethodAnnotationPresent(final String annotationName, final String name, final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(name, desc);
+        Object map = m_methodAnnotationElements.get(key);
+        if (map != null) {
+            if (((Map)map).containsKey(annotationName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the method annotation with the name specified for the method specified.
+     *
+     * @param annotationName the annotation name
+     * @param name           the method name
+     * @param desc           the method desc
+     * @return the method annotation element
+     */
+    public AnnotationElement.Annotation getMethodAnnotationElement(
+            final String annotationName,
+            final String name,
+            final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(name, desc);
+        final Map annotations = (Map)m_methodAnnotationElements.get(key);
+        if (annotations == null) {
+            // no such annotation
+            return null;
+        }
+        return (AnnotationElement.Annotation)annotations.get(annotationName);
+    }
+
+    /**
+     * Returns all the method annotation elements.
+     *
+     * @param name the method name
+     * @param desc the method desc
+     * @return an array with the method annotation elements
+     */
+    public AnnotationElement.Annotation[] getMethodAnnotationElements(final String name, final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(name, desc);
+        Object map = m_methodAnnotationElements.get(key);
+        if (map != null) {
+            final Collection annotations = ((Map)m_methodAnnotationElements.get(key)).values();
+            if (annotations.isEmpty()) {
+                return EMPTY_ANNOTATION_ELEMENT_ARRAY;
+            }
+            int i = 0;
+            final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
+            for (Iterator it = annotations.iterator(); it.hasNext();) {
+                elementArray[i++] = (AnnotationElement.Annotation)it.next();
+            }
+            return elementArray;
+        } else {
+            return EMPTY_ANNOTATION_ELEMENT_ARRAY;
+        }
+    }
+
+    /**
+     * Checks if an annotation is present at a specific field.
+     *
+     * @param annotationName the annotation name
+     * @param name           the field name
+     * @param desc           the field desc
+     * @return true if the annotation is present else false
+     */
+    public boolean isFieldAnnotationPresent(final String annotationName, final String name, final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(name, desc);
+        Object map = m_fieldAnnotationElements.get(key);
+        if (map != null) {
+            if (((Map)map).containsKey(annotationName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the annotation with the name specified for the field specified.
+     *
+     * @param annotationName the annotation name
+     * @param name           the field name
+     * @param desc           the field desc
+     * @return the field annotation element
+     */
+    public AnnotationElement.Annotation getFieldAnnotationElement(
+            final String annotationName,
+            final String name,
+            final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(name, desc);
+        final Map annotations = (Map)m_fieldAnnotationElements.get(key);
+        if (annotations == null) {
+            // no such annotation
+            return null;
+        }
+        return (AnnotationElement.Annotation)annotations.get(annotationName);
+    }
+
+    /**
+     * Returns all the field annotation elements.
+     *
+     * @param name the field name
+     * @param desc the field desc
+     * @return an array with the field annotation elements
+     */
+    public AnnotationElement.Annotation[] getFieldAnnotationElements(final String name, final String desc) {
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(name, desc);
+        Object map = m_fieldAnnotationElements.get(key);
+        if (map != null) {
+            final Collection annotations = ((Map)m_fieldAnnotationElements.get(key)).values();
+            if (annotations.isEmpty()) {
+                return EMPTY_ANNOTATION_ELEMENT_ARRAY;
+            }
+            int i = 0;
+            final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
+            for (Iterator it = annotations.iterator(); it.hasNext();) {
+                elementArray[i++] = (AnnotationElement.Annotation)it.next();
+            }
+            return elementArray;
+        } else {
+            return EMPTY_ANNOTATION_ELEMENT_ARRAY;
         }
     }
 
@@ -420,7 +658,7 @@ public class AnnotationReader {
             return annotations;
         } else {
             // cache not complete - fill it up with the ones missing
-            ClassLoader loader = ((Class)m_classRef.get()).getClassLoader();
+            ClassLoader loader = m_classInfo.getClassLoader();
             i = 0;
             for (Iterator it = annotationElements.iterator(); it.hasNext();) {
                 AnnotationElement.Annotation annotationElement = (AnnotationElement.Annotation)it.next();
@@ -497,22 +735,27 @@ public class AnnotationReader {
         m_constructorAnnotationCache.clear();
         m_methodAnnotationCache.clear();
         m_fieldAnnotationCache.clear();
-        parse((Class)m_classRef.get());
+        parse(m_classInfo);
     }
 
     /**
      * Parses the class bytecode and retrieves the annotations.
      *
-     * @param klass
+     * @param classInfo
      */
-    private void parse(final Class klass) {
-        final String className = klass.getName();
-        final ClassLoader loader = klass.getClassLoader();
+    private void parse(final ClassInfo classInfo) {
+        final String className = classInfo.getName();
+        final ClassLoader loader = classInfo.getClassLoader();
         final byte[] bytes;
         try {
             bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
         } catch (Exception e) {
-            throw new ReaderException("could not retrieve the bytecode from the bytecode provider [" + BYTECODE_PROVIDER.getClass().getName() + "]", e);
+            throw new ReaderException(
+                    "could not retrieve the bytecode from the bytecode provider [" +
+                    BYTECODE_PROVIDER.getClass().getName() +
+                    "]",
+                    e
+            );
         }
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter writer = new ClassWriter(true);
@@ -522,14 +765,14 @@ public class AnnotationReader {
     /**
      * Creates a new instance of the annotation reader, reads from the class specified.
      *
-     * @param klass
+     * @param classInfo
      */
-    private AnnotationReader(final Class klass) {
-        if (klass == null) {
-            throw new IllegalArgumentException("class can not be null");
+    private AnnotationReader(final ClassInfo classInfo) {
+        if (classInfo == null) {
+            throw new IllegalArgumentException("class info can not be null");
         }
-        m_classRef = new WeakReference(klass);
-        parse(klass);
+        m_classInfo = classInfo;
+        parse(classInfo);
     }
 
     /**
@@ -633,7 +876,6 @@ public class AnnotationReader {
          * Swap to the 'tracing' visitor for simple debugging.
          *
          * @param annotation
-         * 
          * @return
          */
         public AnnotationVisitor createAnnotationVisitor(final AnnotationElement.Annotation annotation) {
@@ -751,6 +993,58 @@ public class AnnotationReader {
     }
 
     /**
+     * Contains info about the class being parsed. Holds the class name and a weak ref to the class loader. Also works
+     * as a unique key. Needed since at bytecode parsing time we do not have access to the reflect members, only
+     * strings.
+     *
+     * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+     */
+    public static class ClassInfo {
+        private final String m_name;
+        private final WeakReference m_loaderRef;
+
+        public ClassInfo(final String name, final ClassLoader loader) {
+            m_name = name;
+            m_loaderRef = new WeakReference(loader);
+        }
+
+        public String getName() {
+            return m_name;
+        }
+
+        public ClassLoader getClassLoader() {
+            return (ClassLoader)m_loaderRef.get();
+        }
+
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ClassInfo)) {
+                return false;
+            }
+            final ClassInfo classInfo = (ClassInfo)o;
+            ClassLoader loader1 = (ClassLoader)m_loaderRef.get();
+            ClassLoader loader2 = (ClassLoader)classInfo.m_loaderRef.get();
+            if (loader1 != null ? !loader1.equals(loader2) : loader2 != null) {
+                return false;
+            }
+            if (m_name != null ? !m_name.equals(classInfo.m_name) : classInfo.m_name != null) {
+                return false;
+            }
+            return true;
+        }
+
+        public int hashCode() {
+            int result;
+            result = (m_name != null ? m_name.hashCode() : 0);
+            ClassLoader loader = (ClassLoader)m_loaderRef.get();
+            result = 29 * result + (loader != null ? loader.hashCode() : 0);
+            return result;
+        }
+    }
+
+    /**
      * Unique key for class members (methods, fields and constructors) to be used in hash maps etc.
      * <p/>
      * Needed since at bytecode parsing time we do not have access to the reflect members, only strings.
@@ -761,16 +1055,28 @@ public class AnnotationReader {
         private final String m_name;
         private final String m_desc;
 
-        public static MemberKey newMemberKey(final Constructor method) {
+        public static MemberKey newConstructorKey(final Constructor method) {
             return new MemberKey(INIT_METHOD_NAME, SignatureHelper.getConstructorSignature(method));
         }
 
-        public static MemberKey newMemberKey(final Method method) {
+        public static MemberKey newConstructorKey(final String desc) {
+            return new MemberKey(INIT_METHOD_NAME, desc);
+        }
+
+        public static MemberKey newMethodKey(final Method method) {
             return new MemberKey(method.getName(), SignatureHelper.getMethodSignature(method));
         }
 
-        public static MemberKey newMemberKey(final Field field) {
+        public static MemberKey newMethodKey(final String name, final String desc) {
+            return new MemberKey(name, desc);
+        }
+
+        public static MemberKey newFieldKey(final Field field) {
             return new MemberKey(field.getName(), SignatureHelper.getFieldSignature(field));
+        }
+
+        public static MemberKey newFieldKey(final String name, final String desc) {
+            return new MemberKey(name, desc);
         }
 
         public MemberKey(final String name, final String desc) {
@@ -785,16 +1091,13 @@ public class AnnotationReader {
             if (!(o instanceof MemberKey)) {
                 return false;
             }
-
             final MemberKey memberKey = (MemberKey)o;
-
             if (m_desc != null ? !m_desc.equals(memberKey.m_desc) : memberKey.m_desc != null) {
                 return false;
             }
             if (m_name != null ? !m_name.equals(memberKey.m_name) : memberKey.m_name != null) {
                 return false;
             }
-
             return true;
         }
 

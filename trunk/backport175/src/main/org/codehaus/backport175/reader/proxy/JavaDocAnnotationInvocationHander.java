@@ -86,9 +86,6 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
                 break;
             }
         }
-        if (returnValue == null) {
-            // FIXME handle defaults
-        }
         return returnValue;
     }
 
