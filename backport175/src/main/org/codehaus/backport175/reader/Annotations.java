@@ -29,7 +29,7 @@ public final class Annotations {
      * @return true if the annotation is present else false
      */
     public static boolean isAnnotationPresent(final Class annotationType, final Class target) {
-        return AnnotationReader.getReaderFor(target).isAnnotationPresent(annotationType);
+        return AnnotationReader.getReaderFor(target).isAnnotationPresent(getAnnnotationName(annotationType));
     }
 
     /**
@@ -45,13 +45,13 @@ public final class Annotations {
     /**
      * Return the annotation with a specific name for a specific class.
      *
-     * @param annotation the annotation class
+     * @param annotationType the annotation class
      * @param target      the java.lang.Class object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Class target) {
+    public static Annotation getAnnotation(final Class annotationType, final Class target) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(target);
-        return reader.getAnnotation(getAnnnotationName(annotation));
+        return reader.getAnnotation(getAnnnotationName(annotationType));
     }
 
     /**
@@ -62,7 +62,8 @@ public final class Annotations {
      * @return true if the annotation is present else false
      */
     public static boolean isAnnotationPresent(final Class annotationType, final Method method) {
-        return AnnotationReader.getReaderFor(method.getDeclaringClass()).isAnnotationPresent(annotationType, method);
+        final AnnotationReader reader = AnnotationReader.getReaderFor(method.getDeclaringClass());
+        return reader.isAnnotationPresent(getAnnnotationName(annotationType), method);
     }
 
     /**
@@ -78,13 +79,13 @@ public final class Annotations {
     /**
      * Return the annotation with a specific name for a specific method.
      *
-     * @param annotation the annotation class
+     * @param annotationType the annotation class
      * @param method     the java.lang.refect.Method object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Method method) {
+    public static Annotation getAnnotation(final Class annotationType, final Method method) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(method.getDeclaringClass());
-        return reader.getAnnotation(getAnnnotationName(annotation), method);
+        return reader.getAnnotation(getAnnnotationName(annotationType), method);
     }
 
     /**
@@ -96,7 +97,7 @@ public final class Annotations {
      */
     public static boolean isAnnotationPresent(final Class annotationType, final Constructor constructor) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(constructor.getDeclaringClass());
-        return reader.isAnnotationPresent(annotationType, constructor);
+        return reader.isAnnotationPresent(getAnnnotationName(annotationType), constructor);
     }
 
     /**
@@ -112,13 +113,13 @@ public final class Annotations {
     /**
      * Return the annotation with a specific name for a specific constructor.
      *
-     * @param annotation  the annotation class
+     * @param annotationType  the annotation class
      * @param constructor the java.lang.refect.Constructor object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Constructor constructor) {
+    public static Annotation getAnnotation(final Class annotationType, final Constructor constructor) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(constructor.getDeclaringClass());
-        return reader.getAnnotation(getAnnnotationName(annotation), constructor);
+        return reader.getAnnotation(getAnnnotationName(annotationType), constructor);
     }
 
     /**
@@ -129,7 +130,8 @@ public final class Annotations {
      * @return true if the annotation is present else false
      */
     public static boolean isAnnotationPresent(final Class annotationType, final Field field) {
-        return AnnotationReader.getReaderFor(field.getDeclaringClass()).isAnnotationPresent(annotationType, field);
+        final AnnotationReader reader = AnnotationReader.getReaderFor(field.getDeclaringClass());
+        return reader.isAnnotationPresent(getAnnnotationName(annotationType), field);
     }
 
     /**
@@ -145,22 +147,22 @@ public final class Annotations {
     /**
      * Return the annotation with a specific name for a specific field.
      *
-     * @param annotation the annotation class
+     * @param annotationType the annotation class
      * @param field      the java.lang.reflect.Field object to find the annotation on.
      * @return the annotation or null
      */
-    public static Annotation getAnnotation(final Class annotation, final Field field) {
+    public static Annotation getAnnotation(final Class annotationType, final Field field) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(field.getDeclaringClass());
-        return reader.getAnnotation(getAnnnotationName(annotation), field);
+        return reader.getAnnotation(getAnnnotationName(annotationType), field);
     }
 
     /**
      * Returns the annotation class name in Java style.
      *
-     * @param annotation
+     * @param annotationType
      * @return
      */
-    private static String getAnnnotationName(final Class annotation) {
-        return annotation.getName().replace('/', '.');
+    private static String getAnnnotationName(final Class annotationType) {
+        return annotationType.getName().replace('/', '.');
     }
 }
