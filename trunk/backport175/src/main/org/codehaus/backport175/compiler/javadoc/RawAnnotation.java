@@ -10,6 +10,8 @@ package org.codehaus.backport175.compiler.javadoc;
 /**
  * Raw info about an annotation. Holds the name (the FQN of the annotation interface) of the annotations
  * and its unparsed "content".
+ * <p/>
+ * Note: Two RawAnnotation instances are considered equals when the annotationClass is the same, no matter the value.
  *
  * @author <a href="mailto:alex@gnilux.org">Alexander Vasseur</a>
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
@@ -50,10 +52,27 @@ public class RawAnnotation {
 
     /**
      * Returns the annotation class
-     * 
+     *
      * @return
      */
     public Class getAnnotationClass() {
         return m_annotationClass;
+    }
+
+    //---- hashcode and equals used at compile time to ensure unicity on a member: only Class is needed
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RawAnnotation)) return false;
+
+        final RawAnnotation rawAnnotation = (RawAnnotation) o;
+
+        if (!m_annotationClass.equals(rawAnnotation.m_annotationClass)) return false;
+
+        return true;
+    }
+
+    public int hashCode() {
+        return m_annotationClass.hashCode();
     }
 }

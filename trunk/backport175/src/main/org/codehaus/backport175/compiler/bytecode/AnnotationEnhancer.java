@@ -107,9 +107,12 @@ public class AnnotationEnhancer {
      *
      * @param annotation the annotation
      */
-    public void insertClassAnnotation(final Object annotation) {
+    public void insertClassAnnotation(final RawAnnotation annotation) {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
+        }
+        if (hasClassAnnotation(annotation)) {
+            throw new CompilerException("duplicate annotation " + annotation);
         }
         m_classAnnotations.add(annotation);
     }
@@ -124,6 +127,10 @@ public class AnnotationEnhancer {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
+        FieldAnnotationInfo info = new FieldAnnotationInfo(field, annotation);
+        if (hasFieldAnnotation(info)) {
+            throw new CompilerException("duplicate annotation " + annotation);
+        }
         m_fieldAnnotations.add(new FieldAnnotationInfo(field, annotation));
     }
 
@@ -137,10 +144,15 @@ public class AnnotationEnhancer {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
-        final String[] methodParamTypes = new String[method.getParameters().length];
-        for (int i = 0; i < methodParamTypes.length; i++) {
-            methodParamTypes[i] = convertQDoxTypeNameToJavaTypeName(method.getParameters()[i].getType());
+        MethodAnnotationInfo info = new MethodAnnotationInfo(method, annotation);
+        if (hasMethodAnnotation(info)) {
+            throw new CompilerException("duplicate annotation " + annotation);
         }
+        //FIXME ?? dead code
+//        final String[] methodParamTypes = new String[method.getParameters().length];
+//        for (int i = 0; i < methodParamTypes.length; i++) {
+//            methodParamTypes[i] = convertQDoxTypeNameToJavaTypeName(method.getParameters()[i].getType());
+//        }
         m_methodAnnotations.add(new MethodAnnotationInfo(method, annotation));
     }
 
@@ -154,10 +166,15 @@ public class AnnotationEnhancer {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
-        final String[] methodParamTypes = new String[constructor.getParameters().length];
-        for (int i = 0; i < methodParamTypes.length; i++) {
-            methodParamTypes[i] = convertQDoxTypeNameToJavaTypeName(constructor.getParameters()[i].getType());
+        MethodAnnotationInfo info = new MethodAnnotationInfo(constructor, annotation);
+        if (hasConstructorAnnotation(info)) {
+            throw new CompilerException("duplicate annotation " + annotation);
         }
+        //FIXME dead code
+//        final String[] methodParamTypes = new String[constructor.getParameters().length];
+//        for (int i = 0; i < methodParamTypes.length; i++) {
+//            methodParamTypes[i] = convertQDoxTypeNameToJavaTypeName(constructor.getParameters()[i].getType());
+//        }
         m_constructorAnnotations.add(new MethodAnnotationInfo(constructor, annotation));
     }
 
@@ -238,6 +255,7 @@ public class AnnotationEnhancer {
             for (Iterator it = m_fieldAnnotations.iterator(); it.hasNext();) {
                 final FieldAnnotationInfo annotationInfo = (FieldAnnotationInfo)it.next();
                 final Class annotationInterface = annotationInfo.annotation.getAnnotationClass();
+                //FIXME test field equals BEWARE qdox repr.
                 final AnnotationVisitor bytecodeMunger = fieldVisitor.visitAnnotation(
                         Type.getDescriptor(annotationInterface),
                         true
@@ -257,6 +275,7 @@ public class AnnotationEnhancer {
             MethodVisitor methodVisitor = super.visitMethod(access, name, desc, signature, exceptions);
             if (name.equals(INIT_METHOD_NAME)) {
                 for (Iterator it = m_constructorAnnotations.iterator(); it.hasNext();) {
+                    //FIXME test ctor equals BEWARE qdox repr.
                     final MethodAnnotationInfo annotationInfo = (MethodAnnotationInfo)it.next();
                     final Class annIntf = annotationInfo.annotation.getAnnotationClass();
                     final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
@@ -268,6 +287,7 @@ public class AnnotationEnhancer {
                 }
             } else {
                 for (Iterator it = m_methodAnnotations.iterator(); it.hasNext();) {
+                    //FIXME test method equals BEWARE qdox repr.
                     final MethodAnnotationInfo annotationInfo = (MethodAnnotationInfo)it.next();
                     final Class annIntf = annotationInfo.annotation.getAnnotationClass();
                     final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
@@ -298,6 +318,9 @@ public class AnnotationEnhancer {
     }
 
     /**
+     * Two FieldAnnotationInfo are equals if method equals and annotation class is equals ie RawAnnotation is equals.
+     * Used to ensure no annotation duplicate
+     *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
     private static class FieldAnnotationInfo {
@@ -308,9 +331,31 @@ public class AnnotationEnhancer {
             this.field = field;
             this.annotation = attribute;
         }
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof FieldAnnotationInfo)) return false;
+
+            final FieldAnnotationInfo fieldAnnotationInfo = (FieldAnnotationInfo) o;
+
+            if (!annotation.equals(fieldAnnotationInfo.annotation)) return false;
+            if (!field.equals(fieldAnnotationInfo.field)) return false;
+
+            return true;
+        }
+
+        public int hashCode() {
+            int result;
+            result = annotation.hashCode();
+            result = 29 * result + field.hashCode();
+            return result;
+        }
     }
 
     /**
+     * Two MethodAnnotationInfo are equals if method equals and annotation class is equals ie RawAnnotation is equals.
+     * Used to ensure no annotation duplicate.
+     *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
     private static class MethodAnnotationInfo {
@@ -321,5 +366,72 @@ public class AnnotationEnhancer {
             this.method = method;
             this.annotation = attribute;
         }
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof MethodAnnotationInfo)) return false;
+
+            final MethodAnnotationInfo methodAnnotationInfo = (MethodAnnotationInfo) o;
+
+            if (!annotation.equals(methodAnnotationInfo.annotation)) return false;
+            if (!method.equals(methodAnnotationInfo.method)) return false;
+
+            return true;
+        }
+
+        public int hashCode() {
+            int result;
+            result = annotation.hashCode();
+            result = 29 * result + method.hashCode();
+            return result;
+        }
+    }
+
+    /**
+     * Checks if the class has already the given annotation
+     * <p/>
+     * Note: rely on RawAnnotation.equals
+     *
+     * @param annotation
+     * @return
+     */
+    private boolean hasClassAnnotation(RawAnnotation annotation) {
+        return m_classAnnotations.contains(annotation);
+    }
+
+    /**
+     * Checks if the method has already the given annotation
+     * <p/>
+     * Note: rely on RawAnnotation.equals
+     *
+     * @param annotation
+     * @return
+     */
+    private boolean hasMethodAnnotation(MethodAnnotationInfo annotation) {
+        return m_methodAnnotations.contains(annotation);
+    }
+
+    /**
+     * Checks if the field has already the given annotation
+     * <p/>
+     * Note: rely on RawAnnotation.equals
+     *
+     * @param annotation
+     * @return
+     */
+    private boolean hasFieldAnnotation(FieldAnnotationInfo annotation) {
+        return m_fieldAnnotations.contains(annotation);
+    }
+
+    /**
+     * Checks if the constructor has already the given annotation
+     * <p/>
+     * Note: rely on RawAnnotation.equals
+     *
+     * @param annotation
+     * @return
+     */
+    private boolean hasConstructorAnnotation(MethodAnnotationInfo annotation) {
+        return m_constructorAnnotations.contains(annotation);
     }
 }
