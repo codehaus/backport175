@@ -448,6 +448,29 @@ public class AnnotationReader {
     }
 
     /**
+     * Returns the class annotation element with the name specified.
+     *
+     * @param annotationName
+     * @return the class annotation
+     */
+    public AnnotationElement.Annotation getAnnotationElement(final String annotationName) {
+        return (AnnotationElement.Annotation)m_classAnnotationElements.get(annotationName);
+    }
+
+    /**
+     * Returns all the class annotations.
+     *
+     * @return an array with the class annotations
+     */
+    public AnnotationElement.Annotation[] getAnnotationElements() {
+        final Collection annotations = m_classAnnotationElements.values();
+        if (annotations.isEmpty()) {
+            return EMPTY_ANNOTATION_ELEMENT_ARRAY;
+        }
+        return createAnnotationElementArray(annotations);
+    }
+
+    /**
      * Checks if an annotation is present at a specific constructor.
      *
      * @param annotationName the annotation name
@@ -497,12 +520,7 @@ public class AnnotationReader {
             if (annotations.isEmpty()) {
                 return EMPTY_ANNOTATION_ELEMENT_ARRAY;
             }
-            int i = 0;
-            final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
-            for (Iterator it = annotations.iterator(); it.hasNext();) {
-                elementArray[i++] = (AnnotationElement.Annotation)it.next();
-            }
-            return elementArray;
+            return createAnnotationElementArray(annotations);
         } else {
             return EMPTY_ANNOTATION_ELEMENT_ARRAY;
         }
@@ -563,12 +581,7 @@ public class AnnotationReader {
             if (annotations.isEmpty()) {
                 return EMPTY_ANNOTATION_ELEMENT_ARRAY;
             }
-            int i = 0;
-            final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
-            for (Iterator it = annotations.iterator(); it.hasNext();) {
-                elementArray[i++] = (AnnotationElement.Annotation)it.next();
-            }
-            return elementArray;
+            return createAnnotationElementArray(annotations);
         } else {
             return EMPTY_ANNOTATION_ELEMENT_ARRAY;
         }
@@ -629,16 +642,27 @@ public class AnnotationReader {
             if (annotations.isEmpty()) {
                 return EMPTY_ANNOTATION_ELEMENT_ARRAY;
             }
-            int i = 0;
-            final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
-            for (Iterator it = annotations.iterator(); it.hasNext();) {
-                elementArray[i++] = (AnnotationElement.Annotation)it.next();
-            }
-            return elementArray;
+            return createAnnotationElementArray(annotations);
         } else {
             return EMPTY_ANNOTATION_ELEMENT_ARRAY;
         }
     }
+
+    /**
+     * Creates an annotation element array.
+     *
+     * @param annotations the collection with elements
+     * @return the array
+     */
+    private AnnotationElement.Annotation[] createAnnotationElementArray(final Collection annotations) {
+        int i = 0;
+        final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
+        for (Iterator it = annotations.iterator(); it.hasNext();) {
+            elementArray[i++] = (AnnotationElement.Annotation)it.next();
+        }
+        return elementArray;
+    }
+
 
     /**
      * Returns the annotations for a specific member.
