@@ -74,15 +74,22 @@ public class Target {
     public void method() {
     }
 
+    /**
+     * @Simple
+     */
+    public void method2() {}
+
 
     public static final Field FIELD;
     public static final Method METHOD;
+    public static final Method METHOD2;
     public static final Constructor CONSTRUCTOR;
 
     static {
         try {
             FIELD = Target.class.getDeclaredField("field");
             METHOD = Target.class.getDeclaredMethod("method", new Class[]{});
+            METHOD2 = Target.class.getDeclaredMethod("method2", new Class[]{});
             CONSTRUCTOR = Target.class.getDeclaredConstructor(new Class[]{});
         } catch (Exception e) {
             e.printStackTrace();

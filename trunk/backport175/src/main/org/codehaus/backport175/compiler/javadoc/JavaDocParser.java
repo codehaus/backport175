@@ -16,10 +16,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.codehaus.backport175.compiler.CompilerException;
+import org.codehaus.backport175.compiler.SourceLocation;
+
 /**
  * Parses and retrieves annotations from the JavaDoc in Java source files.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
+ * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class JavaDocParser {
 
@@ -91,41 +95,54 @@ public class JavaDocParser {
      * Extract the raw information of the annotation, the "content" inside the parenthesis).
      *
      * @param annotationClass
+     * @param annotationName
      * @param tag
      * @param enclosingClassName
      * @param enclosingClassFileName
      * @return RawAnnotation or null if not found
      */
-    public static RawAnnotation getRawAnnotation(final Class annotationClass, final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
+    public static RawAnnotation getRawAnnotation(final Class annotationClass, final String annotationName, final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
         String rawAnnotationString = tag.getName() + " " + tag.getValue();
         rawAnnotationString = rawAnnotationString.trim();
-
         removeFormattingCharacters(rawAnnotationString);
 
-        int contentStartIndex = rawAnnotationString.indexOf('(');
-        if (contentStartIndex != -1 && !rawAnnotationString.endsWith(")")) {
-            throw new SourceParseException("annotation not well-formed, needs to end with a closing parenthesis [" + rawAnnotationString + "]");
-        }
-
-        String value;
-        if (contentStartIndex != -1) {
-            value = rawAnnotationString.substring(contentStartIndex + 1, rawAnnotationString.length() - 1);
-        } else {
-            value = tag.getValue();
-            if (value.length()>0 && !value.startsWith("\"")) {
+        if (rawAnnotationString.length() > annotationName.length()) {
+            String rawValueString = rawAnnotationString.substring(annotationName.length());
+            rawValueString = rawValueString.trim();
+            char first = rawValueString.charAt(0);
+            if (first == '(') {
+                if (!rawValueString.endsWith(")")) {
+                    throw new CompilerException("annotation not well-formed, needs to end with a closing parenthesis ["
+                            + rawAnnotationString + "]",
+                            SourceLocation.render(annotationClass, tag, enclosingClassName, enclosingClassFileName)
+                    );
+                }
+                return new RawAnnotation(annotationClass, rawValueString.substring(1, rawValueString.length()-1), tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
+            } else if (first == '"') {
+                if (!rawValueString.endsWith("\"")) {
+                    throw new CompilerException("annotation not well-formed, needs to end with a closing \" ["
+                            + rawAnnotationString + "]",
+                            SourceLocation.render(annotationClass, tag, enclosingClassName, enclosingClassFileName)
+                    );
+                }
+                return new RawAnnotation(annotationClass, rawValueString, tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
+            } else {
+                // escape
                 StringBuffer sb = new StringBuffer("\"");
-                for (int i = 0; i < value.length(); i++) {
-                    char c = value.charAt(i);
+                for (int i = 0; i < rawValueString.length(); i++) {
+                    char c = rawValueString.charAt(i);
                     if (c == '\"') {
                         sb.append("\\\"");
                     } else {
                         sb.append(c);
                     }
                 }
-                value = sb.append("\"").toString();
+                sb.append("\"");
+                return new RawAnnotation(annotationClass, sb.toString(), tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
             }
+        } else {
+            return new RawAnnotation(annotationClass, "", tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
         }
-        return new RawAnnotation(annotationClass, value, tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
     }
 
     /**

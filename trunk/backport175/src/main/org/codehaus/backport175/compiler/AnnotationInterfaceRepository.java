@@ -34,7 +34,7 @@ public class AnnotationInterfaceRepository {
     /**
      * String list of doclet not found, to avoid fallback lookup everytime
      */
-    private final List m_ignoredDocletNames = new ArrayList();
+    private final Set m_ignoredDocletNames = new HashSet();
 
     /**
      * The handler we report to
@@ -162,7 +162,6 @@ public class AnnotationInterfaceRepository {
             annotationInterfaceClass = loadClassHandlingNestedSyntax(annotationName, loader);
             if (annotationInterfaceClass == null) {
                 // add it to ignored ones
-                //TODO log ??
                 m_ignoredDocletNames.add(annotationName);
                 return null;
             } else {
@@ -200,5 +199,14 @@ public class AnnotationInterfaceRepository {
                 return null;
             }
         }
+    }
+
+    /**
+     * Return the set of ignored doclet names - like f.e. "author" for "@author"
+     *
+     * @return
+     */
+    public Set getIgnoredDocletNames() {
+        return m_ignoredDocletNames;
     }
 }

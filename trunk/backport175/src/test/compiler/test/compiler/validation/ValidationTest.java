@@ -107,7 +107,8 @@ public class ValidationTest extends TestCase {
                 new String[]{CLASSPATH},
                 CLASSPATH,
                 new String[]{},
-                MESSAGE_HANDLER
+                MESSAGE_HANDLER,
+                false
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
         assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
@@ -123,7 +124,8 @@ public class ValidationTest extends TestCase {
                 new String[]{CLASSPATH},
                 CLASSPATH,
                 new String[]{},
-                MESSAGE_HANDLER
+                MESSAGE_HANDLER,
+                false
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
         assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
@@ -139,7 +141,8 @@ public class ValidationTest extends TestCase {
                 new String[]{CLASSPATH},
                 CLASSPATH,
                 new String[]{},
-                MESSAGE_HANDLER
+                MESSAGE_HANDLER,
+                false
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
         assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
@@ -156,7 +159,8 @@ public class ValidationTest extends TestCase {
                 new String[]{CLASSPATH},
                 CLASSPATH,
                 new String[]{},
-                MESSAGE_HANDLER
+                MESSAGE_HANDLER,
+                false
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
         assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
@@ -170,7 +174,8 @@ public class ValidationTest extends TestCase {
                 new String[]{CLASSPATH},
                 CLASSPATH,
                 new String[]{},
-                MESSAGE_HANDLER
+                MESSAGE_HANDLER,
+                false
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
         assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());

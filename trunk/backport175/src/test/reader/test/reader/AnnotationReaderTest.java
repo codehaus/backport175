@@ -465,6 +465,17 @@ public class AnnotationReaderTest extends TestCase {
         assertEquals("bar", ann.s());
     }
 
+    public void testMethodAnn3bis() {
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD2.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Simple", Target.METHOD2);
+        Class type = annotation.annotationType();
+        assertEquals(TestAnnotations.Simple.class, type);
+
+        TestAnnotations.Simple ann = (TestAnnotations.Simple)annotation;
+        assertEquals(null, ann.val());
+        assertEquals(null, ann.s());
+    }
+
     public void testMethodAnn4() {
         final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
         Annotation annotation = reader.getAnnotation("test.TestAnnotations$StringArray", Target.METHOD);

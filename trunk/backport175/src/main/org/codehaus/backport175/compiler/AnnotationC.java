@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.Iterator;
 
 /**
  * <p/>Annotation compiler. <p/>Extracts the annotations from JavaDoc tags and inserts them into the bytecode of the
@@ -41,7 +42,8 @@ import java.util.StringTokenizer;
 public class AnnotationC {
     private static final String COMMAND_LINE_OPTION_DASH = "-";
     private static final String COMMAND_LINE_OPTION_VERBOSE = "-verbose";
-    private static final String COMMAND_LINE_OPTION_CUSTOM = "-config";
+    private static final String COMMAND_LINE_OPTION_IGNOREUNKNOWN = "-ignoreUnknown";
+    private static final String COMMAND_LINE_OPTION_CONFIG = "-config";
     private static final String COMMAND_LINE_OPTION_SRC = "-src";
     private static final String COMMAND_LINE_OPTION_SRCFILES = "-srcfiles";
     private static final String COMMAND_LINE_OPTION_SRCINCLUDES = "-srcincludes";
@@ -61,6 +63,11 @@ public class AnnotationC {
     private final ClassLoader m_loader;
 
     /**
+     * Should we ignore unkown annotations
+     */
+    private final boolean m_ignoreUnknown;
+
+    /**
      * The parser for src files
      */
     private final JavaDocParser m_javaDocParser;
@@ -77,16 +84,19 @@ public class AnnotationC {
      * @param parser
      * @param repository
      * @param handler
+     * @param ignoreUnknown
      */
     private AnnotationC(
             final ClassLoader loader,
             final JavaDocParser parser,
             final AnnotationInterfaceRepository repository,
-            final MessageHandler handler) {
+            final MessageHandler handler,
+            final boolean ignoreUnknown) {
         m_loader = loader;
         m_javaDocParser = parser;
         m_repository = repository;
         m_handler = handler;
+        m_ignoreUnknown = ignoreUnknown;
     }
 
     /**
@@ -100,7 +110,7 @@ public class AnnotationC {
         }
         Map commandLineOptions = parseCommandLineOptions(args);
 
-        String propertiesFilesPath = (String)commandLineOptions.get(COMMAND_LINE_OPTION_CUSTOM);
+        String propertiesFilesPath = (String)commandLineOptions.get(COMMAND_LINE_OPTION_CONFIG);
         List propertiesFilesList = new ArrayList();
         if (propertiesFilesPath != null) {
             StringTokenizer st = new StringTokenizer(propertiesFilesPath, File.pathSeparator);
@@ -112,6 +122,7 @@ public class AnnotationC {
 
         compile(
                 "true".equals(commandLineOptions.get(COMMAND_LINE_OPTION_VERBOSE)),
+                "true".equals(commandLineOptions.get(COMMAND_LINE_OPTION_IGNOREUNKNOWN)),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRC),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRCFILES),
                 (String)commandLineOptions.get(COMMAND_LINE_OPTION_SRCINCLUDES),
@@ -125,6 +136,7 @@ public class AnnotationC {
      * Compiles the annotations, called from the main method.
      *
      * @param verbose
+     * @param ignoreUnknown
      * @param srcDirList
      * @param srcFileList
      * @param classPath
@@ -133,6 +145,7 @@ public class AnnotationC {
      */
     private static void compile(
             final boolean verbose,
+            final boolean ignoreUnknown,
             final String srcDirList,
             final String srcFileList,
             final String srcFileIncludes,
@@ -170,7 +183,8 @@ public class AnnotationC {
                 split(classPath, File.pathSeparator),
                 destDir,
                 annotationPropetiesFiles,
-                new MessageHandler.PrintWriter(verbose)
+                new MessageHandler.PrintWriter(verbose),
+                ignoreUnknown
         );
     }
 
@@ -183,6 +197,7 @@ public class AnnotationC {
      * @param destDir
      * @param annotationPropertiesFiles
      * @param messageHandler
+     * @param ignoreUnknown
      */
     public static void compile(
             final String[] srcDirs,
@@ -190,7 +205,8 @@ public class AnnotationC {
             final String[] classpath,
             final String destDir,
             final String[] annotationPropertiesFiles,
-            final MessageHandler messageHandler) {
+            final MessageHandler messageHandler,
+            final boolean ignoreUnknown) {
 
         URL[] classPath = new URL[classpath.length];
         final ClassLoader compilationLoader;
@@ -241,11 +257,18 @@ public class AnnotationC {
             final AnnotationInterfaceRepository repository = new AnnotationInterfaceRepository(messageHandler);
             repository.registerPropertiesFiles(annotationPropertiesFiles, compilationLoader);
 
-            final AnnotationC compiler = new AnnotationC(compilationLoader, javaDocParser, repository, messageHandler);
+            final AnnotationC compiler = new AnnotationC(compilationLoader, javaDocParser, repository, messageHandler, ignoreUnknown);
 
             // do the actual compile
             compiler.doCompile(classPath, destDirToUse);
 
+            // sum-up
+            if (ignoreUnknown) {
+                for (Iterator iterator = repository.getIgnoredDocletNames().iterator(); iterator.hasNext();) {
+                    String doclet = (String) iterator.next();
+                    messageHandler.info("ignored: @"+doclet);
+                }
+            }
         } catch (SourceParseException e) {
             messageHandler.error(e);
             return;
@@ -429,17 +452,18 @@ public class AnnotationC {
         Class annotationInterface = m_repository.getAnnotationInterfaceFor(annotationName, m_loader);
         if (annotationInterface == null) {
             // not found, and the AnnotationInterfaceRepository.ANNOTATION_IGNORED has been populated
-            //FIXME - raise what ? a warning with location but then we should ignore real javadoc tags like author etc ?
-            logInfo(
-                    "JavaDoc tag [" + annotationName +
-                    "] is not treated as an annotation - class could not be resolved"
-                    + " at " + enclosingClassName + " in " + enclosingClassFileName + ", line " +
-                    tag.getLineNumber()
-            );
+            if (!m_ignoreUnknown) {
+                logInfo(
+                        "JavaDoc tag [" + annotationName +
+                        "] is not treated as an annotation - class could not be resolved"
+                        + " at " + enclosingClassName + " in " + enclosingClassFileName + ", line " +
+                        tag.getLineNumber()
+                );
+            }
             return null;
         }
 
-        return JavaDocParser.getRawAnnotation(annotationInterface, tag, enclosingClassName, enclosingClassFileName);
+        return JavaDocParser.getRawAnnotation(annotationInterface, annotationName, tag, enclosingClassName, enclosingClassFileName);
     }
 
     /**
@@ -448,7 +472,7 @@ public class AnnotationC {
     private static void printUsage() {
         System.out.println("backport175 (c) 2002-2005 Jonas Bonér, Alexandre Vasseur");
         System.out.println(
-                "usage: java [options...] org.codehaus.backport175.compiler.AnnotationC [-verbose] -src <path to src dir> | -srcfiles <list of files> | -srcincludes <path to file> -classes <path to classes dir> [-dest <path to destination dir>] [-config <property file>]"
+                "usage: java [options...] org.codehaus.backport175.compiler.AnnotationC [-verbose] [-ignoreUnknown] -src <path to src dir> | -srcfiles <list of files> | -srcincludes <path to file> -classes <path to classes dir> [-dest <path to destination dir>] [-config <property file>]"
         );
         System.out.println(
                 "       -src <path to src dir> - provides the list of source directories separated by 'File.pathSeparator'"
@@ -464,6 +488,7 @@ public class AnnotationC {
                 "       -config <property file with aliases to the FQN of the annotation interfaces> - optional"
         );
         System.out.println("       -verbose - activates compilation status information");
+        System.out.println("       -ignoreUnknown - turn off traces for unknown annotations and print a summary at the end instead if -verbose is set");
         System.out.println("");
         System.out.println("Note: only one of -src -srcpath and -srcincludes may be used");
         System.exit(0);
@@ -479,9 +504,11 @@ public class AnnotationC {
         final Map arguments = new HashMap();
         try {
             for (int i = 0; i < args.length; i++) {
-                //-verbose has no value
+                //-verbose and -ignoreUnknown have no value
                 if (args[i].equals(COMMAND_LINE_OPTION_VERBOSE)) {
                     arguments.put(COMMAND_LINE_OPTION_VERBOSE, "true");
+                } else if (args[i].equals(COMMAND_LINE_OPTION_IGNOREUNKNOWN)) {
+                    arguments.put(COMMAND_LINE_OPTION_IGNOREUNKNOWN, "true");
                 } else if (args[i].startsWith(COMMAND_LINE_OPTION_DASH)) {
                     String option = args[i];
                     String value = args[++i];
