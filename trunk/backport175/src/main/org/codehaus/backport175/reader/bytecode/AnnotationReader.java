@@ -484,7 +484,6 @@ public class AnnotationReader {
         m_methodAnnotationCache.clear();
         m_fieldAnnotationCache.clear();
         parse((Class)m_classRef.get());
-
     }
 
     /**
@@ -495,7 +494,14 @@ public class AnnotationReader {
     private void parse(final Class klass) {
         final String className = klass.getName();
         final ClassLoader loader = klass.getClassLoader();
-        final byte[] bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
+        final byte[] bytes;
+        try {
+            bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
+        } catch (Exception e) {
+            //FIXME logme
+            //e.printStackTrace();
+            throw new RuntimeException(e.toString());
+        }
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter writer = new ClassWriter(true);
         classReader.accept(new AnnotationRetrievingVisitor(writer), false);
