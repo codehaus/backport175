@@ -5,7 +5,7 @@
  * The software in this package is published under the terms of the LGPL license      *
  * a copy of which has been included with this distribution in the license.txt file.  *
  **************************************************************************************/
-package test.reader;
+package test;
 
 /**
  * @test.reader.TestAnnotations.VoidTyped
@@ -33,7 +33,7 @@ public class Target {
      *      doubleArr={1.1D, 2.2D, 3.3D, 4.4D},
      *      type=double[][][].class,
      *      enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION,
-     *      typeArr={test.reader.Target[].class, test.reader.Target.class}
+     *      typeArr={test.Target[].class, test.Target.class}
      * )
      */
     public Target() {
@@ -64,7 +64,7 @@ public class Target {
      *      doubleArr={1.1D, 2.2D, 3.3D, 4.4D},
      *      type=double[][][].class,
      *      enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION,
-     *      typeArr={test.reader.Target[].class, test.reader.Target.class}
+     *      typeArr={test.Target[].class, test.Target.class}
      * )
      */
 //    @Target.Test(test="test")

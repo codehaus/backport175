@@ -14,7 +14,6 @@ import test.filtering.MemberFilteringTest;
 import test.noduplicate.NoDuplicateTest;
 import test.proxy.ProxyTest;
 import test.reader.AnnotationReaderTest;
-import test.performance.PerfTest;
 
 /**
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
@@ -28,7 +27,6 @@ public class AllTests extends TestCase {
         suite.addTestSuite(NoDuplicateTest.class);
         suite.addTestSuite(ProxyTest.class);//TODO
         suite.addTestSuite(MemberFilteringTest.class);
-        suite.addTestSuite(PerfTest.class);
 
         return suite;
     }

@@ -8,6 +8,7 @@
 package test.reader;
 
 import org.codehaus.backport175.reader.Annotation;
+import org.codehaus.backport175.reader.Annotations;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 import junit.framework.TestCase;
 
@@ -16,6 +17,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.util.Set;
 import java.util.HashSet;
+
+import test.Target;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
@@ -43,7 +46,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testToString() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", method
         );
         assertEquals(
@@ -52,21 +55,21 @@ public class AnnotationReaderTest extends TestCase {
                 "doubleArr=[1.1, 2.2, 3.3, 4.4], " +
                 "type=double[][][].class, " +
                 "enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION, " +
-                "typeArr=[test.reader.Target[].class, test.reader.Target.class]" +
+                "typeArr=[test.Target[].class, test.Target.class]" +
                 ")",
                 annotation.toString()
         );
     }
 
     public void testClassIsAnnotationPresent() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+        assertTrue(Annotations.isAnnotationPresent(
                 TestAnnotations.VoidTyped.class, Target.class
         ));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, Target.class));
+        assertFalse(Annotations.isAnnotationPresent(Target.class, Target.class));
     }
 
     public void testClassAnn1() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$VoidTyped", Target.class
         );
         Class type = annotation.annotationType();
@@ -74,7 +77,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn2() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$DefaultString", Target.class
         );
         Class type = annotation.annotationType();
@@ -85,7 +88,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn3() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Simple", Target.class
         );
         Class type = annotation.annotationType();
@@ -97,7 +100,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn4() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$StringArray", Target.class
         );
         Class type = annotation.annotationType();
@@ -110,7 +113,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn5() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$LongArray", Target.class
         );
         Class type = annotation.annotationType();
@@ -124,7 +127,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnnDuplicatedMapping() {
-        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
+        Annotation[] annotations = Annotations.getAnnotations(Target.class);
         int found = 0;
         for (int i = 0; i < annotations.length; i++) {
             Annotation annotation = annotations[i];
@@ -136,12 +139,12 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnnNotThere() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation("noThere", Target.class);
+        Annotation annotation = Annotations.getAnnotation("noThere", Target.class);
         assertNull(annotation);
     }
 
     public void testClassAnn6() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", Target.class
         );
         Class type = annotation.annotationType();
@@ -159,7 +162,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn7() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotation", Target.class
         );
         Class type = annotation.annotationType();
@@ -171,7 +174,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn8() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotationArray", Target.class
         );
         Class type = annotation.annotationType();
@@ -184,7 +187,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnnArray() {
-        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
+        Annotation[] annotations = Annotations.getAnnotations(Target.class);
         Set set = new HashSet();
         for (int i = 0; i < annotations.length; i++) {
             set.add(annotations[i].annotationType());
@@ -197,18 +200,18 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(TestAnnotations.Simple.class));
         assertTrue(set.contains(TestAnnotations.NestedAnnotation.class));
         assertTrue(set.contains(TestAnnotations.LongArray.class));
-        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
+        annotations = Annotations.getAnnotations(Target.class);
     }
 
     public void testFieldIsAnnotationPresent() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+        assertTrue(Annotations.isAnnotationPresent(
                 TestAnnotations.Simple.class, field
         ));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, field));
+        assertFalse(Annotations.isAnnotationPresent(Target.class, field));
     }
 
     public void testFieldAnn1() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$VoidTyped", field
         );
         Class type = annotation.annotationType();
@@ -216,7 +219,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn2() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$DefaultString", field
         );
         Class type = annotation.annotationType();
@@ -227,7 +230,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn3() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Simple", field
         );
         Class type = annotation.annotationType();
@@ -239,7 +242,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn4() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$StringArray", field
         );
         Class type = annotation.annotationType();
@@ -252,7 +255,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn5() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$LongArray", field
         );
         Class type = annotation.annotationType();
@@ -266,7 +269,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn6() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", field
         );
         Class type = annotation.annotationType();
@@ -284,7 +287,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn7() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotation", field
         );
         Class type = annotation.annotationType();
@@ -296,7 +299,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn8() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotationArray", field
         );
         Class type = annotation.annotationType();
@@ -309,7 +312,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnnArray() {
-        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(field);
+        Annotation[] annotations = Annotations.getAnnotations(field);
         Set set = new HashSet();
         for (int i = 0; i < annotations.length; i++) {
             set.add(annotations[i].annotationType());
@@ -322,18 +325,18 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(TestAnnotations.Simple.class));
         assertTrue(set.contains(TestAnnotations.NestedAnnotation.class));
         assertTrue(set.contains(TestAnnotations.LongArray.class));
-        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(field);
+        annotations = Annotations.getAnnotations(field);
     }
 
     public void testConstructorIsAnnotationPresent() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+        assertTrue(Annotations.isAnnotationPresent(
                 TestAnnotations.Complex.class, constructor
         ));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, constructor));
+        assertFalse(Annotations.isAnnotationPresent(Target.class, constructor));
     }
 
     public void testConstructorAnn1() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$VoidTyped", constructor
         );
         Class type = annotation.annotationType();
@@ -341,7 +344,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn2() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$DefaultString", constructor
         );
         Class type = annotation.annotationType();
@@ -352,7 +355,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn3() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Simple", constructor
         );
         Class type = annotation.annotationType();
@@ -364,7 +367,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn4() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$StringArray", constructor
         );
         Class type = annotation.annotationType();
@@ -377,7 +380,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn5() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$LongArray", constructor
         );
         Class type = annotation.annotationType();
@@ -391,7 +394,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn6() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotation", constructor
         );
         Class type = annotation.annotationType();
@@ -403,7 +406,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn7() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotationArray", constructor
         );
         Class type = annotation.annotationType();
@@ -416,7 +419,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn8() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", constructor
         );
         Class type = annotation.annotationType();
@@ -442,7 +445,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnnArray() {
-        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(constructor);
+        Annotation[] annotations = Annotations.getAnnotations(constructor);
         Set set = new HashSet();
         for (int i = 0; i < annotations.length; i++) {
             set.add(annotations[i].annotationType());
@@ -455,18 +458,18 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(TestAnnotations.Simple.class));
         assertTrue(set.contains(TestAnnotations.NestedAnnotation.class));
         assertTrue(set.contains(TestAnnotations.LongArray.class));
-        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(constructor);
+        annotations = Annotations.getAnnotations(constructor);
     }
 
     public void testMethodIsAnnotationPresent() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+        assertTrue(Annotations.isAnnotationPresent(
                 TestAnnotations.NestedAnnotationArray.class, method
         ));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, method));
+        assertFalse(Annotations.isAnnotationPresent(Target.class, method));
     }
 
     public void testMethodAnn1() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$VoidTyped", method
         );
         Class type = annotation.annotationType();
@@ -474,7 +477,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn2() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$DefaultString", method
         );
         Class type = annotation.annotationType();
@@ -485,7 +488,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn3() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Simple", method
         );
         Class type = annotation.annotationType();
@@ -497,7 +500,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn4() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$StringArray", method
         );
         Class type = annotation.annotationType();
@@ -510,7 +513,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn5() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$LongArray", method
         );
         Class type = annotation.annotationType();
@@ -524,7 +527,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn6() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotation", method
         );
         Class type = annotation.annotationType();
@@ -536,7 +539,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn7() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$NestedAnnotationArray", method
         );
         Class type = annotation.annotationType();
@@ -549,7 +552,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn8() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", method
         );
         Class type = annotation.annotationType();
@@ -575,7 +578,7 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnnArray() {
-        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(method);
+        Annotation[] annotations = Annotations.getAnnotations(method);
         Set set = new HashSet();
         for (int i = 0; i < annotations.length; i++) {
             set.add(annotations[i].annotationType());
@@ -588,11 +591,11 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(TestAnnotations.Simple.class));
         assertTrue(set.contains(TestAnnotations.NestedAnnotation.class));
         assertTrue(set.contains(TestAnnotations.LongArray.class));
-        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(method);
+        annotations = Annotations.getAnnotations(method);
     }
 
     public void testReadInResolvedValues() {
-        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        Annotation annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", method
         );
         TestAnnotations.Complex ann = (TestAnnotations.Complex)annotation;
@@ -610,7 +613,7 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
 
         // second time -> values are not resolved again but cache is used
-        annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+        annotation = Annotations.getAnnotation(
                 "test.reader.TestAnnotations$Complex", method
         );
         ann = (TestAnnotations.Complex)annotation;
@@ -642,7 +645,7 @@ public class AnnotationReaderTest extends TestCase {
 //
 //    public void testReadRealJava5Ann() {
 //        Annotation reader = org.codehaus.backport175.reader.TestAnnotations.getAnnotation(
-//                "test.reader.Target$Test", Target.class
+//                "test.Target$Test", Target.class
 //        );
 //        Class type = reader.annotationType();
 //        assertEquals(Target.Test.class, type);

@@ -13,6 +13,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 
+import org.codehaus.backport175.reader.Annotations;
+
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
@@ -60,24 +62,24 @@ public class MemberFilteringTest extends TestCase {
     }
 
     public void testConstructorAnnotationFilter() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, ctorA));
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, ctorB));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, ctorA));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, ctorB));
+        assertTrue(Annotations.isAnnotationPresent(A.class, ctorA));
+        assertTrue(Annotations.isAnnotationPresent(B.class, ctorB));
+        assertFalse(Annotations.isAnnotationPresent(B.class, ctorA));
+        assertFalse(Annotations.isAnnotationPresent(A.class, ctorB));
     }
 
     public void testMethodAnnotationFilter() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, methodA));
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, methodB));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, methodA));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, methodB));
+        assertTrue(Annotations.isAnnotationPresent(A.class, methodA));
+        assertTrue(Annotations.isAnnotationPresent(B.class, methodB));
+        assertFalse(Annotations.isAnnotationPresent(B.class, methodA));
+        assertFalse(Annotations.isAnnotationPresent(A.class, methodB));
     }
 
     public void testFieldAnnotationFilter() {
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, fieldA));
-        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, fieldB));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(B.class, fieldA));
-        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(A.class, fieldB));
+        assertTrue(Annotations.isAnnotationPresent(A.class, fieldA));
+        assertTrue(Annotations.isAnnotationPresent(B.class, fieldB));
+        assertFalse(Annotations.isAnnotationPresent(B.class, fieldA));
+        assertFalse(Annotations.isAnnotationPresent(A.class, fieldB));
     }
 
     // === for testing Java 5 reflection compatibility ===
@@ -95,7 +97,7 @@ public class MemberFilteringTest extends TestCase {
 //
 //    public void testReadRealJava5Ann() {
 //        Annotation reader = org.codehaus.backport175.reader.TestAnnotations.getAnnotation(
-//                "test.reader.Target$Test", Target.class
+//                "test.Target$Test", Target.class
 //        );
 //        Class type = reader.annotationType();
 //        assertEquals(Target.Test.class, type);
