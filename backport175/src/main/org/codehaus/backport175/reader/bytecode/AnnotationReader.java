@@ -836,43 +836,6 @@ public class AnnotationReader {
         return elementArray;
     }
 
-
-    /**
-     * Returns the annotations for a specific member.
-     *
-     * @param annotationElements the annotation elements for the member
-     * @param annotationCache    the annotation cache to use
-     * @return an array with the annotations
-     */
-    private Annotation[] getAnnotations(final Collection annotationElements, final Map annotationCache) {
-        final Annotation[] annotations = new Annotation[annotationElements.size()];
-        int i = 0;
-        if (annotationCache.size() == annotationElements.size()) {
-            // all are cached - use cache
-            for (Iterator it = annotationCache.values().iterator(); it.hasNext();) {
-                annotations[i++] = (Annotation) it.next();
-            }
-            return annotations;
-        } else {
-            // cache not complete - fill it up with the ones missing
-            ClassLoader loader = m_classKey.getClassLoader();
-            i = 0;
-            for (Iterator it = annotationElements.iterator(); it.hasNext();) {
-                AnnotationElement.Annotation annotationElement = (AnnotationElement.Annotation) it.next();
-                String annotationClassName = annotationElement.getInterfaceName();
-                if (annotationCache.containsKey(annotationClassName)) {
-                    // proxy in cache - reuse
-                    annotations[i++] = (Annotation) annotationCache.get(annotationClassName);
-                } else {
-                    final Annotation annotation = ProxyFactory.newAnnotationProxy(annotationElement, loader);
-                    annotationCache.put(annotationClassName, annotation);
-                    annotations[i++] = annotation;
-                }
-            }
-            return annotations;
-        }
-    }
-
     /**
      * Returns the annotation cache for a specific constructor.
      *
@@ -932,6 +895,7 @@ public class AnnotationReader {
         m_constructorAnnotationCache.clear();
         m_methodAnnotationCache.clear();
         m_fieldAnnotationCache.clear();
+        AnnotationDefaults.refresh(m_classKey);
         parse(m_classKey);
     }
 
@@ -1071,7 +1035,7 @@ public class AnnotationReader {
          * @return
          */
         public AnnotationVisitor createAnnotationVisitor(final AnnotationElement.Annotation annotation) {
-            return new AnnotationBuilderVisitor(annotation);
+            return new AnnotationBuilderVisitor(annotation, m_classKey.getClassLoader(), annotation.getInterfaceName());
 //            return new TraceAnnotationVisitor();
         }
     }
@@ -1080,8 +1044,23 @@ public class AnnotationReader {
 
         private final AnnotationElement.NestedAnnotationElement m_nestedAnnotationElement;
 
-        public AnnotationBuilderVisitor(final AnnotationElement.NestedAnnotationElement annotation) {
+        /**
+         * ClassLoader from which both the annotated element and its annoation(s) are visible
+         */ 
+        private final ClassLoader m_loader;
+
+        /**
+         * Annotation class name. If not null, default values will be handled, else it will be skip.
+         * (f.e. skip for nested annotation and arrays)
+         */
+        private final String m_annotationClassName;
+
+        public AnnotationBuilderVisitor(final AnnotationElement.NestedAnnotationElement annotation,
+                                        final ClassLoader loader,
+                                        final String annotationClassName) {
             m_nestedAnnotationElement = annotation;
+            m_loader = loader;
+            m_annotationClassName = annotationClassName;
         }
 
         public void visit(final String name, final Object value) {
@@ -1108,16 +1087,25 @@ public class AnnotationReader {
             String className = toJavaName(desc);
             AnnotationElement.NestedAnnotationElement annotation = new AnnotationElement.Annotation(className);
             m_nestedAnnotationElement.addElement(name, annotation);
-            return new AnnotationBuilderVisitor(annotation);
+            return new AnnotationBuilderVisitor(annotation, m_loader, className);//recursive default handling
         }
 
         public AnnotationVisitor visitArray(final String name) {
             AnnotationElement.NestedAnnotationElement array = new AnnotationElement.Array();
             m_nestedAnnotationElement.addElement(name, array);
-            return new AnnotationBuilderVisitor(array);
+            return new AnnotationBuilderVisitor(array, m_loader, null);
         }
 
         public void visitEnd() {
+            // annotation default overrides
+            if (m_annotationClassName != null) {
+                AnnotationElement.Annotation defaults = AnnotationDefaults.getDefaults(m_annotationClassName, m_loader);
+                AnnotationElement.Annotation annotation = (AnnotationElement.Annotation) m_nestedAnnotationElement;
+                for (Iterator iterator = defaults.getElements().iterator(); iterator.hasNext();) {
+                    AnnotationElement.NamedValue defaultedElement = (AnnotationElement.NamedValue) iterator.next();
+                    annotation.mergeDefaultedElement(defaultedElement);
+                }
+            }
         }
 
         /**

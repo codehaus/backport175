@@ -18,6 +18,7 @@ import org.codehaus.backport175.reader.ReaderException;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.HashMap;
 
 /**
  * Container for default value of the annotations
@@ -26,31 +27,31 @@ import java.util.WeakHashMap;
  *
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
-public class AnnotationDefaults {
+class AnnotationDefaults {
 
     /**
-     * Cache of default values, key is annotationClass, value is Annotation whose elements are named according
+     * Cache of default values, key is annotationClassKey, value is Annotation whose elements are named according
      * to the element name which have a default value.
      */
-    private static Map s_annotationDefaults = new WeakHashMap();
+    private static Map s_annotationDefaults = new HashMap();
 
     /**
      * Retrieve (create if not in cache) the annotation defaults
      *
-     * @param annotationClass
+     * @param annotationClassName
+     * @param loader
      * @return
      */
-    public static AnnotationElement.Annotation getDefaults(Class annotationClass) {
-        AnnotationElement.Annotation defaults = (AnnotationElement.Annotation) s_annotationDefaults.get(annotationClass);
+    public static AnnotationElement.Annotation getDefaults(final String annotationClassName, final ClassLoader loader) {
+        AnnotationReader.ClassKey key = new AnnotationReader.ClassKey(annotationClassName, loader);
+        AnnotationElement.Annotation defaults = (AnnotationElement.Annotation) s_annotationDefaults.get(key);
         if (defaults == null) {
-            final AnnotationElement.Annotation newDefaults = new AnnotationElement.Annotation(annotationClass.getName().replace('/', '.'));
-            final String className = annotationClass.getName();
-            final ClassLoader loader = annotationClass.getClassLoader();
+            final AnnotationElement.Annotation newDefaults = new AnnotationElement.Annotation(annotationClassName);
             final byte[] bytes;
             try {
-                bytes = AnnotationReader.getBytecodeFor(className, loader);
+                bytes = AnnotationReader.getBytecodeFor(annotationClassName, loader);
             } catch (Exception e) {
-                throw new ReaderException("could not retrieve the bytecode from the bytecode provider for class [" + className + "]", e);
+                throw new ReaderException("could not retrieve the bytecode from the bytecode provider for class [" + annotationClassName+ "]", e);
             }
             ClassReader cr = new ClassReader(bytes);
             ClassWriter cw = new ClassWriter(false, true);
@@ -59,7 +60,7 @@ public class AnnotationDefaults {
                         public MethodVisitor visitMethod(int access, final String name, String desc, String signature, String[] exceptions) {
                             return new MethodAdapter(super.visitMethod(access, name, desc, signature, exceptions)) {
                                 public AnnotationVisitor visitAnnotationDefault() {
-                                    return new DefaultAnnotationBuilderVisitor(newDefaults, name);
+                                    return new DefaultAnnotationBuilderVisitor(newDefaults, name, loader);
                                 }
                             };
                         }
@@ -67,7 +68,7 @@ public class AnnotationDefaults {
                     true
             );
             defaults = newDefaults;
-            s_annotationDefaults.put(annotationClass, newDefaults);
+            s_annotationDefaults.put(key, newDefaults);
         }
         return defaults;
     }
@@ -82,8 +83,8 @@ public class AnnotationDefaults {
 
         private String m_methodName;
 
-        public DefaultAnnotationBuilderVisitor(final AnnotationElement.NestedAnnotationElement annotation, String methodName) {
-            super(annotation);
+        public DefaultAnnotationBuilderVisitor(final AnnotationElement.NestedAnnotationElement annotation, String methodName, ClassLoader loader) {
+            super(annotation, loader, null);
             m_methodName = methodName;
         }
 
@@ -103,5 +104,12 @@ public class AnnotationDefaults {
             return super.visitArray(m_methodName);
         }
 
+    }
+
+    public static void refresh(AnnotationReader.ClassKey key) {
+        AnnotationElement.Annotation defaults = (AnnotationElement.Annotation) s_annotationDefaults.get(key);
+        if (defaults != null) {
+            s_annotationDefaults.remove(key);
+        }
     }
 }
