@@ -43,6 +43,8 @@ public class NoDuplicateTest extends TestCase {
     public void testAnnotationCFailedSoNoAnnotationAtAll() {
         Annotation[] anns = org.codehaus.backport175.reader.Annotations.getAnnotations(NoDuplicateTest.class);
         assertEquals(0, anns.length);
+
+        
     }
 
     //-- junit
