@@ -5,41 +5,28 @@
  * The software in this package is published under the terms of Apache License Version 2.0 *
  * a copy of which has been included with this distribution in the license.txt file.       *
  *******************************************************************************************/
-package test.filtering;
+package test.compiler.validation;
 
-public class Target {
+/**
+ * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+ */
+public class FloatAnnoTarget {
 
     /**
-     * @test.filtering.MemberFilteringTest.A
+     * @test.compiler.validation.ValidationTest.FloatAnno({123.456})
      */
-    public Target() {
+    public void nonWellFormedAnno0() {
     }
 
     /**
-     * @test.filtering.MemberFilteringTest.B
+     * @test.compiler.validation.ValidationTest.FloatAnno("123.456F")
      */
-    public Target(int[][] i, Object[] o, boolean b) {
+    public void nonWellFormedAnno1() {
     }
 
     /**
-     * @test.filtering.MemberFilteringTest.A
+     * @test.compiler.validation.ValidationTest.FloatAnno(4)
      */
-    void A(String s, int i, double d, float f, byte b, char c, short t, long l, boolean bool) {
+    public void nonWellFormedAnno2() {
     }
-
-    /**
-     * @test.filtering.MemberFilteringTest.B
-     */
-    void B(String s, int i, double d, float f, byte b, char c, short t, long l, boolean bool) {
-    }
-
-    /**
-     * @test.filtering.MemberFilteringTest.A
-     */
-    public String[] A;
-
-    /**
-     * @test.filtering.MemberFilteringTest.B
-     */
-    public int[][] B;
 }

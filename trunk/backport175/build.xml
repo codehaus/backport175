@@ -34,9 +34,9 @@
         <property name="version" value="1.0-beta1"/>
         <property name="basedir" value="."/>
         <property name="src.dir" value="${basedir}/src"/>
-        <property name="test.src.dir" value="${basedir}/src/test"/>
-        <property name="testcompiler.src.dir" value="${basedir}/src/testcompiler"/>
-        <property name="testJava5.src.dir" value="${basedir}/src/testJava5"/>
+        <property name="test.reader.src.dir" value="${basedir}/src/test/reader"/>
+        <property name="test.compiler.src.dir" value="${basedir}/src/test/compiler"/>
+        <property name="test.java5.src.dir" value="${basedir}/src/test/java5"/>
         <property name="build.dir" value="${basedir}/target"/>
         <property name="lib.dir" value="${basedir}/lib"/>
         <property name="config.dir" value="${basedir}/config"/>
@@ -56,9 +56,9 @@
         </condition>
         <property name="lib.dir" value="${basedir}/lib"/>
         <property name="main.classes" value="${build.dir}/classes"/>
-        <property name="test.classes" value="${build.dir}/test-classes"/>
-        <property name="testcompiler.classes" value="${build.dir}/testcompiler-classes"/>
-        <property name="testJava5.classes" value="${build.dir}/testJava5-classes"/>
+        <property name="test.reader.classes" value="${build.dir}/testreader-classes"/>
+        <property name="test.compiler.classes" value="${build.dir}/testcompiler-classes"/>
+        <property name="test.java5.classes" value="${build.dir}/testjava5-classes"/>
         <property name="samples.classes" value="${build.dir}/samples-classes"/>
         <property environment="env"/>
         <condition property="java5" value="yes">
@@ -70,16 +70,16 @@
     <!-- ============================================================== -->
     <target name="clean" depends="init">
         <delete dir="${main.classes}"/>
-        <delete dir="${test.classes}"/>
-        <delete dir="${testcompiler.classes}"/>
-        <delete dir="${testJava5.classes}"/>
+        <delete dir="${test.reader.classes}"/>
+        <delete dir="${test.compiler.classes}"/>
+        <delete dir="${test.java5.classes}"/>
         <delete dir="${samples.classes}"/>
         <delete dir="${build.dir}"/>
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${main.classes}"/>
-        <mkdir dir="${test.classes}"/>
-        <mkdir dir="${testcompiler.classes}"/>
-        <mkdir dir="${testJava5.classes}"/>
+        <mkdir dir="${test.reader.classes}"/>
+        <mkdir dir="${test.compiler.classes}"/>
+        <mkdir dir="${test.java5.classes}"/>
         <mkdir dir="${samples.classes}"/>
     </target>
     <!-- ============================================================== -->
@@ -100,17 +100,17 @@
     <!-- ============================================================== -->
     <target name="compile:test" depends="init, compile">
         <mkdir dir="${build.dir}"/>
-        <mkdir dir="${test.classes}"/>
-        <javac destdir="${test.classes}" debug="on">
-            <src path="${test.src.dir}"/>
+        <mkdir dir="${test.reader.classes}"/>
+        <javac destdir="${test.reader.classes}" debug="on">
+            <src path="${test.reader.src.dir}"/>
             <classpath>
                 <pathelement path="${main.classes}"/>
                 <path refid="project.class.path"/>
             </classpath>
         </javac>
 
-        <javac destdir="${testcompiler.classes}" debug="on">
-            <src path="${testcompiler.src.dir}"/>
+        <javac destdir="${test.compiler.classes}" debug="on">
+            <src path="${test.compiler.src.dir}"/>
             <classpath>
                 <pathelement path="${main.classes}"/>
                 <path refid="project.class.path"/>
@@ -118,21 +118,21 @@
         </javac>
 
         <!-- remap ASM since it is used directly in the tests for some -->
-        <jarjar destfile="${test.classes}.jar">
-            <fileset dir="${test.classes}" includes="**/*"/>
+        <jarjar destfile="${test.reader.classes}.jar">
+            <fileset dir="${test.reader.classes}" includes="**/*"/>
             <rule pattern="org.objectweb.asm.**" result="org.codehaus.${name}.@0"/>
         </jarjar>
-        <unjar src="${test.classes}.jar" dest="${test.classes}" overwrite="true"/>
+        <unjar src="${test.reader.classes}.jar" dest="${test.reader.classes}" overwrite="true"/>
 
         <antcall target="compile:testJava5"/>
     </target>
 
     <target name="compile:testJava5" if="java5">
-        <mkdir dir="${testJava5.classes}"/>
-        <javac destdir="${testJava5.classes}" debug="on">
-            <src path="${testJava5.src.dir}"/>
+        <mkdir dir="${test.java5.classes}"/>
+        <javac destdir="${test.java5.classes}" debug="on">
+            <src path="${test.java5.src.dir}"/>
             <classpath>
-                <pathelement path="${test.classes}"/>
+                <pathelement path="${test.reader.classes}"/>
                 <pathelement path="${main.classes}"/>
                 <path refid="project.class.path"/>
             </classpath>
@@ -169,13 +169,13 @@
     <!-- =================================================== -->
     <!--  compiles annotations for the tests -->
     <!-- =================================================== -->
-    <target name="test:annotationc">
+    <target name="test:annotationc" depends="init">
         <java fork="true" classname="org.codehaus.${name}.compiler.AnnotationC">
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement path="${test.classes}"/>
+                <pathelement path="${test.reader.classes}"/>
             </classpath>
-            <arg line="-verbose -src ${basedir}/src/test -classes ${basedir}/target/test-classes -config ${basedir}/src/test/annotation.properties"/>
+            <arg line="-verbose -src ${basedir}/src/test/reader -classes ${basedir}/target/testreader-classes -config ${basedir}/src/test/reader/annotation.properties"/>
         </java>
     </target>
     <!-- =================================================== -->
@@ -185,13 +185,13 @@
         <java fork="true" classname="test.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement path="${test.classes}"/>
+                <pathelement path="${test.reader.classes}"/>
             </classpath>
         </java>
-        <java fork="true" classname="test.AllCompilerTests">
+        <java fork="true" classname="test.compiler.AllCompilerTests">
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement path="${testcompiler.classes}"/>
+                <pathelement path="${test.compiler.classes}"/>
             </classpath>
         </java>
         <antcall target="testJava5"/>
@@ -201,8 +201,8 @@
         <java fork="true" classname="test.java5.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
-                <pathelement path="${testJava5.classes}"/>
-                <pathelement path="${test.classes}"/>
+                <pathelement path="${test.java5.classes}"/>
+                <pathelement path="${test.reader.classes}"/>
             </classpath>
         </java>
     </target>
