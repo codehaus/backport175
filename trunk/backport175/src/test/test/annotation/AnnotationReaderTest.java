@@ -13,6 +13,7 @@ import junit.framework.TestCase;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -23,14 +24,16 @@ public class AnnotationReaderTest extends TestCase {
 
     private static final Field field;
     private static final Method method;
+    private static final Constructor constructor;
 
     static {
         try {
             field = Target.class.getDeclaredField("field");
             method = Target.class.getDeclaredMethod("method", new Class[]{});
+            constructor = Target.class.getDeclaredConstructor(new Class[]{});
         } catch (Exception e) {
             fail();
-            throw new RuntimeException("member not found in class");
+            throw new RuntimeException(e.toString());
         }
     }
 
@@ -288,6 +291,132 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(Annotations.NestedAnnotation.class));
         assertTrue(set.contains(Annotations.LongArray.class));
         annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(field);
+    }
+
+    public void testConstructorAnn1() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$VoidTyped", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.VoidTyped.class, type);
+    }
+
+    public void testConstructorAnn2() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$DefaultString", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.DefaultString.class, type);
+
+        Annotations.DefaultString ann = (Annotations.DefaultString)annotation;
+        assertEquals("hello", ann.value());
+    }
+
+    public void testConstructorAnn3() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$Simple", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.Simple.class, type);
+
+        Annotations.Simple ann = (Annotations.Simple)annotation;
+        assertEquals("foo", ann.val());
+        assertEquals("bar", ann.s());
+    }
+
+    public void testConstructorAnn4() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$StringArray", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.StringArray.class, type);
+
+        Annotations.StringArray ann = (Annotations.StringArray)annotation;
+        String[] ss = ann.ss();
+        assertEquals("hello", ss[0]);
+        assertEquals("world", ss[1]);
+    }
+
+    public void testConstructorAnn5() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$LongArray", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.LongArray.class, type);
+
+        Annotations.LongArray ann = (Annotations.LongArray)annotation;
+        long[] longArr = ann.l();
+        assertEquals(1l, longArr[0]);
+        assertEquals(2l, longArr[1]);
+        assertEquals(6l, longArr[2]);
+    }
+
+    public void testConstructorAnn6() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$NestedAnnotation", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.NestedAnnotation.class, type);
+
+        Annotations.NestedAnnotation ann = (Annotations.NestedAnnotation)annotation;
+        Annotations.Simple simple = ann.ann();
+        assertEquals("foo", simple.val());
+    }
+
+    public void testConstructorAnn7() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$NestedAnnotationArray", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.NestedAnnotationArray.class, type);
+
+        Annotations.NestedAnnotationArray ann = (Annotations.NestedAnnotationArray)annotation;
+        Annotations.Simple[] simpleAnnArray = ann.annArr();
+        assertEquals("foo", simpleAnnArray[0].val());
+        assertEquals("bar", simpleAnnArray[1].val());
+    }
+
+    public void testConstructorAnn8() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$Complex", constructor
+        );
+        Class type = annotation.annotationType();
+        assertEquals(Annotations.Complex.class, type);
+
+        Annotations.Complex ann = (Annotations.Complex)annotation;
+        assertEquals(111, ann.i());
+
+        double[] doubleArr = ann.doubleArr();
+        assertEquals(1.1D, doubleArr[0], 0);
+        assertEquals(2.2D, doubleArr[1], 0);
+        assertEquals(3.3D, doubleArr[2], 0);
+        assertEquals(4.4D, doubleArr[3], 0);
+
+        assertEquals(double[][][].class, ann.type());
+
+        Class[] types = ann.typeArr();
+        assertEquals(Target[].class, types[0]);
+        assertEquals(Target.class, types[1]);
+
+        AnnotationElement.Type enumRef = ann.enumeration();
+        assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
+    }
+
+    public void testConstructorAnnArray() {
+        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(constructor);
+        Set set = new HashSet();
+        for (int i = 0; i < annotations.length; i++) {
+            set.add(annotations[i].annotationType());
+        }
+        assertTrue(set.contains(Annotations.NestedAnnotationArray.class));
+        assertTrue(set.contains(Annotations.VoidTyped.class));
+        assertTrue(set.contains(Annotations.Complex.class));
+        assertTrue(set.contains(Annotations.StringArray.class));
+        assertTrue(set.contains(Annotations.DefaultString.class));
+        assertTrue(set.contains(Annotations.Simple.class));
+        assertTrue(set.contains(Annotations.NestedAnnotation.class));
+        assertTrue(set.contains(Annotations.LongArray.class));
+        annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(constructor);
     }
 
     public void testMethodAnn1() {
