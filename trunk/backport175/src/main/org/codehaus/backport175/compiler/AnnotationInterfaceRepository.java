@@ -20,20 +20,30 @@ import java.io.FileInputStream;
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
 public class AnnotationInterfaceRepository {
+
     /**
      * Map with the registered annotations mapped to their interface implementation classes.
      */
-    private static final Map ANNOTATION_ALIAS_INTERFACE_MAP = new HashMap();
+    private final Map m_aliasInterfaceMap = new HashMap();
 
     /**
      * The annotations properties file define by the user.
      */
-    private static final Properties ANNOTATION_DEFINITION = new Properties();
+    private final Properties m_properties = new Properties();
 
     /**
      * String list of doclet not found, to avoid fallback lookup everytime
      */
-    private static final List ANNOTATION_IGNORED = new ArrayList();
+    private final List m_ignoredDocletNames = new ArrayList();
+
+    /**
+     * The handler we report to
+     */
+    private AnnotationC.IEventHandler m_handler;
+
+    public AnnotationInterfaceRepository(AnnotationC.IEventHandler handler) {
+        m_handler = handler;
+    }
 
     /**
      * Registers an annotation interface into the repository.
@@ -41,9 +51,9 @@ public class AnnotationInterfaceRepository {
      * @param name
      * @param interfaceClass
      */
-    public static void registerAnnotationInterface(final String name, final Class interfaceClass) {
-        if (ANNOTATION_ALIAS_INTERFACE_MAP.containsValue(interfaceClass)) {
-            for (Iterator iterator = ANNOTATION_ALIAS_INTERFACE_MAP.entrySet().iterator(); iterator.hasNext();) {
+    private void registerAnnotationInterface(final String name, final Class interfaceClass) {
+        if (m_aliasInterfaceMap.containsValue(interfaceClass)) {
+            for (Iterator iterator = m_aliasInterfaceMap.entrySet().iterator(); iterator.hasNext();) {
                 Map.Entry entry = (Map.Entry) iterator.next();
                 if (entry.getValue().equals(interfaceClass)) {
                     throw new CompilerException("unable to register [" + interfaceClass.getName() +
@@ -52,8 +62,8 @@ public class AnnotationInterfaceRepository {
                 }
             }
         }
-        AnnotationC.logInfo("register annotation [" + name + " :: " + interfaceClass + ']');
-        ANNOTATION_ALIAS_INTERFACE_MAP.put(name, interfaceClass);
+        m_handler.info("register annotation [" + name + " :: " + interfaceClass + ']', null);
+        m_aliasInterfaceMap.put(name, interfaceClass);
     }
 
     /**
@@ -62,7 +72,7 @@ public class AnnotationInterfaceRepository {
      * @param propertiesFiles
      * @param loader
      */
-    public static void registerPropertiesFiles(final String[] propertiesFiles, final ClassLoader loader) {
+    public void registerPropertiesFiles(final String[] propertiesFiles, final ClassLoader loader) {
         if (propertiesFiles == null) {
             return;
         }
@@ -75,13 +85,13 @@ public class AnnotationInterfaceRepository {
      *
      * @param propertiesFiles
      */
-    private static void loadPropertiesFiles(final String[] propertiesFiles) {
+    private void loadPropertiesFiles(final String[] propertiesFiles) {
         InputStream in = null;
         for (int i = 0; i < propertiesFiles.length; i++) {
             final String propertiesFile = propertiesFiles[i];
             try {
                 in = new FileInputStream(propertiesFile);
-                ANNOTATION_DEFINITION.load(in);
+                m_properties.load(in);
             } catch (Exception e) {
                 throw new CompilerException(
                         "annotation properties file " + propertiesFile + " can not be loaded: " + e.toString()
@@ -101,8 +111,8 @@ public class AnnotationInterfaceRepository {
      *
      * @param loader
      */
-    private static void loadAnnotationInterfacesDefinedInPropertiesFiles(final ClassLoader loader) {
-        for (Iterator it = ANNOTATION_DEFINITION.entrySet().iterator(); it.hasNext();) {
+    private void loadAnnotationInterfacesDefinedInPropertiesFiles(final ClassLoader loader) {
+        for (Iterator it = m_properties.entrySet().iterator(); it.hasNext();) {
             Map.Entry entry = (Map.Entry)it.next();
             String name = ((String)entry.getKey()).trim();
             String className = ((String)entry.getValue()).trim();
@@ -132,22 +142,23 @@ public class AnnotationInterfaceRepository {
      * @param loader the loader where to search for the class if not found in aliased ones
      * @return the interface class for the annotation or NULL if the annotation name is unknown
      */
-    public static Class getAnnotationInterfaceFor(final String annotationName, ClassLoader loader) {
+    public Class getAnnotationInterfaceFor(final String annotationName, ClassLoader loader) {
         // check ignored list
-        if (ANNOTATION_IGNORED.contains(annotationName)) {
+        if (m_ignoredDocletNames.contains(annotationName)) {
             return null;
         }
 
         // look up, and register if found, else add to ignore list
         final Class annotationInterfaceClass;
-        Object klass = ANNOTATION_ALIAS_INTERFACE_MAP.get(annotationName);
+        Object klass = m_aliasInterfaceMap.get(annotationName);
         if (klass != null) {
             annotationInterfaceClass = (Class) klass;
         }  else {
             annotationInterfaceClass = loadClassHandlingNestedSyntax(annotationName, loader);
             if (annotationInterfaceClass == null) {
                 // add it to ignored ones
-                ANNOTATION_IGNORED.add(annotationName);
+                //TODO log ??
+                m_ignoredDocletNames.add(annotationName);
                 return null;
             } else {
                 // add it to the alias for faster lookup next time

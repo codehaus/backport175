@@ -217,13 +217,12 @@ public class AnnotationCTask extends Task {
             }
 
             AnnotationC.compile(
-                    m_verbose,
                     (String[]) srcDirs.toArray(new String[]{}),
                     (String[]) srcFiles.toArray(new String[]{}),
                     (String[]) classpathDirs.toArray(new String[]{}),
                     m_destdir == null ? null : m_destdir.getAbsolutePath(),
-                    (String[]) allProperties.toArray(new String[]{})
-                    //,getClass().getClassLoader()
+                    (String[]) allProperties.toArray(new String[]{}),
+                    new AnnotationC.StdEventHandler(m_verbose)
             );
 
             if (m_destdir != null) {
