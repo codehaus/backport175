@@ -13,14 +13,6 @@ import org.codehaus.backport175.reader.bytecode.AnnotationDefaults;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 import junit.framework.TestCase;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-
-import sun.reflect.annotation.AnnotationType;
-import test.reader.TestAnnotations;
-
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
@@ -87,7 +79,7 @@ public class AnnotationReaderTest extends TestCase {
     // === for testing Java 5 reflection compatibility ===
 
     public void testAnnotationCCompiledClassAnnReflection() {
-        java.lang.annotation.Annotation[] annotations = test.Target.class.getAnnotations();
+        java.lang.annotation.Annotation[] annotations = test.reader.Target.class.getAnnotations();
         // only one is set with RuntimeRetention..
         assertEquals(1, annotations.length);
         //TODO refine the assert
@@ -95,13 +87,13 @@ public class AnnotationReaderTest extends TestCase {
 
     //TODO refine the assert
     public void testAnnotationCCompiledMembersAnnReflection() {
-        java.lang.annotation.Annotation[] annotations = test.Target.METHOD.getAnnotations();
+        java.lang.annotation.Annotation[] annotations = test.reader.Target.METHOD.getAnnotations();
         assertTrue(annotations.length > 0);
 
-        annotations = test.Target.FIELD.getAnnotations();
+        annotations = test.reader.Target.FIELD.getAnnotations();
         assertTrue(annotations.length > 0);
 
-        annotations = test.Target.CONSTRUCTOR.getAnnotations();
+        annotations = test.reader.Target.CONSTRUCTOR.getAnnotations();
         assertTrue(annotations.length > 0);
     }
 

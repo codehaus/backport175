@@ -5,14 +5,14 @@
  * The software in this package is published under the terms of the LGPL license      *
  * a copy of which has been included with this distribution in the license.txt file.  *
  **************************************************************************************/
-package test;
+package test.reader;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 
 /**
- * @test.reader.TestAnnotations.VoidTyped
+ * @test.TestAnnotations.VoidTyped
  * @Simple(val="foo", s="bar")
  * @DefaultString("hello")
  * @StringArray(ss={"hello", "world"})
@@ -25,7 +25,7 @@ import java.lang.reflect.Constructor;
 public class Target {
 
     /**
-     * @test.reader.TestAnnotations.VoidTyped
+     * @test.TestAnnotations.VoidTyped
      * @Simple(val="foo", s="bar")
      * @DefaultString("hello")
      * @StringArray(ss={"hello", "world"})
@@ -37,14 +37,14 @@ public class Target {
      *      doubleArr={1.1D, 2.2D, 3.3D, 4.4D},
      *      type=double[][][].class,
      *      enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION,
-     *      typeArr={test.Target[].class, test.Target.class}
+     *      typeArr={test.reader.Target[].class, test.reader.Target.class}
      * )
      */
     public Target() {
     }
 
     /**
-     * @test.reader.TestAnnotations.VoidTyped
+     * @test.TestAnnotations.VoidTyped
      * @Simple(val="foo", s="bar")
      * @DefaultString("hello")
      * @StringArray(ss={"hello", "world"})
@@ -56,7 +56,7 @@ public class Target {
     private String field;
 
     /**
-     * @test.reader.TestAnnotations.VoidTyped
+     * @test.TestAnnotations.VoidTyped
      * @Simple(val="foo", s="bar")
      * @DefaultString("hello")
      * @StringArray(ss={"hello", "world"})
@@ -68,7 +68,7 @@ public class Target {
      *      doubleArr={1.1D, 2.2D, 3.3D, 4.4D},
      *      type=double[][][].class,
      *      enumeration=org.codehaus.backport175.reader.bytecode.AnnotationElement$Type.ANNOTATION,
-     *      typeArr={test.Target[].class, test.Target.class}
+     *      typeArr={test.reader.Target[].class, test.reader.Target.class}
      * )
      */
     public void method() {

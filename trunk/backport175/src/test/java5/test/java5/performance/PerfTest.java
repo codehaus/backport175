@@ -10,7 +10,6 @@ package test.java5.performance;
 import org.codehaus.backport175.reader.Annotation;
 import org.codehaus.backport175.reader.Annotations;
 
-import test.Target;
 import test.java5.Target5;
 import junit.framework.TestCase;
 
@@ -22,14 +21,14 @@ public class PerfTest extends TestCase {
 
     public void setUp() {
         // warm up
-        Annotations.getAnnotation("test.reader.TestAnnotations$VoidTyped", Target.METHOD);
+        Annotations.getAnnotation("test.TestAnnotations$VoidTyped", test.reader.Target.METHOD);
         Target5.METHOD.getAnnotation(Target5.Test.class);
     }
 
     public void testAccessAnnotation() {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < INVOCATIONS; i++) {
-            Annotation annotation = Annotations.getAnnotation("test.reader.TestAnnotations$VoidTyped", Target.METHOD);
+            Annotation annotation = Annotations.getAnnotation("test.TestAnnotations$VoidTyped", test.reader.Target.METHOD);
         }
         long time = System.currentTimeMillis() - startTime;
         double timePerInvocationNormalMethod = time / (double) INVOCATIONS;

@@ -97,7 +97,7 @@ public class MemberFilteringTest extends TestCase {
 //
 //    public void testReadRealJava5Ann() {
 //        Annotation reader = org.codehaus.backport175.reader.TestAnnotations.getAnnotation(
-//                "test.Target$Test", Target.class
+//                "test.reader.Target$Test", Target.class
 //        );
 //        Class type = reader.annotationType();
 //        assertEquals(Target.Test.class, type);
