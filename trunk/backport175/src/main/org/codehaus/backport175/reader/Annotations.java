@@ -50,19 +50,8 @@ public final class Annotations {
      * @return the annotation or null
      */
     public static Annotation getAnnotation(final Class annotation, final Class target) {
-        return getAnnotation(getAnnnotationName(annotation), target);
-    }
-
-    /**
-     * Return the annotation with a specific name for a specific class.
-     *
-     * @param annotationName the annotation name
-     * @param target          the java.lang.Class object to find the annotation on.
-     * @return the annotation or null
-     */
-    public static Annotation getAnnotation(final String annotationName, final Class target) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(target);
-        return reader.getAnnotation(annotationName);
+        return reader.getAnnotation(getAnnnotationName(annotation));
     }
 
     /**
@@ -94,19 +83,8 @@ public final class Annotations {
      * @return the annotation or null
      */
     public static Annotation getAnnotation(final Class annotation, final Method method) {
-        return getAnnotation(getAnnnotationName(annotation), method);
-    }
-
-    /**
-     * Return the annotation with a specific name for a specific method.
-     *
-     * @param annotationName the annotation name
-     * @param method         the java.lang.refect.Method object to find the annotation on.
-     * @return the annotation or null
-     */
-    public static Annotation getAnnotation(final String annotationName, final Method method) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(method.getDeclaringClass());
-        return reader.getAnnotation(annotationName, method);
+        return reader.getAnnotation(getAnnnotationName(annotation), method);
     }
 
     /**
@@ -139,19 +117,8 @@ public final class Annotations {
      * @return the annotation or null
      */
     public static Annotation getAnnotation(final Class annotation, final Constructor constructor) {
-        return getAnnotation(getAnnnotationName(annotation), constructor);
-    }
-
-    /**
-     * Return the annotation with a specific name for a specific constructor.
-     *
-     * @param annotationName the annotation name
-     * @param constructor    the java.lang.refect.Constructor object to find the annotation on.
-     * @return the annotation or null
-     */
-    public static Annotation getAnnotation(final String annotationName, final Constructor constructor) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(constructor.getDeclaringClass());
-        return reader.getAnnotation(annotationName, constructor);
+        return reader.getAnnotation(getAnnnotationName(annotation), constructor);
     }
 
     /**
@@ -183,19 +150,8 @@ public final class Annotations {
      * @return the annotation or null
      */
     public static Annotation getAnnotation(final Class annotation, final Field field) {
-        return getAnnotation(getAnnnotationName(annotation), field);
-    }
-
-    /**
-     * Return the annotation with a specific name for a specific field.
-     *
-     * @param annotationName the annotation name
-     * @param field          the java.lang.reflect.Field object to find the annotation on.
-     * @return the annotation or null
-     */
-    public static Annotation getAnnotation(final String annotationName, final Field field) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(field.getDeclaringClass());
-        return reader.getAnnotation(annotationName, field);
+        return reader.getAnnotation(getAnnnotationName(annotation), field);
     }
 
     /**
