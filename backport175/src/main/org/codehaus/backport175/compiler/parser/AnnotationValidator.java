@@ -186,19 +186,11 @@ public class AnnotationValidator {
      * @return
      */
     private static Class getExpectedType(final ParseContext ctx) {
-        try {
-            Class expectedType = ctx.expectedType;
-            if (expectedType.isArray()) {
-                expectedType = expectedType.getComponentType();
-            }
-            return expectedType;
-        } catch (Exception e) {
-            System.out.println("ctx = " + ctx);
-            System.out.println("ctx.elementName = " + ctx.elementName);
-            System.out.println("ctx.expectedType = " + ctx.expectedType);
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            return null;
+        Class expectedType = ctx.expectedType;
+        if (expectedType.isArray()) {
+            expectedType = expectedType.getComponentType();
         }
+        return expectedType;
     }
 
     /**

@@ -12,9 +12,7 @@ import org.codehaus.backport175.reader.Annotations;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 import junit.framework.TestCase;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
 import java.util.Set;
 import java.util.HashSet;
 

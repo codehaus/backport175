@@ -11,8 +11,6 @@ import junit.framework.TestCase;
 import org.codehaus.backport175.reader.Annotation;
 import org.codehaus.backport175.reader.Annotations;
 
-import java.lang.reflect.Method;
-
 /**
  * @test.noduplicate.NoDuplicateTest.A("ok")
  * Xtest.noduplicate.NoDuplicateTest.A("bad")

@@ -117,7 +117,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
             handleReferenceIdentifier(identifier, ctx);
         } else {
             throw new ParseException(
-                    "unsupported format for java type or static reference (enum) [" + ctx.elementName + "::" + identifier + "]"
+                    "unsupported format for java type or static reference (enum) [" +
+                    ctx.elementName + "::" + identifier + "]"
             );
         }
         return null;
@@ -274,15 +275,14 @@ public class AnnotationParser implements AnnotationParserVisitor {
             annotationType = annotationType.getComponentType();
         }
 
-        // FIXME validate annotations? how to do it right?
-//        AnnotationValidator.validateAnnotation(newCtx);
-
         AnnotationVisitor newMunger = ctx.munger.visitAnnotation(
                 ctx.elementName, Type.getDescriptor(annotationType)
         );
 
         // create new context for this new annotation
         ParseContext newCtx = new ParseContext(ctx.elementName, annotationType, ctx.expectedType, newMunger);
+
+        AnnotationValidator.validateAnnotation(newCtx);
 
         handleAnnotation(node, newCtx);
         newMunger.visitEnd();
