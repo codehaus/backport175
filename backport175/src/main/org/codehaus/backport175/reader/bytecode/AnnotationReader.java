@@ -155,6 +155,15 @@ public class AnnotationReader {
     }
 
     /**
+     * Returns all the class annotations.
+     *
+     * @return an array with the class annotations
+     */
+    public Annotation[] getAnnotations() {
+        return getAnnotations(m_classAnnotationElements.values(), m_classAnnotationCache);
+    }
+
+    /**
      * Returns the constructor annotation with the name specified for the constructor specified.
      *
      * @param annotationName
@@ -183,6 +192,23 @@ public class AnnotationReader {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns all the constructor annotations.
+     *
+     * @param constructor the java.lang.reflect.Constructor object to find the annotations on.
+     * @return an array with the constructor annotations
+     */
+    public Annotation[] getAnnotations(final Constructor constructor) {
+        Map annotationMap = (Map)m_constructorAnnotationCache.get(constructor);
+        if (annotationMap == null) {
+            annotationMap = new HashMap();
+            m_constructorAnnotationCache.put(constructor, annotationMap);
+        }
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
+        final Collection annotationElements = (Collection)m_constructorAnnotationElements.get(key);
+        return getAnnotations(annotationElements, annotationMap);
     }
 
     /**
@@ -217,6 +243,23 @@ public class AnnotationReader {
     }
 
     /**
+     * Returns all the method annotations.
+     *
+     * @param method the java.lang.reflect.Method object to find the annotations on.
+     * @return an array with the method annotations
+     */
+    public Annotation[] getAnnotations(final Method method) {
+        Map annotationMap = (Map)m_methodAnnotationCache.get(method);
+        if (annotationMap == null) {
+            annotationMap = new HashMap();
+            m_methodAnnotationCache.put(method, annotationMap);
+        }
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
+        final Collection annotationElements = (Collection)m_methodAnnotationElements.get(key);
+        return getAnnotations(annotationElements, annotationMap);
+    }
+
+    /**
      * Returns the field annotation with the name specified for the field specified.
      *
      * @param annotationName
@@ -245,6 +288,59 @@ public class AnnotationReader {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns all the field annotations.
+     *
+     * @param field the java.lang.reflect.Field object to find the annotations on.
+     * @return an array with the field annotations
+     */
+    public Annotation[] getAnnotations(final Field field) {
+        Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
+        if (annotationMap == null) {
+            annotationMap = new HashMap();
+            m_fieldAnnotationCache.put(field, annotationMap);
+        }
+        final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
+        Collection annotationElements = (Collection)m_fieldAnnotationElements.get(key);
+        return getAnnotations(annotationElements, annotationMap);
+    }
+
+    /**
+     * Returns the annotations for a specific member.
+     *
+     * @param annotationElements the annotation elements for the member
+     * @param annotationCache the annotation cache to use
+     * @return an array with the annotations
+     */
+    private Annotation[] getAnnotations(final Collection annotationElements, final Map annotationCache) {
+        final Annotation[] annotations = new Annotation[annotationElements.size()];
+        int i = 0;
+        if (annotationCache.size() == annotationElements.size()) {
+            // all are cached - use cache
+            for (Iterator it = annotationCache.values().iterator(); it.hasNext();) {
+                annotations[i++] = (Annotation)it.next();
+            }
+            return annotations;
+        } else {
+            // cache not complete - fill it up with the ones missing
+            ClassLoader loader = ((Class)m_classRef.get()).getClassLoader();
+            i = 0;
+            for (Iterator it = annotationElements.iterator(); it.hasNext();) {
+                AnnotationElement.Annotation annotationElement = (AnnotationElement.Annotation)it.next();
+                String annotationClassName = annotationElement.getInterfaceName();
+                if (annotationCache.containsKey(annotationClassName)) {
+                    // proxy in cache - reuse
+                    annotations[i++] = (Annotation)annotationCache.get(annotationClassName);
+                } else {
+                    final Annotation annotation = ProxyFactory.newAnnotationProxy(annotationElement, loader);
+                    annotationCache.put(annotationClassName, annotation);
+                    annotations[i++] = annotation;
+                }
+            }
+            return annotations;
+        }
     }
 
     /**
