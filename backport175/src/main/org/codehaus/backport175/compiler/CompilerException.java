@@ -7,11 +7,14 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler;
 
+import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
  * Thrown when error in compilation of the annotations.
+ * Those errors should interrupts the compilation.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */
@@ -19,12 +22,12 @@ public class CompilerException extends RuntimeException {
     /**
      * Original exception which caused this exception.
      */
-    private Throwable m_originalException;
+    protected Throwable m_originalException;
 
     /**
      * Optional location hint
      */
-    private Location m_location;
+    protected Location m_location;
 
     /**
      * Sets the message for the exception.
@@ -100,11 +103,11 @@ public class CompilerException extends RuntimeException {
         String file;
         int lineNumber;
 
-        public static Location render(String className, String file, int line) {
+        public static Location render(RawAnnotation annotation) {
             Location location = new Location();
-            location.className = className;
-            location.file = file;
-            location.lineNumber = line;
+            location.className = annotation.getEnclosingClassName();
+            location.file = annotation.getEnclosingClassFile();
+            location.lineNumber = annotation.getLineNumber();
             return location;
         }
     }

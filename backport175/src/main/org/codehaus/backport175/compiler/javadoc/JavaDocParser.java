@@ -92,9 +92,11 @@ public class JavaDocParser {
      *
      * @param annotationClass
      * @param tag
+     * @param enclosingClassName
+     * @param enclosingClassFileName
      * @return RawAnnotation or null if not found
      */
-    public static RawAnnotation getRawAnnotation(final Class annotationClass, final DocletTag tag) {
+    public static RawAnnotation getRawAnnotation(final Class annotationClass, final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
         String rawAnnotationString = tag.getName() + " " + tag.getValue();
         rawAnnotationString = rawAnnotationString.trim();
 
@@ -111,7 +113,7 @@ public class JavaDocParser {
         } else {
             value = "";
         }
-        return new RawAnnotation(annotationClass, value);
+        return new RawAnnotation(annotationClass, value, tag.getLineNumber(), enclosingClassName, enclosingClassFileName);
     }
 
     /**
