@@ -10,36 +10,36 @@ package test.filtering;
 public class Target {
 
     /**
-     * @test.filtering.MemberFilteringTests.A
+     * @test.filtering.MemberFilteringTest.A
      */
     public Target() {
     }
 
     /**
-     * @test.filtering.MemberFilteringTests.B
+     * @test.filtering.MemberFilteringTest.B
      */
     public Target(int[][] i, Object[] o, boolean b) {
     }
 
     /**
-     * @test.filtering.MemberFilteringTests.A
+     * @test.filtering.MemberFilteringTest.A
      */
     void A(String s, int i, double d, float f, byte b, char c, short t, long l, boolean bool) {
     }
 
     /**
-     * @test.filtering.MemberFilteringTests.B
+     * @test.filtering.MemberFilteringTest.B
      */
     void B(String s, int i, double d, float f, byte b, char c, short t, long l, boolean bool) {
     }
 
     /**
-     * @test.filtering.MemberFilteringTests.A
+     * @test.filtering.MemberFilteringTest.A
      */
     public String[] A;
 
     /**
-     * @test.filtering.MemberFilteringTests.B
+     * @test.filtering.MemberFilteringTest.B
      */
     public int[][] B;
 }

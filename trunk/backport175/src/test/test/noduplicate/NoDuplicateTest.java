@@ -9,6 +9,7 @@ package test.noduplicate;
 
 import junit.framework.TestCase;
 import org.codehaus.backport175.reader.Annotation;
+import org.codehaus.backport175.reader.Annotations;
 
 import java.lang.reflect.Method;
 
@@ -40,24 +41,24 @@ public class NoDuplicateTest extends TestCase {
     }
 
     public void testAnnotationCFailedSoNoAnnotationAtAllOnClass() {
-        Annotation[] anns = org.codehaus.backport175.reader.Annotations.getAnnotations(NoDuplicateTest.class);
+        Annotation[] anns = Annotations.getAnnotations(NoDuplicateTest.class);
         assertEquals(0, anns.length);
     }
 
     public void testAnnotationCFailedSoNoAnnotationAtAllOnMethod() throws Throwable {
-        Annotation[] anns = org.codehaus.backport175.reader.Annotations.getAnnotations(
+        Annotation[] anns = Annotations.getAnnotations(
                 NoDuplicateTest.class.getDeclaredMethod("method", new Class[0]));
         assertEquals(0, anns.length);
     }
 
     public void testAnnotationCFailedSoNoAnnotationAtAllOnField() throws Throwable {
-        Annotation[] anns = org.codehaus.backport175.reader.Annotations.getAnnotations(
+        Annotation[] anns = Annotations.getAnnotations(
                 NoDuplicateTest.class.getDeclaredField("field"));
         assertEquals(0, anns.length);
     }
 
     public void testAnnotationCFailedSoNoAnnotationAtAllOnCtor() throws Throwable {
-        Annotation[] anns = org.codehaus.backport175.reader.Annotations.getAnnotations(
+        Annotation[] anns = Annotations.getAnnotations(
                 NoDuplicateTest.class.getDeclaredConstructor(new Class[0]));
         assertEquals(0, anns.length);
     }
