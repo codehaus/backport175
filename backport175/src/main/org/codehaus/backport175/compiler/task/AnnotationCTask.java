@@ -20,6 +20,7 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
 import org.codehaus.backport175.compiler.AnnotationC;
+import org.codehaus.backport175.compiler.MessageHandler;
 
 /**
  * AnnotationC Ant task.
@@ -222,7 +223,7 @@ public class AnnotationCTask extends Task {
                     (String[]) classpathDirs.toArray(new String[]{}),
                     m_destdir == null ? null : m_destdir.getAbsolutePath(),
                     (String[]) allProperties.toArray(new String[]{}),
-                    new AnnotationC.StdMessageHandler(m_verbose)
+                    new MessageHandler.PrintWriter(m_verbose)
             );
 
             if (m_destdir != null) {
