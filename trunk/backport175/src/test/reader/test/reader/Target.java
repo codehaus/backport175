@@ -14,7 +14,7 @@ import java.lang.reflect.Constructor;
 /**
  * @test.TestAnnotations.VoidTyped
  * @Simple(val="foo", s="bar")
- * @DefaultString("hello")
+ * @DefaultString("hello\"there")
  * @StringArray(ss={"hello", "world"})
  * @LongArray(l={1l, 2l, 6l})
  * @AliasedLongArray(l={1l, 2l, 6l})

@@ -11,7 +11,7 @@
 <!-- Ant build file for the backport175 project -->
 <!-- ============================================================== -->
 
-<project name="backport175" default="cleandist" basedir=".">
+<project name="backport175" default="all" basedir=".">
 
     <!--    define the backport175 classpath used to compile the project -->
     <!--    we exclude jarjar and alike, used only for build purpose -->
@@ -25,7 +25,7 @@
     </path>
     <!--    define the jarjar task we use to remap ASM -->
     <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="${basedir}/lib/jarjar-0.3.jar"/>
-    <target name="cleandist" depends="clean, dist"/>
+    <target name="all" depends="clean, dist"/>
     <!-- =================================================== -->
     <!--  initializes parameters  -->
     <!-- =================================================== -->

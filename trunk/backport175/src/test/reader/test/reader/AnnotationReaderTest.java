@@ -68,7 +68,7 @@ public class AnnotationReaderTest extends TestCase {
         assertEquals(TestAnnotations.DefaultString.class, type);
 
         TestAnnotations.DefaultString ann = (TestAnnotations.DefaultString)annotation;
-        assertEquals("hello", ann.value());
+        assertEquals("hello\"there", ann.value());
     }
 
     public void testClassAnn3() {
