@@ -33,7 +33,7 @@ public class PerfTest extends TestCase {
         }
         long time = System.currentTimeMillis() - startTime;
         double timePerInvocationNormalMethod = time / (double) INVOCATIONS;
-        System.out.println("NO CACHE : " + timePerInvocationNormalMethod);
+        System.out.println("backport175 API : " + timePerInvocationNormalMethod);
     }
 
     public void testReflect() {
@@ -45,7 +45,7 @@ public class PerfTest extends TestCase {
         }
         long time = System.currentTimeMillis() - startTime;
         double timePerInvocationNormalMethod = time / (double) INVOCATIONS;
-        System.out.println("REFLECT : " + timePerInvocationNormalMethod);
+        System.out.println("Java 5 reflect : " + timePerInvocationNormalMethod);
     }
 
     //-- junit
