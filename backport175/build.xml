@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <!-- ========================================================================================= -->
 <!--  Copyright (c) Jonas Boner, Alexandre Vasseur. All rights reserved.                       -->
 <!--  http://backport175.codehaus.org                                                          -->
@@ -24,12 +23,9 @@
         <!-- external classpath -->
         <pathelement path="${java.class.path}"/>
     </path>
-
     <!--    define the jarjar task we use to remap ASM -->
     <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="${basedir}/lib/jarjar-0.3.jar"/>
-
     <target name="cleandist" depends="clean, dist"/>
-
     <!-- =================================================== -->
     <!--  initializes parameters  -->
     <!-- =================================================== -->
@@ -47,7 +43,6 @@
         <property name="javac.optimize" value="off"/>
         <property name="javac.depend" value="off"/>
         <property name="javac.verbose" value="off"/>
-
         <!-- os specific -->
         <condition property="pathseparator" value=";">
             <os family="dos"/>
@@ -63,7 +58,6 @@
         <property name="samples.classes" value="${build.dir}/samples-classes"/>
         <property environment="env"/>
     </target>
-
     <!-- ============================================================== -->
     <!-- clean -->
     <!-- ============================================================== -->
@@ -77,7 +71,6 @@
         <mkdir dir="${test.classes}"/>
         <mkdir dir="${samples.classes}"/>
     </target>
-
     <!-- ============================================================== -->
     <!-- compiles the distribution  -->
     <!-- ============================================================== -->
@@ -91,7 +84,6 @@
             </classpath>
         </javac>
     </target>
-
     <!-- ============================================================== -->
     <!-- compiles the tests -->
     <!-- ============================================================== -->
@@ -112,7 +104,6 @@
         </jarjar>
         <unjar src="${test.classes}.jar" dest="${test.classes}" overwrite="true"/>
     </target>
-
     <!-- ============================================================== -->
     <!-- compiles all -->
     <!-- ============================================================== -->
@@ -120,7 +111,6 @@
         <antcall target="compile"/>
         <antcall target="compile:test"/>
     </target>
-
     <!-- ============================================================== -->
     <!-- create distribution -->
     <!-- ============================================================== -->
@@ -135,7 +125,6 @@
         </jarjar>
         <copy tofile="${lib.dir}/${name}-${version}.jar" file="${build.dir}/${name}-${version}.jar" overwrite="true"/>
     </target>
-
     <!-- ============================================================== -->
     <!-- jjtree and javacc compilation -->
     <!-- ============================================================== -->
@@ -143,7 +132,6 @@
         <jjtree target="${src.dir}/main/org/codehaus/${name}/expression/ast/grammar.jjt" outputdirectory="${src.dir}/main/org/codehaus/${name}/expression/ast" javacchome="${env.JAVACC_HOME}"/>
         <javacc target="${src.dir}/main/org/codehaus/${name}/expression/ast/grammar.jj" outputdirectory="${src.dir}/main/org/codehaus/${name}/expression/ast" javacchome="${env.JAVACC_HOME}"/>
     </target>
-
     <!-- =================================================== -->
     <!--  compiles annotations for the tests -->
     <!-- =================================================== -->
@@ -156,7 +144,6 @@
             <arg line="-verbose -src ${basedir}/src/test -classes ${basedir}/target/test-classes -config ${basedir}/src/test/annotation.properties"/>
         </java>
     </target>
-
     <!-- =================================================== -->
     <!--  all tests -->
     <!-- =================================================== -->
@@ -168,18 +155,23 @@
             </classpath>
         </java>
     </target>
-
     <!-- =================================================== -->
     <!--  Example on how to use the annotationc ant task -->
     <!-- =================================================== -->
     <target name="samples:task:annotationc" depends="init, compile:all">
         <taskdef name="annotationc"
+
             classname="org.codehaus.${name}.AnnotationCTask"
+
             classpathref="project.class.path"/>
         <annotationc
+
             verbose="true"
+
             destdir="${basedir}/target/samples-classes"
+
             properties="${basedir}/src/samples/annotation.properties"
+
             copytodest="**/*.RESIDUALPROPS">
             <properties path="${basedir}/src/samples/annotation.properties"/>
             <src path="${basedir}/src/samples"/>
@@ -192,5 +184,4 @@
             </fileset>
         </annotationc>
     </target>
-
 </project>
