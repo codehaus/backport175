@@ -13,6 +13,10 @@ import junit.framework.TestCase;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+
+import sun.reflect.annotation.AnnotationType;
+import test.reader.TestAnnotations;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
@@ -79,14 +83,15 @@ public class AnnotationReaderTest extends TestCase {
 
     // === for testing Java 5 reflection compatibility ===
 
-    //FIXME does not work right now
     public void testAnnotationCCompiledClassAnnReflection() {
         java.lang.annotation.Annotation[] annotations = test.Target.class.getAnnotations();
-        assertTrue(annotations.length > 1);
+        // only one is set with RuntimeRetention..
+        assertEquals(1, annotations.length);
+        //TODO refine the assert
     }
 
 
-    //FIXME
+    //TODO refine the assert
     public void testAnnotationCCompiledMembersAnnReflection() {
         java.lang.annotation.Annotation[] annotations = test.Target.METHOD.getAnnotations();
         assertTrue(annotations.length > 0);

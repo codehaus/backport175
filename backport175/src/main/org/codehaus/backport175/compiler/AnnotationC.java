@@ -256,7 +256,7 @@ public class AnnotationC {
                 AnnotationEnhancer enhancer = new AnnotationEnhancer();
                 if (enhancer.initialize(clazz.getFullyQualifiedName(), classPath)) {
                     handleClassAnnotations(enhancer, clazz);
-                    handleInnerClassAnnotations(enhancer, clazz);
+                    //handleInnerClassAnnotations(enhancer, clazz, destDir);
                     JavaMethod[] methods = clazz.getMethods();
                     for (int j = 0; j < methods.length; j++) {
                         JavaMethod method = methods[j];
@@ -384,10 +384,16 @@ public class AnnotationC {
      * @param enhancer
      * @param clazz
      */
-    private void handleInnerClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
+    private void handleInnerClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz, String destDir) {
         JavaClass[] innerClasses = clazz.getInnerClasses();
         for (int i = 0; i < innerClasses.length; i++) {
-            handleClassAnnotations(enhancer, innerClasses[i]);
+            // must have another enhancer
+            AnnotationEnhancer nestedEnhancer = new AnnotationEnhancer();
+            if (nestedEnhancer.initialize(innerClasses[i].getFullyQualifiedName(), enhancer.getClassLoader())) {
+                handleClassAnnotations(nestedEnhancer, innerClasses[i]);
+                //FIXME other stuff like method
+                nestedEnhancer.write(destDir);
+            }
         }
     }
 

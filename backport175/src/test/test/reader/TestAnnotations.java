@@ -13,6 +13,10 @@ import org.codehaus.backport175.reader.bytecode.AnnotationElement;
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
 public class TestAnnotations {
+
+    /**
+     * @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+     */
     public static interface VoidTyped {
     }
 
