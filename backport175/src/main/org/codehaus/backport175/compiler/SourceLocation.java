@@ -8,6 +8,7 @@
 package org.codehaus.backport175.compiler;
 
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
+import com.thoughtworks.qdox.model.DocletTag;
 
 /**
  * Source location used for reporting.
@@ -36,6 +37,24 @@ public class SourceLocation {
         return sourceLocation;
     }
 
+    /**
+     * Renders a new source location.
+     *
+     * @param annotationClass
+     * @param tag
+     * @param enclosingClassName
+     * @param enclosingClassFileName
+     * @return
+     */
+    public static SourceLocation render(final Class annotationClass, final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
+        SourceLocation sourceLocation = new SourceLocation();
+        sourceLocation.m_className = enclosingClassName;
+        sourceLocation.m_file = enclosingClassFileName;
+        sourceLocation.m_lineNumber = tag.getLineNumber();
+        sourceLocation.m_annotationClassName = annotationClass.getName();
+        return sourceLocation;
+    }
+
     public String toString() {
         final StringBuffer sb = new StringBuffer();
         sb.append(m_className);
@@ -43,7 +62,7 @@ public class SourceLocation {
         sb.append(m_lineNumber);
         sb.append(" @");
         sb.append(m_annotationClassName);
-        sb.append(" in source file [");
+        sb.append(" in file [");
         sb.append(m_file);
         sb.append(']');
         return sb.toString();

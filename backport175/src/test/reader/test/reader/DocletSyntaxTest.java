@@ -34,6 +34,17 @@ public class DocletSyntaxTest extends TestCase {
      */
     int i3;
 
+    /**
+     * @DefaultString "(hello) -              see the space here !"
+     */
+    int j1;
+
+    /**
+     * @DefaultString execution(hello)
+     */
+    int j2;
+
+
     public void testDocletSyntax() throws Throwable {
         for (int i =1; i <= 3; i++) {
             String fieldName = "i"+i;
@@ -45,6 +56,28 @@ public class DocletSyntaxTest extends TestCase {
             }
             assertEquals("hello\"there", anno.value());
         }
+    }
+
+    public void testDocletSyntaxWithNestedParentesis() throws Throwable {
+        String fieldName = "j1";
+        Field field = DocletSyntaxTest.class.getDeclaredField(fieldName);
+        TestAnnotations.DefaultString anno =
+                (TestAnnotations.DefaultString)Annotations.getAnnotation(TestAnnotations.DefaultString.class, field);
+        if (anno == null) {
+            fail("could not find annotation on field " + fieldName);
+        }
+        assertEquals("(hello) - see the space here !", anno.value());
+    }
+
+    public void testDocletSyntaxWithNestedParentesisAndSpace() throws Throwable {
+        String fieldName = "j2";
+        Field field = DocletSyntaxTest.class.getDeclaredField(fieldName);
+        TestAnnotations.DefaultString anno =
+                (TestAnnotations.DefaultString)Annotations.getAnnotation(TestAnnotations.DefaultString.class, field);
+        if (anno == null) {
+            fail("could not find annotation on field " + fieldName);
+        }
+        assertEquals("execution(hello)", anno.value());
     }
 
     public static void main(String[] args) {

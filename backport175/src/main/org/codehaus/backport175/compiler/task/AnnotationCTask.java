@@ -28,6 +28,7 @@ import org.codehaus.backport175.compiler.MessageHandler;
  * Use the following parameters to configure the task:
  * <ul>
  * <li>verbose: [optional] flag marking the task verbosity [true / false]</li>
+ * <li>ignoreUnkown: [optional] flag marking if the task should ignore unknown annotations [true / false]</li>
  * <li>properties: [optional] path to a properties file when user-defined annoations are to be used</li>
  * <li>destdir: [optional unless input classes are in more than one path] directory where to put annnotated class files</li>
  * <li>copytodest: [optional] filename pattern to copy extra resources like dtd, xml, or properties files that were found
@@ -62,6 +63,7 @@ public class AnnotationCTask extends Task {
     private final static String CLASS_PATTERN = "**/*.class";
 
     private boolean m_verbose;
+    private boolean m_ignoreUnknown;
     private String m_includePattern;
     private Path m_classpath;
     private Path m_src;
@@ -86,6 +88,15 @@ public class AnnotationCTask extends Task {
      */
     public void setVerbose(boolean isVerbose) {
         m_verbose = isVerbose;
+    }
+
+    /**
+     * <task ignoreUnknown=..>
+     *
+     * @param ignoreUnknown
+     */
+    public void setIgnoreUnknown(boolean ignoreUnknown) {
+        m_ignoreUnknown = ignoreUnknown;
     }
 
     /**
@@ -223,7 +234,8 @@ public class AnnotationCTask extends Task {
                     (String[]) classpathDirs.toArray(new String[]{}),
                     m_destdir == null ? null : m_destdir.getAbsolutePath(),
                     (String[]) allProperties.toArray(new String[]{}),
-                    new MessageHandler.PrintWriter(m_verbose)
+                    new MessageHandler.PrintWriter(m_verbose),
+                    m_ignoreUnknown
             );
 
             if (m_destdir != null) {
