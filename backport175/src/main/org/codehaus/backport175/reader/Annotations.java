@@ -88,6 +88,16 @@ public final class Annotations {
     }
 
     /**
+     * Return all the annotations for a specific method.
+     *
+     * @param constructor the java.lang.reflect.Constructor object to find the annotations on.
+     * @return an array with the annotations
+     */
+    public static Annotation[] getAnnotations(final Constructor constructor) {
+        return AnnotationReader.getReaderFor(constructor.getDeclaringClass()).getAnnotations(constructor);
+    }
+
+    /**
      * Return the annotation with a specific name for a specific constructor.
      *
      * @param annotation  the annotation class
