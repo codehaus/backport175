@@ -9,6 +9,7 @@ package org.codehaus.backport175.compiler.bytecode;
 
 import org.codehaus.backport175.compiler.CompilerException;
 import org.codehaus.backport175.compiler.SourceLocation;
+import org.codehaus.backport175.compiler.MessageHandler;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
 import org.codehaus.backport175.compiler.parser.AnnotationParser;
 import org.codehaus.backport175.compiler.parser.ParseException;
@@ -73,6 +74,19 @@ public class AnnotationEnhancer {
      * The field annotations.
      */
     private List m_fieldAnnotations = new ArrayList();
+
+    /**
+     * The message handler we report success to
+     */
+    private final MessageHandler m_messageHandler;
+
+    /**
+     * Constructor
+     * @param messageHandler
+     */
+    public AnnotationEnhancer(MessageHandler messageHandler) {
+        m_messageHandler = messageHandler;
+    }
 
     /**
      * Initializes the enhancer. Must always be called before use.
@@ -353,6 +367,7 @@ public class AnnotationEnhancer {
                     );
                     AnnotationParser.parse(bytecodeMunger, annotationInterface, annotationInfo.annotation);
                     bytecodeMunger.visitEnd();
+                    m_messageHandler.accept(SourceLocation.render(annotationInfo.annotation));
                 }
             }
             return fieldVisitor;
@@ -376,6 +391,7 @@ public class AnnotationEnhancer {
                         );
                         AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
                         bytecodeMunger.visitEnd();
+                        m_messageHandler.accept(SourceLocation.render(annotationInfo.annotation));
                     }
                 }
             } else {
@@ -390,6 +406,7 @@ public class AnnotationEnhancer {
                         );
                         AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
                         bytecodeMunger.visitEnd();
+                        m_messageHandler.accept(SourceLocation.render(annotationInfo.annotation));
                     }
                 }
             }
@@ -406,6 +423,7 @@ public class AnnotationEnhancer {
                 );
                 AnnotationParser.parse(bytecodeMunger, annIntf, rawAnnotation);
                 bytecodeMunger.visitEnd();
+                m_messageHandler.accept(SourceLocation.render(rawAnnotation));
             }
             super.visitEnd();
         }
