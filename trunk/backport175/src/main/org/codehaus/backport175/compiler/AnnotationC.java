@@ -12,7 +12,6 @@ import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.DocletTag;
 
-import org.apache.tools.ant.BuildException;
 import org.codehaus.backport175.compiler.bytecode.AnnotationEnhancer;
 import org.codehaus.backport175.compiler.javadoc.JavaDocParser;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
@@ -281,6 +280,7 @@ public class AnnotationC {
                 m_handler.error(ce);
                 return;
             } catch (Throwable t) {
+                t.printStackTrace();
                 m_handler.error(new CompilerException(
                         "could not compile annotations for class ["//FIXME location
                         + clazz.getFullyQualifiedName() + "] due to: " + t.toString()
@@ -311,6 +311,7 @@ public class AnnotationC {
                     "\tprocessing class annotation [" + rawAnnotation.getName() + " @ "
                     + clazz.getFullyQualifiedName() + ']'
             );
+            m_handler.accept(CompilerException.Location.render(rawAnnotation));
         }
     }
 
@@ -334,6 +335,7 @@ public class AnnotationC {
                     method.getName()
                     + ']'
             );
+            m_handler.accept(CompilerException.Location.render(rawAnnotation));
         }
     }
 
@@ -357,6 +359,7 @@ public class AnnotationC {
                     constructor.getName()
                     + ']'
             );
+            m_handler.accept(CompilerException.Location.render(rawAnnotation));
         }
     }
 
@@ -375,6 +378,7 @@ public class AnnotationC {
             }
             enhancer.insertFieldAnnotation(field, rawAnnotation);
             logInfo("\tprocessing field annotation [" + rawAnnotation.getName() + " @ " + field.getName() + ']');
+            m_handler.accept(CompilerException.Location.render(rawAnnotation));
         }
     }
 
@@ -543,7 +547,7 @@ public class AnnotationC {
                 line = reader.readLine();
             }
         } catch (IOException ioe) {
-            throw new BuildException("an error occured while reading from pattern file: " + srcIncludes, ioe);
+            throw new CompilerException("an error occured while reading from pattern file: " + srcIncludes, ioe);
         } finally {
             if (null != reader) {
                 try {
@@ -557,8 +561,11 @@ public class AnnotationC {
     }
 
     public static interface IEventHandler {
+        // location can be null
         void info(String message, CompilerException.Location location);
+        // exception.location can be null
         void error(CompilerException exception);
+        void accept(CompilerException.Location location);
     }
 
     public static class StdEventHandler implements IEventHandler {
@@ -575,12 +582,12 @@ public class AnnotationC {
             }
         }
 
+        public void accept(CompilerException.Location location) {
+        }
+
         public void error(CompilerException exception) {
             if (exception.getLocation() != null) {
-                System.err.println("ERROR: with " + exception.getLocation().className
-                    + " in " + exception.getLocation().file
-                    + ", line " + exception.getLocation().lineNumber
-                );
+                System.err.println("ERROR: with " + exception.getLocation().toString());
             } else {
                 System.err.println("ERROR:");
             }

@@ -99,16 +99,28 @@ public class CompilerException extends RuntimeException {
      * Error reporting
      */
     public static class Location {
-        String className;
-        String file;
-        int lineNumber;
+        public String className;
+        public String file;
+        public int lineNumber;
+        public String annotationClassName;
 
         public static Location render(RawAnnotation annotation) {
             Location location = new Location();
             location.className = annotation.getEnclosingClassName();
             location.file = annotation.getEnclosingClassFile();
             location.lineNumber = annotation.getLineNumber();
+            location.annotationClassName = annotation.getName();
             return location;
+        }
+
+        public String toString() {
+            StringBuffer sb = new StringBuffer();
+            sb.append(className);
+            sb.append(':');
+            sb.append(lineNumber);
+            sb.append(" @");
+            sb.append(annotationClassName);
+            return sb.toString();
         }
     }
 }
