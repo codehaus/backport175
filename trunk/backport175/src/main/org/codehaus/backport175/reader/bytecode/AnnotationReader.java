@@ -40,13 +40,13 @@ public class AnnotationReader {
 
     // ===========================================================================
     // Implementation notes:
-    // Parsing and reader creation is made in two steps
+    // Parsing and annotation creation is made in two steps
     //
-    // 1. The bytecode is parsed and the reader content is put in elements,
+    // 1. The bytecode is parsed and the annotation content is put in elements,
     //    which are stored for later processing
     //
-    // 2. Upon reader access the elements are processed and a dynamic proxy
-    //    for the reader is created and cached.
+    // 2. Upon annotation access the elements are processed and a dynamic proxy
+    //    for the annotation is created and cached.
     //
     // This gives much better performance than reflective access of Java 5
     // annotations (reflective access is around 5 times slower)
@@ -76,12 +76,12 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the reader reader for the class specified.
+     * Returns the annotation reader for the class specified.
      * <p/>
-     * The reader reader is created and cached if non-existant.
+     * The annotation reader is created and cached if non-existant.
      *
      * @param klass
-     * @return the reader reader
+     * @return the annotation reader
      */
     public static AnnotationReader getReaderFor(final Class klass) {
         final AnnotationReader reader;
@@ -98,7 +98,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Resets the reader reader for the class specified and triggers a new parsing of the newly read bytecode.
+     * Resets the annotation reader for the class specified and triggers a new parsing of the newly read bytecode.
      * <p/>
      * This method calls <code>parse</code> and is therefore all the is needed to invoke to get a fully updated reader.
      *
@@ -112,7 +112,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Resets *all* the reader reader and triggers a new parsing of the newly read bytecode.
+     * Resets *all* the annotation reader and triggers a new parsing of the newly read bytecode.
      * <p/>
      * This method will force parsing of all classes bytecode which might be very time consuming, use with care.
      * <p/>
@@ -138,20 +138,20 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an reader is present at a specific class.
+     * Checks if an annotation is present at a specific class.
      *
-     * @param annotationType the reader type
-     * @return true if the reader is present else false
+     * @param annotationType the annotation type
+     * @return true if the annotation is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType) {
         return m_classAnnotationElements.containsKey(annotationType.getName());
     }
 
     /**
-     * Returns the class reader with the name specified.
+     * Returns the class annotation with the name specified.
      *
      * @param annotationName
-     * @return the class reader
+     * @return the class annotation
      */
     public Annotation getAnnotation(final String annotationName) {
         Object cachedAnnotation = m_classAnnotationCache.get(annotationName);
@@ -188,10 +188,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an reader is present at a specific constructor.
+     * Checks if an annotation is present at a specific constructor.
      *
-     * @param annotationType the reader type
-     * @return true if the reader is present else false
+     * @param annotationType the annotation type
+     * @return true if the annotation is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType, final Constructor constructor) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
@@ -205,10 +205,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the constructor reader with the name specified for the constructor specified.
+     * Returns the constructor annotation with the name specified for the constructor specified.
      *
      * @param annotationName
-     * @return the constructor reader
+     * @return the constructor annotation
      */
     public Annotation getAnnotation(final String annotationName, final Constructor constructor) {
         Map annotationMap = getAnnotationCacheFor(constructor);
@@ -253,10 +253,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an reader is present at a specific method.
+     * Checks if an annotation is present at a specific method.
      *
-     * @param annotationType the reader type
-     * @return true if the reader is present else false
+     * @param annotationType the annotation type
+     * @return true if the annotation is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType, final Method method) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
@@ -270,10 +270,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the method reader with the name specified for the method specified.
+     * Returns the method annotation with the name specified for the method specified.
      *
      * @param annotationName
-     * @return the method reader
+     * @return the method annotation
      */
     public Annotation getAnnotation(final String annotationName, final Method method) {
         Map annotationMap = (Map)m_methodAnnotationCache.get(method);
@@ -322,10 +322,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an reader is present at a specific field.
+     * Checks if an annotation is present at a specific field.
      *
-     * @param annotationType the reader type
-     * @return true if the reader is present else false
+     * @param annotationType the annotation type
+     * @return true if the annotation is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType, final Field field) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
@@ -339,10 +339,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the field reader with the name specified for the field specified.
+     * Returns the field annotation with the name specified for the field specified.
      *
      * @param annotationName
-     * @return the field reader
+     * @return the field annotation
      */
     public Annotation getAnnotation(final String annotationName, final Field field) {
         Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
@@ -393,8 +393,8 @@ public class AnnotationReader {
     /**
      * Returns the annotations for a specific member.
      *
-     * @param annotationElements the reader elements for the member
-     * @param annotationCache    the reader cache to use
+     * @param annotationElements the annotation elements for the member
+     * @param annotationCache    the annotation cache to use
      * @return an array with the annotations
      */
     private Annotation[] getAnnotations(final Collection annotationElements, final Map annotationCache) {
@@ -427,7 +427,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the reader cache for a specific constructor.
+     * Returns the annotation cache for a specific constructor.
      *
      * @param constructor the constructor
      * @return the cache
@@ -442,7 +442,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the reader cache for a specific method.
+     * Returns the annotation cache for a specific method.
      *
      * @param method the method
      * @return the cache
@@ -457,7 +457,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the reader cache for a specific field.
+     * Returns the annotation cache for a specific field.
      *
      * @param field the field
      * @return the cache
@@ -472,7 +472,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Resets the reader reader and triggers a new parsing of the newly read bytecode.
+     * Resets the annotation reader and triggers a new parsing of the newly read bytecode.
      * <p/>
      * This method calls <code>parse</code> and is therefore all the is needed to invoke to get a fully updated reader.
      */
@@ -508,7 +508,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Creates a new instance of the reader reader, reads from the class specified.
+     * Creates a new instance of the annotation reader, reads from the class specified.
      *
      * @param klass
      */
@@ -616,7 +616,7 @@ public class AnnotationReader {
         }
 
         /**
-         * Returns the reader visitor to use.
+         * Returns the annotation visitor to use.
          * <p/>
          * Swap to the 'tracing' visitor for simple debugging.
          *
