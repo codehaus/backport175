@@ -1,18 +1,21 @@
-/**************************************************************************************
- * Copyright (c) Jonas Bonér, Alexandre Vasseur. All rights reserved.                 *
- * http://backport175.codehaus.org                                                    *
- * ---------------------------------------------------------------------------------- *
- * The software in this package is published under the terms of the LGPL license      *
- * a copy of which has been included with this distribution in the license.txt file.  *
- **************************************************************************************/
+/*******************************************************************************************
+ * Copyright (c) Jonas Bonér, Alexandre Vasseur. All rights reserved.                      *
+ * http://backport175.codehaus.org                                                         *
+ * --------------------------------------------------------------------------------------- *
+ * The software in this package is published under the terms of Apache License Version 2.0 *
+ * a copy of which has been included with this distribution in the license.txt file.       *
+ *******************************************************************************************/
 package test.reader;
 
 import org.codehaus.backport175.reader.Annotation;
 import org.codehaus.backport175.reader.Annotations;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
+import org.codehaus.backport175.reader.bytecode.AnnotationReader;
 import junit.framework.TestCase;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
@@ -30,9 +33,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testToString() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Complex", Target.METHOD);
         assertEquals(
                 "@test.TestAnnotations$Complex(" +
                 "i=111, " +
@@ -53,17 +55,15 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn1() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$VoidTyped", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$VoidTyped");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.VoidTyped.class, type);
     }
 
     public void testClassAnn2() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$DefaultString", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$DefaultString");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.DefaultString.class, type);
 
@@ -72,9 +72,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn3() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Simple", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Simple");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Simple.class, type);
 
@@ -84,9 +83,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn4() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$StringArray", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$StringArray");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.StringArray.class, type);
 
@@ -97,9 +95,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn5() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$LongArray", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$LongArray");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.LongArray.class, type);
 
@@ -123,14 +120,14 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnnNotThere() {
-        Annotation annotation = Annotations.getAnnotation("noThere", Target.class);
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("noThere");
         assertNull(annotation);
     }
 
     public void testClassAnn6() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Complex");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Complex.class, type);
 
@@ -146,9 +143,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn7() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotation", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotation");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotation.class, type);
 
@@ -158,9 +154,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testClassAnn8() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotationArray", Target.class
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.class);
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotationArray");
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotationArray.class, type);
 
@@ -195,17 +190,15 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn1() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$VoidTyped", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$VoidTyped", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.VoidTyped.class, type);
     }
 
     public void testFieldAnn2() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$DefaultString", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$DefaultString", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.DefaultString.class, type);
 
@@ -214,9 +207,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn3() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Simple", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Simple", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Simple.class, type);
 
@@ -226,9 +218,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn4() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$StringArray", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$StringArray", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.StringArray.class, type);
 
@@ -239,9 +230,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn5() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$LongArray", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$LongArray", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.LongArray.class, type);
 
@@ -253,9 +243,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn6() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Complex", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Complex.class, type);
 
@@ -271,9 +260,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn7() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotation", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotation", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotation.class, type);
 
@@ -283,9 +271,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testFieldAnn8() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotationArray", Target.FIELD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.FIELD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotationArray", Target.FIELD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotationArray.class, type);
 
@@ -320,17 +307,15 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn1() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$VoidTyped", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$VoidTyped", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.VoidTyped.class, type);
     }
 
     public void testConstructorAnn2() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$DefaultString", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$DefaultString", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.DefaultString.class, type);
 
@@ -339,9 +324,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn3() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Simple", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Simple", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Simple.class, type);
 
@@ -351,9 +335,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn4() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$StringArray", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$StringArray", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.StringArray.class, type);
 
@@ -364,9 +347,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn5() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$LongArray", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$LongArray", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.LongArray.class, type);
 
@@ -378,9 +360,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn6() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotation", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotation", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotation.class, type);
 
@@ -390,9 +371,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn7() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotationArray", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotationArray", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotationArray.class, type);
 
@@ -403,9 +383,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testConstructorAnn8() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.CONSTRUCTOR
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.CONSTRUCTOR.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Complex", Target.CONSTRUCTOR);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Complex.class, type);
 
@@ -454,21 +433,20 @@ public class AnnotationReaderTest extends TestCase {
 
     public void testMethodNoSuchAnn() throws Throwable {
         Method m = AnnotationReaderTest.class.getDeclaredMethod("testToString", new Class[]{});
-        Annotations.getAnnotation("waza", m);
+        final AnnotationReader reader = AnnotationReader.getReaderFor(m.getDeclaringClass());
+        reader.getAnnotation("waza", m);
     }
 
     public void testMethodAnn1() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$VoidTyped", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$VoidTyped", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.VoidTyped.class, type);
     }
 
     public void testMethodAnn2() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$DefaultString", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$DefaultString", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.DefaultString.class, type);
 
@@ -477,9 +455,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn3() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Simple", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Simple", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Simple.class, type);
 
@@ -489,9 +466,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn4() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$StringArray", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$StringArray", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.StringArray.class, type);
 
@@ -502,9 +478,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn5() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$LongArray", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$LongArray", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.LongArray.class, type);
 
@@ -516,9 +491,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn6() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotation", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotation", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotation.class, type);
 
@@ -528,9 +502,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn7() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$NestedAnnotationArray", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$NestedAnnotationArray", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.NestedAnnotationArray.class, type);
 
@@ -541,9 +514,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn8() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Complex", Target.METHOD);
         Class type = annotation.annotationType();
         assertEquals(TestAnnotations.Complex.class, type);
 
@@ -584,9 +556,8 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testReadInResolvedValues() {
-        Annotation annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.METHOD
-        );
+        final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        Annotation annotation = reader.getAnnotation("test.TestAnnotations$Complex", Target.METHOD);
         TestAnnotations.Complex ann = (TestAnnotations.Complex)annotation;
         assertEquals(111, ann.i());
         double[] doubleArr = ann.doubleArr();
@@ -602,9 +573,8 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
 
         // second time -> values are not resolved again but cache is used
-        annotation = Annotations.getAnnotation(
-                "test.TestAnnotations$Complex", Target.METHOD
-        );
+        final AnnotationReader reader1 = AnnotationReader.getReaderFor(Target.METHOD.getDeclaringClass());
+        annotation = reader1.getAnnotation("test.TestAnnotations$Complex", Target.METHOD);
         ann = (TestAnnotations.Complex)annotation;
         assertEquals(111, ann.i());
         doubleArr = ann.doubleArr();
