@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 
 import org.codehaus.backport175.compiler.parser.AnnotationValidationException;
 import org.codehaus.backport175.compiler.AnnotationC;
+import org.codehaus.backport175.compiler.MessageHandler;
 
 import java.lang.reflect.Method;
 
@@ -41,7 +42,7 @@ public class ValidationTest extends TestCase {
 
     private static final String CLASSPATH = "target/testcompiler-classes";
     private static final String SOURCE_DIR = "src/test/compiler/test/compiler/validation/";
-    private static final AnnotationC.MessageHandler MESSAGE_HANDLER = new AnnotationC.StdMessageHandler(true);
+    private static final MessageHandler MESSAGE_HANDLER = new MessageHandler.PrintWriter(true);
 
     static {
         try {

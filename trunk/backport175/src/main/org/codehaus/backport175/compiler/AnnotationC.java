@@ -53,22 +53,22 @@ public class AnnotationC {
     /**
      * Compilation event handler
      */
-    private MessageHandler m_handler;
+    private final MessageHandler m_handler;
 
     /**
      * The class loader
      */
-    private ClassLoader m_loader;
+    private final ClassLoader m_loader;
 
     /**
      * The parser for src files
      */
-    private JavaDocParser m_javaDocParser;
+    private final JavaDocParser m_javaDocParser;
 
     /**
      * The annotation repository
      */
-    private AnnotationInterfaceRepository m_repository;
+    private final AnnotationInterfaceRepository m_repository;
 
     /**
      * Creates a new AnnotationC compiler instance.
@@ -170,7 +170,7 @@ public class AnnotationC {
                 split(classPath, File.pathSeparator),
                 destDir,
                 annotationPropetiesFiles,
-                new StdMessageHandler(verbose)
+                new MessageHandler.PrintWriter(verbose)
         );
     }
 
@@ -182,7 +182,7 @@ public class AnnotationC {
      * @param classpath
      * @param destDir
      * @param annotationPropertiesFiles
-     * @param handler
+     * @param messageHandler
      */
     public static void compile(
             final String[] srcDirs,
@@ -190,7 +190,7 @@ public class AnnotationC {
             final String[] classpath,
             final String destDir,
             final String[] annotationPropertiesFiles,
-            final MessageHandler handler) {
+            final MessageHandler messageHandler) {
 
         URL[] classPath = new URL[classpath.length];
         final ClassLoader compilationLoader;
@@ -201,14 +201,14 @@ public class AnnotationC {
             compilationLoader = new URLClassLoader(classPath, AnnotationC.class.getClassLoader());
         } catch (MalformedURLException e) {
             String message = "URL [" + classPath + "] is not valid: " + e.toString();
-            handler.error(new CompilerException(message, e));
+            messageHandler.error(new CompilerException(message, e));
             return;
         }
 
         String destDirToUse = destDir;
         if (destDir == null) {
             if (classpath.length != 1) {
-                handler.error(new CompilerException("destDir must be specified since classpath is composite"));
+                messageHandler.error(new CompilerException("destDir must be specified since classpath is composite"));
                 return;
             }
             destDirToUse = classpath[0];
@@ -217,40 +217,43 @@ public class AnnotationC {
         // set up the parser sources
         final JavaDocParser javaDocParser = new JavaDocParser();
         try {
-            // classloader
+            // add classloader
             javaDocParser.addClassLoaderToSearchPath(compilationLoader);
 
-            // src dirs
+            // add src dirs
             StringBuffer logDirs = new StringBuffer("parsing source dirs:");
             for (int i = 0; i < srcDirs.length; i++) {
                 logDirs.append("\n\t" + srcDirs[i]);
             }
-            handler.info(logDirs.toString());
+            messageHandler.info(logDirs.toString());
             javaDocParser.addSourceTrees(srcDirs);
 
-            // src files
+            // add src files
             logDirs = new StringBuffer();
             for (int i = 0; i < srcFiles.length; i++) {
                 logDirs.append("\n\t" + srcFiles[i]);
                 javaDocParser.addSource(srcFiles[i]);
             }
             if (srcFiles.length > 0) {
-                handler.info(logDirs.toString());
+                messageHandler.info(logDirs.toString());
             }
 
-            final AnnotationInterfaceRepository repository = new AnnotationInterfaceRepository(handler);
+            final AnnotationInterfaceRepository repository = new AnnotationInterfaceRepository(messageHandler);
             repository.registerPropertiesFiles(annotationPropertiesFiles, compilationLoader);
 
-            AnnotationC compiler = new AnnotationC(compilationLoader, javaDocParser, repository, handler);
+            final AnnotationC compiler = new AnnotationC(compilationLoader, javaDocParser, repository, messageHandler);
+
+            // do the actual compile
             compiler.doCompile(classPath, destDirToUse);
-        } catch (SourceParseException src) {
-            handler.error(src);
+
+        } catch (SourceParseException e) {
+            messageHandler.error(e);
             return;
         } catch (CompilerException e) {
-            handler.error(e);
+            messageHandler.error(e);
             return;
         } catch (Throwable t) {
-            handler.error(new CompilerException("Unexpected", t));
+            messageHandler.error(new CompilerException("unexpected exception: " + t.toString(), t));
             return;
         }
     }
@@ -572,76 +575,5 @@ public class AnnotationC {
             }
         }
         return (String[])files.toArray(new String[files.size()]);
-    }
-
-    /**
-     * Handles message reporting.
-     */
-    public static interface MessageHandler {
-
-        /**
-         * TODO document me
-         *
-         * @param message
-         */
-        void info(String message);
-
-        /**
-         * TODO document me
-         *
-         * @param message
-         */
-        void warning(String message);
-
-        /**
-         * TODO document me - difference from accept()???
-         *
-         * @param exception
-         */
-        void error(CompilerException exception);
-
-        /**
-         * TODO document me - what does this method do?
-         *
-         * @param sourceLocation
-         */
-        void accept(SourceLocation sourceLocation);
-    }
-
-    /**
-     * Default impl of the MessageHandler interface, prints the messages to standard out.
-     */
-    public static class StdMessageHandler implements MessageHandler {
-
-        private boolean m_verbose = false;
-
-        public StdMessageHandler(final boolean isVerbose) {
-            m_verbose = isVerbose;
-        }
-
-        public void info(final String message) {
-            if (m_verbose) {
-                System.out.println("INFO: " + message);
-            }
-        }
-
-        public void warning(final String message) {
-            if (m_verbose) {
-                System.out.println("WARNING: " + message);
-            }
-        }
-
-        public void error(final CompilerException exception) {
-            if (exception.getLocation() != null) {
-                System.err.println("ERROR: " + exception.getLocation().toString());
-            } else {
-                System.err.println("ERROR:");
-            }
-            exception.printStackTrace();
-        }
-
-        public void accept(final SourceLocation sourceLocation) {
-            // FIXME what does this method do?
-        }
     }
 }

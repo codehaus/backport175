@@ -39,9 +39,14 @@ public class AnnotationInterfaceRepository {
     /**
      * The handler we report to
      */
-    private AnnotationC.MessageHandler m_handler;
+    private MessageHandler m_handler;
 
-    public AnnotationInterfaceRepository(AnnotationC.MessageHandler handler) {
+    /**
+     * Creates a new interface repository.
+     *
+     * @param handler
+     */
+    public AnnotationInterfaceRepository(final MessageHandler handler) {
         m_handler = handler;
     }
 
