@@ -22,7 +22,7 @@ import org.codehaus.backport175.reader.Annotations;
 public class ProxyTest extends TestCase {
 
     public void testAnnOnProxy() {
-        // likely to fail for bytecode provider reason but must be gracefull
+        // likely to fail for bytecode provider reason but must be graceful
 
         Object proxy = Proxy.newProxyInstance(
                 ProxyTest.class.getClassLoader(),

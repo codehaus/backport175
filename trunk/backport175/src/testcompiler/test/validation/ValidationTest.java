@@ -39,7 +39,7 @@ public class ValidationTest extends TestCase {
     private static Method enumM1;
     private static Method enumM2;
 
-    private static final String CLASSPATH = "target/test-classes";
+    private static final String CLASSPATH = "target/testcompiler-classes";
     private static final String SOURCE_DIR = "src/testcompiler/test/validation/";
     private static final AnnotationC.StdEventHandler EVENT_HANDLER = new AnnotationC.StdEventHandler(true);
 

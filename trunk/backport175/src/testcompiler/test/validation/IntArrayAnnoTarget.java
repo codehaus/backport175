@@ -7,6 +7,9 @@
  *******************************************************************************************/
 package test.validation;
 
+/**
+ * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+ */
 public class IntArrayAnnoTarget {
 
     /**
