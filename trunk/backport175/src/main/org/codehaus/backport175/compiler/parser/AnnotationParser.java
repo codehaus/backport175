@@ -7,26 +7,12 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler.parser;
 
-import org.codehaus.backport175.compiler.parser.ast.ASTAnnotation;
-import org.codehaus.backport175.compiler.parser.ast.ASTArray;
-import org.codehaus.backport175.compiler.parser.ast.ASTBoolean;
-import org.codehaus.backport175.compiler.parser.ast.ASTChar;
-import org.codehaus.backport175.compiler.parser.ast.ASTFloat;
-import org.codehaus.backport175.compiler.parser.ast.ASTHex;
-import org.codehaus.backport175.compiler.parser.ast.ASTIdentifier;
-import org.codehaus.backport175.compiler.parser.ast.ASTInteger;
-import org.codehaus.backport175.compiler.parser.ast.ASTKeyValuePair;
-import org.codehaus.backport175.compiler.parser.ast.ASTOct;
-import org.codehaus.backport175.compiler.parser.ast.ASTRoot;
-import org.codehaus.backport175.compiler.parser.ast.ASTString;
-import org.codehaus.backport175.compiler.parser.ast.AnnotationParserVisitor;
-import org.codehaus.backport175.compiler.parser.ast.SimpleNode;
+import org.codehaus.backport175.compiler.parser.ast.*;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
 import org.codehaus.backport175.compiler.CompilerException;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.AnnotationVisitor;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 
 /**
@@ -48,14 +34,15 @@ public class AnnotationParser implements AnnotationParserVisitor {
             new org.codehaus.backport175.compiler.parser.ast.AnnotationParser(System.in);
 
     /**
-     * We reference class at parse time. We don't need to avoid reflection.
+     * The top level annotation interface class.
      */
-    protected final Class m_annotationClass;
+    protected Class m_annotationClass;
 
     /**
+     * FIXME remove and only use Context
      * The ASM bytecode munger.
      */
-    protected AnnotationVisitor m_currentBytecodeMunger;
+    protected AnnotationVisitor m_bytecodeMunger;
 
     /**
      * Parses the raw annotation.
@@ -82,48 +69,13 @@ public class AnnotationParser implements AnnotationParserVisitor {
             final AnnotationParser annotationParser = new AnnotationParser(bytecodeMunger, annotationInterface);
             annotationParser.visit(PARSER.parse(representation.toString()), null);
         } catch (Throwable e) {
+            e.printStackTrace();
             throw new ParseException(
                     "cannot parse annotation [" + representation.toString() + "] due to: " + e.toString(),
                     e,
                     CompilerException.Location.render(rawAnnotation)
             );
         }
-    }
-
-    /**
-     * Returns the method matching the annotation value name. The name of the method should be the same as the
-     * annotation element name.
-     *
-     * @param elementName
-     * @param annotationInterface
-     * @return the method
-     */
-    public static Method getMethodFor(final String elementName, final Class annotationInterface) {
-        StringBuffer javaBeanMethodPostfix = new StringBuffer();
-        javaBeanMethodPostfix.append(elementName.substring(0, 1).toUpperCase());
-        if (elementName.length() > 1) {
-            javaBeanMethodPostfix.append(elementName.substring(1));
-        }
-        Method method = null;
-        Method[] methods = annotationInterface.getDeclaredMethods();
-        // look for element methods
-        for (int i = 0; i < methods.length; i++) {
-            Method elementMethod = methods[i];
-            if (elementMethod.getName().equals(elementName)) {
-                method = elementMethod;
-                break;
-            }
-        }
-        if (method == null) {
-            throw new ParseException(
-                    "method for the annotation element ["
-                    + elementName
-                    + "] can not be found in annotation interface ["
-                    + annotationInterface.getName()
-                    + "]"
-            );
-        }
-        return method;
     }
 
     public Object visit(SimpleNode node, Object data) {
@@ -134,53 +86,63 @@ public class AnnotationParser implements AnnotationParserVisitor {
         return node.jjtGetChild(0).jjtAccept(this, null);
     }
 
-    public Object visit(ASTAnnotation node, Object elementName) {
-        if (elementName == null) {
+    public Object visit(ASTAnnotation node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+        if (ctx == null) {
             // top level annotation
-            handleAnnotation(node, elementName);
+            handleAnnotation(node, new ParseContext(null, m_annotationClass, m_bytecodeMunger));
         } else {
             // nested annotation
-            handleNestedAnnotation(node, (String)elementName);
+            handleNestedAnnotation(node, ctx);
         }
         return null;
     }
 
     public Object visit(ASTKeyValuePair node, Object data) {
-        String elementName = node.getKey();
-        node.jjtGetChild(0).jjtAccept(this, elementName);
+        ParseContext ctx = (ParseContext)data;
+        ctx.elementName = node.getKey();
+
+        // set the expected type to use later for validation
+        ctx.expectedType = getElementTypeFor(ctx.annotationType, ctx.elementName);
+
+        node.jjtGetChild(0).jjtAccept(this, ctx);
         return null;
     }
 
-    public Object visit(ASTIdentifier node, Object elementName) {
+    public Object visit(ASTIdentifier node, Object data) {
+        ParseContext ctx = (ParseContext)data;
         String identifier = node.getValue();
         if (identifier.endsWith(".class")) {
-            handleClassIdentifier(identifier, (String)elementName);
+            handleClassIdentifier(identifier, ctx);
         } else if (isJavaReferenceType(identifier)) {
-            handleReferenceIdentifier(identifier, (String)elementName);
+            handleReferenceIdentifier(identifier, ctx);
         } else {
             throw new ParseException(
-                    "unsupported format for java type or static reference (enum) [" + elementName + "::" + identifier + "]"
+                    "unsupported format for java type or static reference (enum) [" + ctx.elementName + "::" + identifier + "]"
             );
         }
         return null;
     }
 
-    public Object visit(ASTBoolean node, Object elementName) {
-        AnnotationValidator.validateBoolean(m_annotationClass, (String)elementName);
+    public Object visit(ASTBoolean node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+        AnnotationValidator.validateBoolean(ctx);
         Boolean bool = Boolean.valueOf(node.getValue());
-        m_currentBytecodeMunger.visit((String)elementName, bool);
+        ctx.munger.visit(ctx.elementName, bool);
         return null;
     }
 
-    public Object visit(ASTChar node, Object elementName) {
-        AnnotationValidator.validateCharacter(m_annotationClass, (String)elementName);
+    public Object visit(ASTChar node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+        AnnotationValidator.validateCharacter(ctx);
         Character character = new Character(node.getValue().charAt(0));
-        m_currentBytecodeMunger.visit((String)elementName, character);
+        ctx.munger.visit(ctx.elementName, character);
         return null;
     }
 
-    public Object visit(ASTString node, Object elementName) {
-        AnnotationValidator.validateString(m_annotationClass, (String)elementName);
+    public Object visit(ASTString node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+        AnnotationValidator.validateString(ctx);
 
         // the node contains the  \" string escapes
         String string;
@@ -190,11 +152,13 @@ public class AnnotationParser implements AnnotationParserVisitor {
             string = node.getValue();
         }
 
-        m_currentBytecodeMunger.visit((String)elementName, string);
+        ctx.munger.visit(ctx.elementName, string);
         return null;
     }
 
-    public Object visit(ASTInteger node, Object elementName) {
+    public Object visit(ASTInteger node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+
         String value = node.getValue();
         char lastChar = value.charAt(value.length() - 1);
 
@@ -203,104 +167,130 @@ public class AnnotationParser implements AnnotationParserVisitor {
             integer = new Long(value.substring(0, value.length() - 1));
         } else if (value.length() > 9) {
             integer = new Long(value);
-            AnnotationValidator.validateLong(m_annotationClass, (String)elementName);
+            AnnotationValidator.validateLong(ctx);
         } else {
             integer = new Integer(value);
-            AnnotationValidator.validateInteger(m_annotationClass, (String)elementName);
+            AnnotationValidator.validateInteger(ctx);
         }
 
-        m_currentBytecodeMunger.visit((String)elementName, integer);
+        ctx.munger.visit(ctx.elementName, integer);
         return null;
     }
 
-    public Object visit(ASTFloat node, Object elementName) {
+    public Object visit(ASTFloat node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+
         String value = node.getValue();
         char lastChar = value.charAt(value.length() - 1);
         Object decimalNumber;
         if ((lastChar == 'D') || (lastChar == 'd')) {
             decimalNumber = new Double(value.substring(0, value.length() - 1));
-            AnnotationValidator.validateDouble(m_annotationClass, (String)elementName);
+            AnnotationValidator.validateDouble(ctx);
         } else if ((lastChar == 'F') || (lastChar == 'f')) {
             decimalNumber = new Float(value.substring(0, value.length() - 1));
-            AnnotationValidator.validateFloat(m_annotationClass, (String)elementName);
+            AnnotationValidator.validateFloat(ctx);
         } else {
             decimalNumber = new Double(value);
-            AnnotationValidator.validateDouble(m_annotationClass, (String)elementName);
+            AnnotationValidator.validateDouble(ctx);
         }
-        m_currentBytecodeMunger.visit((String)elementName, decimalNumber);
+        ctx.munger.visit(ctx.elementName, decimalNumber);
         return null;
     }
 
-    public Object visit(ASTHex node, Object elementName) {
+    public Object visit(ASTHex node, Object data) {
         throw new UnsupportedOperationException("hex numbers not yet supported");
     }
 
-    public Object visit(ASTOct node, Object elementName) {
+    public Object visit(ASTOct node, Object data) {
         throw new UnsupportedOperationException("octal numbers not yet supported");
     }
 
-    public Object visit(ASTArray node, Object name) {
-        String elementName = (String)name;
-        AnnotationValidator.validateArray(m_annotationClass, elementName);
+    public Object visit(ASTArray node, Object data) {
+        ParseContext ctx = (ParseContext)data;
+        AnnotationValidator.validateArray(ctx);
 
-        Class elementType = getMethodFor(elementName, m_annotationClass).getReturnType();
-        if (!elementType.isArray()) {
-            throw new ParseException("type for element [" + elementName + "] is not of type array");
-        }
-        if (elementType.getComponentType().isArray()) {
-            throw new UnsupportedOperationException(
-                    "multi dimensional arrays are not supported for element type - was defined by element [" +
-                    elementName +
-                    "]"
-            );
-        }
+        AnnotationVisitor newMunger = ctx.munger.visitArray(ctx.elementName);
+        ParseContext newCtx = new ParseContext(ctx.elementName, ctx.annotationType, ctx.expectedType, newMunger);
 
-        AnnotationVisitor parentBytecodeMunger = m_currentBytecodeMunger;
-        m_currentBytecodeMunger = m_currentBytecodeMunger.visitArray(elementName);
+        // visit array elements
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
-            node.jjtGetChild(i).jjtAccept(this, name);
+            node.jjtGetChild(i).jjtAccept(this, newCtx);
         }
-        m_currentBytecodeMunger.visitEnd();
-        m_currentBytecodeMunger = parentBytecodeMunger;
+        newMunger.visitEnd();
+
         return null;
     }
 
-    protected void handleAnnotation(final ASTAnnotation node, final Object elementName) {
+
+    /**
+     * Returns the expected type for an annotation value.
+     *
+     * @param annotationInterface
+     * @param valueName
+     * @return the expected type
+     */
+    protected Class getElementTypeFor(final Class annotationInterface, final String valueName) {
+        if (annotationInterface == null) {
+            throw new IllegalArgumentException("annotation interface can not be null");
+        }
+        if (valueName == null) {
+            throw new IllegalArgumentException("value name can not be null");
+        }
+        final Class type;
+        try {
+            type = annotationInterface.getDeclaredMethod(valueName, new Class[]{}).getReturnType();
+        } catch (NoSuchMethodException e) {
+            throw new ParseException(
+                    "no method in annotation interface [" + annotationInterface.getName() +
+                    "] matches the value name [" + valueName + "]"
+            );
+        }
+        return type;
+    }
+
+    protected void handleAnnotation(final ASTAnnotation node, final ParseContext ctx) {
         int nr = node.jjtGetNumChildren();
         if (nr == 1) {
-            AnnotationValidator.validateAnnotation(m_annotationClass, DEFAULT_VALUE_NAME);
-            // default value
-            node.jjtGetChild(0).jjtAccept(this, DEFAULT_VALUE_NAME);
+            Node childNode = node.jjtGetChild(0);
+            if (childNode instanceof ASTKeyValuePair) {
+                ctx.elementName = ((ASTKeyValuePair)childNode).getKey();
+            } else {
+                ctx.elementName = DEFAULT_VALUE_NAME;
+            }
+            ctx.expectedType = getElementTypeFor(ctx.annotationType, ctx.elementName);
+
+            childNode.jjtAccept(this, ctx);
         } else {
-            AnnotationValidator.validateAnnotation(m_annotationClass, (String)elementName);
             // key-value pairs
             for (int i = 0; i < nr; i++) {
-                node.jjtGetChild(i).jjtAccept(this, elementName);
+                node.jjtGetChild(i).jjtAccept(this, ctx);
             }
         }
     }
 
-    protected void handleNestedAnnotation(final ASTAnnotation node, final String elementName) {
-        AnnotationValidator.validateAnnotation(m_annotationClass, elementName);
-
-        Class elementType = getMethodFor(elementName, m_annotationClass).getReturnType();
-        if (elementType.isArray()) {
+    protected void handleNestedAnnotation(final ASTAnnotation node, final ParseContext ctx) {
+        Class annotationType = getElementTypeFor(ctx.annotationType, ctx.elementName);
+        if (annotationType.isArray()) {
             // if we have an array of annotations
-            elementType = elementType.getComponentType();
+            annotationType = annotationType.getComponentType();
         }
-        AnnotationVisitor parentBytecodeVisitor = m_currentBytecodeMunger;
 
-        m_currentBytecodeMunger = m_currentBytecodeMunger.visitAnnotation(
-                elementName, Type.getDescriptor(elementType)
+        // FIXME validate annotations? how to do it right?
+//        AnnotationValidator.validateAnnotation(newCtx);
+
+        AnnotationVisitor newMunger = ctx.munger.visitAnnotation(
+                ctx.elementName, Type.getDescriptor(annotationType)
         );
-        handleAnnotation(node, elementName);
 
-        m_currentBytecodeMunger.visitEnd();
-        m_currentBytecodeMunger = parentBytecodeVisitor;
+        // create new context for this new annotation
+        ParseContext newCtx = new ParseContext(ctx.elementName, annotationType, ctx.expectedType, newMunger);
+
+        handleAnnotation(node, newCtx);
+        newMunger.visitEnd();
     }
 
-    protected Object handleClassIdentifier(final String identifier, final String elementName) {
-        AnnotationValidator.validateClass(m_annotationClass, elementName);
+    protected Object handleClassIdentifier(final String identifier, final ParseContext ctx) {
+        AnnotationValidator.validateClass(ctx);
 
         int index = identifier.lastIndexOf('.');
         String componentClassName = identifier.substring(0, index);
@@ -332,7 +322,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             isComponentPrimitive = false;
             try {
-                componentClass = Class.forName(componentClassName, false, m_annotationClass.getClassLoader());
+                componentClass = Class.forName(componentClassName, false, ClassLoader.getSystemClassLoader());
             } catch (ClassNotFoundException e) {
                 throw new ParseException(
                         "could not load class [" + componentClassName + "] due to: " + e.toString(), e
@@ -342,11 +332,11 @@ public class AnnotationParser implements AnnotationParserVisitor {
         if (isComponentPrimitive) {
             if (dimension <= 0) {
                 Type componentType = Type.getType(componentClass);
-                m_currentBytecodeMunger.visit(elementName, componentType);
+                ctx.munger.visit(ctx.elementName, componentType);
             } else {
                 Class arrayClass = Array.newInstance(componentClass, new int[dimension]).getClass();
                 Type componentType = Type.getType(arrayClass);
-                m_currentBytecodeMunger.visit(elementName, componentType);
+                ctx.munger.visit(ctx.elementName, componentType);
             }
         } else {
             String componentType = Type.getType(componentClass).getDescriptor();
@@ -354,21 +344,20 @@ public class AnnotationParser implements AnnotationParserVisitor {
                 componentType = "[" + componentType;
             }
             Type type = Type.getType(componentType);
-            m_currentBytecodeMunger.visit(elementName, type);
+            ctx.munger.visit(ctx.elementName, type);
         }
         return null;
     }
 
-    protected Object handleReferenceIdentifier(final String identifier, final String elementName) {
-        AnnotationValidator.validateEnum(m_annotationClass, elementName);
+    protected Object handleReferenceIdentifier(final String identifier, final ParseContext ctx) {
+        AnnotationValidator.validateEnum(ctx);
 
         int index = identifier.lastIndexOf('.');
         String className = identifier.substring(0, index);
         String fieldName = identifier.substring(index + 1, identifier.length());
         try {
-            // TODO m_annotationClass might be higher in the CL than a referenced identifier
-            Class clazz = Class.forName(className, false, m_annotationClass.getClassLoader());
-            m_currentBytecodeMunger.visitEnum(elementName, Type.getDescriptor(clazz), fieldName);
+            Class clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+            ctx.munger.visitEnum(ctx.elementName, Type.getDescriptor(clazz), fieldName);
         } catch (Exception e) {
             throw new ParseException(
                     "could not access reference field [" + identifier + "] due to: " + e.toString(), e
@@ -395,7 +384,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * @param annotationClass
      */
     protected AnnotationParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass) {
-        m_currentBytecodeMunger = bytecodeVisitor;
+        m_bytecodeMunger = bytecodeVisitor;
         m_annotationClass = annotationClass;
     }
 }

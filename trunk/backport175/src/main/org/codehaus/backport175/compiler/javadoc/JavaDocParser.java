@@ -49,7 +49,7 @@ public class JavaDocParser {
             try {
                 m_javaDocParser.addSourceTree(new File(srcDirs[i]));
             } catch (Exception e) {
-                throw new SourceParseException("source file in source tree [" + srcDirs[i] + "] could not be parsed - current javadoc does not understant Java 5 specific code (annotation, enums etc)", e);
+                throw new SourceParseException("source file in source tree [" + srcDirs[i] + "] could not be parsed due to: " + e.toString(), e);
             }
         }
     }
