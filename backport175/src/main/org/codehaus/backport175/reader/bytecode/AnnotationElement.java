@@ -60,19 +60,22 @@ public class AnnotationElement implements Serializable {
     public static class Annotation extends AnnotationElement implements NestedAnnotationElement {
         static final long serialVersionUID = 8769673036736880936L;
 
-        private final String m_desc;
+        private final String m_className;
         private final List m_elements = new ArrayList();
 
-        public Annotation(final String desc) {
-            m_desc = desc;
+        public Annotation(final String className) {
+            m_className = className;
         }
 
         public void addElement(final String name, final Object element) {
             m_elements.add(new AnnotationElement.NamedValue(name, element));
         }
 
+        /**
+         * @return the annotation class name, java formatted (dot)
+         */
         public String getInterfaceName() {
-            return m_desc;
+            return m_className;
         }
 
         public List getElements() {
