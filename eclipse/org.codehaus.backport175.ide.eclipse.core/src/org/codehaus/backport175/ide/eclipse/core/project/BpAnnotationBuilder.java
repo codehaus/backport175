@@ -8,6 +8,7 @@
 package org.codehaus.backport175.ide.eclipse.core.project;
 
 import org.codehaus.backport175.compiler.AnnotationC;
+import org.codehaus.backport175.compiler.MessageHandler;
 import org.codehaus.backport175.ide.eclipse.core.BpCorePlugin;
 import org.codehaus.backport175.ide.eclipse.core.BpLog;
 import org.codehaus.backport175.ide.eclipse.core.Strings;
@@ -113,7 +114,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
         
         private String[] m_annotationPropsFiles;
         
-        private AnnotationC.IEventHandler m_eventHandler;
+        private MessageHandler m_eventHandler;
         
         public BpAnnotationBuilderVisitor(IProgressMonitor monitor, boolean isFull) {
             m_monitor = monitor;
