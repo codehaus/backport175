@@ -90,6 +90,21 @@ public class AnnotationElement implements Serializable {
             }
             return buf.toString();
         }
+
+        /**
+         * Add the given element if not already present ie default value
+         *
+         * @param defaultedElement
+         */
+        public void mergeDefaultedElement(NamedValue defaultedElement) {
+            for (Iterator iterator = m_elements.iterator(); iterator.hasNext();) {
+                NamedValue namedValue = (NamedValue) iterator.next();
+                if (namedValue.getName().equals(defaultedElement.getName())) {
+                    return;// value is present
+                }
+            }
+            m_elements.add(defaultedElement);
+        }
     }
 
     /**

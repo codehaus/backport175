@@ -8,6 +8,9 @@
 package test.java5;
 
 import org.codehaus.backport175.reader.Annotation;
+import org.codehaus.backport175.reader.Annotations;
+import org.codehaus.backport175.reader.bytecode.AnnotationDefaults;
+import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 import junit.framework.TestCase;
 
 import java.lang.reflect.Field;
@@ -29,7 +32,7 @@ public class AnnotationReaderTest extends TestCase {
 
     public void testClassAnnReflection() {
         java.lang.annotation.Annotation[] annotations = Target5.class.getAnnotations();
-        assertEquals(1, annotations.length);
+        assertEquals(2, annotations.length);
     }
 
     public void testMethodAnnReflection() {
@@ -90,7 +93,6 @@ public class AnnotationReaderTest extends TestCase {
         //TODO refine the assert
     }
 
-
     //TODO refine the assert
     public void testAnnotationCCompiledMembersAnnReflection() {
         java.lang.annotation.Annotation[] annotations = test.Target.METHOD.getAnnotations();
@@ -101,6 +103,18 @@ public class AnnotationReaderTest extends TestCase {
 
         annotations = test.Target.CONSTRUCTOR.getAnnotations();
         assertTrue(annotations.length > 0);
+    }
+
+    public void testDefaulted() {
+        AnnotationElement.Annotation e = AnnotationDefaults.getDefaults(Target5.DefaultedTest.class);
+        assertEquals(2, e.getElements().size());
+        assertEquals("test=1", (e.getElements().get(0)).toString());
+        assertEquals("test2=default", (e.getElements().get(1)).toString());
+
+        Annotation defaulted = Annotations.getAnnotation(Target5.DefaultedTest.class, Target5.class);
+        assertNotNull(defaulted);
+        assertEquals(1, ((Target5.DefaultedTest)defaulted).test());
+        assertEquals("notdefault", ((Target5.DefaultedTest)defaulted).test2());
     }
 
 

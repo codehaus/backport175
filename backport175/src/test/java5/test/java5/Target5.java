@@ -15,11 +15,18 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 
 @Target5.Test(test="test")
+@Target5.DefaultedTest(test2="notdefault")
 public class Target5 {
 
     @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
     public static @interface Test {
         String test();
+    }
+
+    @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+    public static @interface DefaultedTest {
+        int test() default 1;
+        String test2() default "default";
     }
 
     @Target5.Test(test="test")

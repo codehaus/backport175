@@ -15,6 +15,8 @@ import junit.framework.TestCase;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 
 import test.Target;
 
@@ -626,6 +628,13 @@ public class AnnotationReaderTest extends TestCase {
         //test enclosing doesn't have it..
         annotation = Annotations.getAnnotation(Nested.Anno.class, AnnotationReaderTest.class);
         assertEquals(null, annotation);
+    }
+
+    public void testReadJdk() {
+        Annotation[] annotations = Annotations.getAnnotations(List.class);
+        assertEquals(0, annotations.length);
+        annotations = Annotations.getAnnotations(ArrayList.class);
+        assertEquals(0, annotations.length);
     }
 
     /**
