@@ -57,6 +57,13 @@ public class AnnotationReaderTest extends TestCase {
         );
     }
 
+    public void testClassIsAnnotationPresent() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+                Annotations.VoidTyped.class, Target.class
+        ));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, Target.class));
+    }
+
     public void testClassAnn1() {
         Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
                 "test.annotation.Annotations$VoidTyped", Target.class
@@ -175,6 +182,13 @@ public class AnnotationReaderTest extends TestCase {
         annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
     }
 
+    public void testFieldIsAnnotationPresent() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+                Annotations.Simple.class, field
+        ));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, field));
+    }
+
     public void testFieldAnn1() {
         Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
                 "test.annotation.Annotations$VoidTyped", field
@@ -291,6 +305,13 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(Annotations.NestedAnnotation.class));
         assertTrue(set.contains(Annotations.LongArray.class));
         annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(field);
+    }
+
+    public void testConstructorIsAnnotationPresent() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+                Annotations.Complex.class, constructor
+        ));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, constructor));
     }
 
     public void testConstructorAnn1() {
@@ -417,6 +438,13 @@ public class AnnotationReaderTest extends TestCase {
         assertTrue(set.contains(Annotations.NestedAnnotation.class));
         assertTrue(set.contains(Annotations.LongArray.class));
         annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(constructor);
+    }
+
+    public void testMethodIsAnnotationPresent() {
+        assertTrue(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(
+                Annotations.NestedAnnotationArray.class, method
+        ));
+        assertFalse(org.codehaus.backport175.reader.Annotations.isAnnotationPresent(Target.class, method));
     }
 
     public void testMethodAnn1() {
