@@ -13,7 +13,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 /**
- * The annotation javadoc.
+ * The reader javadoc.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */

@@ -8,14 +8,14 @@
 package org.codehaus.backport175.reader;
 
 /**
- * Marker interface for all annotation dynamic proxy implementations.
+ * Marker interface for all reader dynamic proxy implementations.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */
 public interface Annotation {
 
     /**
-     * Returns the annotation type, e.g. the annotation interface type.
+     * Returns the reader type, e.g. the reader interface type.
      *
      * @return the type
      */

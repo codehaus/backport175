@@ -21,13 +21,13 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Implements a strongly typed annotation handler for JavaDoc annotations.
+ * Implements a strongly typed reader handler for JavaDoc annotations.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
 public class JavaDocAnnotationInvocationHander implements InvocationHandler, Serializable {
     static final long serialVersionUID = 1584167345753299421L;
-    
+
     private static final String TO_STRING_METHOD_NAME = "toString";
     private static final String ANNOTATION_TYPE_METHOD_NAME = "annotationType";
 
@@ -70,7 +70,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
     }
 
     /**
-     * Handle invocation of an annotation value method.
+     * Handle invocation of an reader value method.
      *
      * @param method
      * @return
@@ -93,7 +93,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
     /**
      * Handles invocation of the <code>toString</code> method.
      *
-     * @return the string representation for the annotation
+     * @return the string representation for the reader
      */
     private Object invokeToString() {
         StringBuffer sb = new StringBuffer();
@@ -106,7 +106,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
     }
 
     /**
-     * Returns the resolved value for the annotation element.
+     * Returns the resolved value for the reader element.
      *
      * @param namedValue
      * @param valueType
@@ -167,7 +167,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
                 }
             } catch (ClassNotFoundException cnfe) {
                 throw new ResolveAnnotationException(
-                        "class [" + type.getClassName() + "] defined in annotation can not be found in class loader [" +
+                        "class [" + type.getClassName() + "] defined in reader can not be found in class loader [" +
                         loader + "]", cnfe
                 );
             }
@@ -250,7 +250,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
     private Object resolveArray(final AnnotationElement.NamedValue namedValue, final Class valueType) {
         if (!valueType.isArray()) {
             throw new IllegalArgumentException(
-                    "annotation interface method [" + namedValue.getName() + "] in interface [" + m_annotationName +
+                    "reader interface method [" + namedValue.getName() + "] in interface [" + m_annotationName +
                     "] needs to return an ARRAY type"
             );
         }

@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 
 /**
- * The annotation visitor. Visits the annotation elements and adds them to the bytecode of the class.
+ * The reader visitor. Visits the reader elements and adds them to the bytecode of the class.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */
@@ -43,7 +43,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
     public static final String DEFAULT_VALUE_NAME = "value";
 
     /**
-     * The one and only annotation javadoc.
+     * The one and only reader javadoc.
      */
     protected static final org.codehaus.backport175.compiler.parser.ast.AnnotationParser PARSER =
             new org.codehaus.backport175.compiler.parser.ast.AnnotationParser(System.in);
@@ -59,7 +59,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
     protected AnnotationVisitor m_currentBytecodeMunger;
 
     /**
-     * Parses the raw annotation.
+     * Parses the raw reader.
      *
      * @param bytecodeMunger
      * @param annotationInterface
@@ -92,8 +92,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
     }
 
     /**
-     * Returns the method matching the annotation value name. The name of the method should be the same as the
-     * annotation element name.
+     * Returns the method matching the reader value name. The name of the method should be the same as the
+     * reader element name.
      *
      * @param elementName
      * @param annotationInterface
@@ -117,9 +117,9 @@ public class AnnotationParser implements AnnotationParserVisitor {
         }
         if (method == null) {
             throw new ParseException(
-                    "method for the annotation element ["
+                    "method for the reader element ["
                     + elementName
-                    + "] can not be found in annotation interface ["
+                    + "] can not be found in reader interface ["
                     + annotationInterface.getName()
                     + "]"
             );
@@ -137,10 +137,10 @@ public class AnnotationParser implements AnnotationParserVisitor {
 
     public Object visit(ASTAnnotation node, Object elementName) {
         if (elementName == null) {
-            // top level annotation
+            // top level reader
             handleAnnotation(node, elementName);
         } else {
-            // nested annotation
+            // nested reader
             handleNestedAnnotation(node, (String)elementName);
         }
         return null;
@@ -368,7 +368,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
     }
 
     /**
-     * Creates a new munging annotation visitor.
+     * Creates a new munging reader visitor.
      *
      * @param bytecodeVisitor
      * @param annotationClass
