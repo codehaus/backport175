@@ -34,11 +34,13 @@ public class AnnotationReader {
             new AnnotationElement.Annotation[0];
     private static final String INIT_METHOD_NAME = "<init>";
 
-    public static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
+    // FIXME this map will leak some
+    private static final Map CLASS_SPECIFIC_BYTECODE_PROVIDER = new HashMap();
+    private static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
     private static final Map READERS = new WeakHashMap();
 
-    private final ClassInfo m_classInfo;
+    private final ClassKey m_classKey;
 
     // ===========================================================================
     // Implementation notes:
@@ -71,10 +73,82 @@ public class AnnotationReader {
      *
      * @param bytecodeProvider
      */
-    public static void setBytecodeProvider(final BytecodeProvider bytecodeProvider) {
-        synchronized (BYTECODE_PROVIDER) {
-            BYTECODE_PROVIDER = bytecodeProvider;
+    public static void setDefaultBytecodeProvider(final BytecodeProvider bytecodeProvider) {
+        BYTECODE_PROVIDER = bytecodeProvider;
+    }
+
+    /**
+     * Returns the bytecode provider.
+     *
+     * @return the bytecode provider
+     */
+    public static BytecodeProvider getDefaultBytecodeProvider() {
+        return BYTECODE_PROVIDER;
+    }
+
+    /**
+     * Sets the bytecode provider.
+     * <p/>
+     * If a custom provider is not set then a default impl will be used (which reads the bytecode from disk).
+     *
+     * @param klass
+     * @param bytecodeProvider
+     */
+    public static void setBytecodeProviderFor(final Class klass, final BytecodeProvider bytecodeProvider) {
+        setBytecodeProviderFor(klass.getName(), klass.getClassLoader(), bytecodeProvider);
+    }
+
+    /**
+     * Sets the bytecode provider.
+     * <p/>
+     * If a custom provider is not set then a default impl will be used (which reads the bytecode from disk).
+     *
+     * @param className
+     * @param loader
+     * @param bytecodeProvider
+     */
+    public static void setBytecodeProviderFor(final String className,
+                                              final ClassLoader loader,
+                                              final BytecodeProvider bytecodeProvider) {
+        CLASS_SPECIFIC_BYTECODE_PROVIDER.put(new ClassKey(className, loader), bytecodeProvider);
+    }
+
+    /**
+     * Returns the bytecode provider.
+     *
+     * @param klass
+     * @return the bytecode provider
+     */
+    public static BytecodeProvider getBytecodeProviderFor(final Class klass) {
+        return getBytecodeProviderFor(klass.getName(), klass.getClassLoader());
+    }
+
+    /**
+     * Returns the bytecode provider.
+     *
+     * @param className
+     * @param loader
+     * @return the bytecode provider
+     */
+    public static BytecodeProvider getBytecodeProviderFor(final String className, final ClassLoader loader) {
+        BytecodeProvider bytecodeProvider = (BytecodeProvider) CLASS_SPECIFIC_BYTECODE_PROVIDER.get(
+                new ClassKey(className, loader)
+        );
+        if (bytecodeProvider == null) {
+            return BYTECODE_PROVIDER;
         }
+        return bytecodeProvider;
+    }
+
+    /**
+     * Returns the bytecode for a class.
+     *
+     * @param className
+     * @param loader
+     * @return the bytecode for a class
+     */
+    public static byte[] getBytecodeFor(final String className, final ClassLoader loader) throws Exception {
+        return getBytecodeProviderFor(className, loader).getBytecode(className, loader);
     }
 
     /**
@@ -86,7 +160,7 @@ public class AnnotationReader {
      * @return the annotation reader
      */
     public static AnnotationReader getReaderFor(final Class klass) {
-        return getReaderFor(new ClassInfo(klass.getName(), klass.getClassLoader()));
+        return getReaderFor(new ClassKey(klass.getName(), klass.getClassLoader()));
     }
 
     /**
@@ -99,7 +173,7 @@ public class AnnotationReader {
      * @return the annotation reader
      */
     public static AnnotationReader getReaderFor(final String className, final ClassLoader loader) {
-        return getReaderFor(new ClassInfo(className, loader));
+        return getReaderFor(new ClassKey(className, loader));
     }
 
     /**
@@ -107,19 +181,19 @@ public class AnnotationReader {
      * <p/>
      * The annotation reader is created and cached if non-existant.
      *
-     * @param classInfo
+     * @param classKey
      * @return the annotation reader
      */
-    public static AnnotationReader getReaderFor(final ClassInfo classInfo) {
+    public static AnnotationReader getReaderFor(final ClassKey classKey) {
         final AnnotationReader reader;
-        Object value = READERS.get(classInfo);
+        Object value = READERS.get(classKey);
         if (value == null) {
             synchronized (READERS) {
-                reader = new AnnotationReader(classInfo);
-                READERS.put(classInfo, reader);
+                reader = new AnnotationReader(classKey);
+                READERS.put(classKey, reader);
             }
         } else {
-            reader = (AnnotationReader)value;
+            reader = (AnnotationReader) value;
         }
         return reader;
     }
@@ -162,7 +236,7 @@ public class AnnotationReader {
      */
     public static void refreshAll() {
         for (Iterator it = READERS.values().iterator(); it.hasNext();) {
-            AnnotationReader reader = (AnnotationReader)it.next();
+            AnnotationReader reader = (AnnotationReader) it.next();
             synchronized (reader) {
                 reader.refresh();
             }
@@ -198,13 +272,13 @@ public class AnnotationReader {
     public Annotation getAnnotation(final String annotationName) {
         Object cachedAnnotation = m_classAnnotationCache.get(annotationName);
         if (cachedAnnotation != null) {
-            return (Annotation)cachedAnnotation;
+            return (Annotation) cachedAnnotation;
         } else {
             final Annotation annotation;
             final AnnotationElement.Annotation annotationInfo =
-                    (AnnotationElement.Annotation)m_classAnnotationElements.get(annotationName);
+                    (AnnotationElement.Annotation) m_classAnnotationElements.get(annotationName);
             if (annotationInfo != null) {
-                annotation = ProxyFactory.newAnnotationProxy(annotationInfo, m_classInfo.getClassLoader());
+                annotation = ProxyFactory.newAnnotationProxy(annotationInfo, m_classKey.getClassLoader());
                 m_classAnnotationCache.put(annotationName, annotation);
                 return annotation;
             } else {
@@ -237,7 +311,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(constructor);
         Object map = m_constructorAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationName)) {
+            if (((Map) map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -255,11 +329,11 @@ public class AnnotationReader {
         Map annotationMap = getAnnotationCacheFor(constructor);
         Object cachedAnnotation = annotationMap.get(annotationName);
         if (cachedAnnotation != null) {
-            return (Annotation)cachedAnnotation;
+            return (Annotation) cachedAnnotation;
         }
         // not in cache - create a new DP and put in cache
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(constructor);
-        final Map annotations = (Map)m_constructorAnnotationElements.get(key);
+        final Map annotations = (Map) m_constructorAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
             return null;
@@ -267,7 +341,7 @@ public class AnnotationReader {
         Object annotationElement = annotations.get(annotationName);
         if (annotationElement != null) {
             Annotation annotation = ProxyFactory.newAnnotationProxy(
-                    (AnnotationElement.Annotation)annotationElement,
+                    (AnnotationElement.Annotation) annotationElement,
                     constructor.getDeclaringClass().getClassLoader()
             );
             annotationMap.put(annotationName, annotation);
@@ -286,7 +360,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(constructor);
         Object map = m_constructorAnnotationElements.get(key);
         if (map != null) {
-            final Collection annotationElements = ((Map)m_constructorAnnotationElements.get(key)).values();
+            final Collection annotationElements = ((Map) m_constructorAnnotationElements.get(key)).values();
             if (annotationElements.isEmpty()) {
                 return EMPTY_ANNOTATION_ARRAY;
             }
@@ -308,7 +382,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(method);
         Object map = m_methodAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)m_methodAnnotationElements.get(key)).containsKey(annotationName)) {
+            if (((Map) m_methodAnnotationElements.get(key)).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -323,18 +397,18 @@ public class AnnotationReader {
      * @return the method annotation
      */
     public Annotation getAnnotation(final String annotationName, final Method method) {
-        Map annotationMap = (Map)m_methodAnnotationCache.get(method);
+        Map annotationMap = (Map) m_methodAnnotationCache.get(method);
         if (annotationMap == null) {
             annotationMap = new HashMap();
             m_methodAnnotationCache.put(method, annotationMap);
         }
         Object cachedAnnotation = annotationMap.get(annotationName);
         if (cachedAnnotation != null) {
-            return (Annotation)cachedAnnotation;
+            return (Annotation) cachedAnnotation;
         }
         // not in cache - create a new DP and put in cache
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(method);
-        final Map annotations = (Map)m_methodAnnotationElements.get(key);
+        final Map annotations = (Map) m_methodAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
             return null;
@@ -342,7 +416,7 @@ public class AnnotationReader {
         Object annotationElement = annotations.get(annotationName);
         if (annotationElement != null) {
             Annotation annotation = ProxyFactory.newAnnotationProxy(
-                    (AnnotationElement.Annotation)annotationElement,
+                    (AnnotationElement.Annotation) annotationElement,
                     method.getDeclaringClass().getClassLoader()
             );
             annotationMap.put(annotationName, annotation);
@@ -361,7 +435,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(method);
         Object map = m_methodAnnotationElements.get(key);
         if (map != null) {
-            final Collection annotationElements = ((Map)map).values();
+            final Collection annotationElements = ((Map) map).values();
             if (annotationElements.isEmpty()) {
                 return EMPTY_ANNOTATION_ARRAY;
             }
@@ -383,7 +457,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(field);
         Object map = m_fieldAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationName)) {
+            if (((Map) map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -398,18 +472,18 @@ public class AnnotationReader {
      * @return the field annotation
      */
     public Annotation getAnnotation(final String annotationName, final Field field) {
-        Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
+        Map annotationMap = (Map) m_fieldAnnotationCache.get(field);
         if (annotationMap == null) {
             annotationMap = new HashMap();
             m_fieldAnnotationCache.put(field, annotationMap);
         }
         Object cachedAnnotation = annotationMap.get(annotationName);
         if (cachedAnnotation != null) {
-            return (Annotation)cachedAnnotation;
+            return (Annotation) cachedAnnotation;
         }
         // not in cache - create a new DP and put in cache
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(field);
-        final Map annotations = (Map)m_fieldAnnotationElements.get(key);
+        final Map annotations = (Map) m_fieldAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
             return null;
@@ -417,7 +491,7 @@ public class AnnotationReader {
         Object annotationElement = annotations.get(annotationName);
         if (annotationElement != null) {
             Annotation annotation = ProxyFactory.newAnnotationProxy(
-                    (AnnotationElement.Annotation)annotationElement,
+                    (AnnotationElement.Annotation) annotationElement,
                     field.getDeclaringClass().getClassLoader()
             );
             annotationMap.put(annotationName, annotation);
@@ -436,7 +510,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(field);
         Object map = m_fieldAnnotationElements.get(key);
         if (map != null) {
-            final Collection annotationElements = ((Map)map).values();
+            final Collection annotationElements = ((Map) map).values();
             if (annotationElements.isEmpty()) {
                 return EMPTY_ANNOTATION_ARRAY;
             }
@@ -454,7 +528,7 @@ public class AnnotationReader {
      * @return the class annotation
      */
     public AnnotationElement.Annotation getAnnotationElement(final String annotationName) {
-        return (AnnotationElement.Annotation)m_classAnnotationElements.get(annotationName);
+        return (AnnotationElement.Annotation) m_classAnnotationElements.get(annotationName);
     }
 
     /**
@@ -481,7 +555,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(desc);
         Object map = m_constructorAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationName)) {
+            if (((Map) map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -495,15 +569,14 @@ public class AnnotationReader {
      * @param desc           the constructor desc
      * @return the constructor annotation element
      */
-    public AnnotationElement.Annotation getConstructorAnnotationElement(
-            final String annotationName, final String desc) {
+    public AnnotationElement.Annotation getConstructorAnnotationElement(final String annotationName, final String desc) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(desc);
-        final Map annotations = (Map)m_constructorAnnotationElements.get(key);
+        final Map annotations = (Map) m_constructorAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
             return null;
         }
-        return (AnnotationElement.Annotation)annotations.get(annotationName);
+        return (AnnotationElement.Annotation) annotations.get(annotationName);
     }
 
     /**
@@ -516,7 +589,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newConstructorKey(desc);
         Object map = m_constructorAnnotationElements.get(key);
         if (map != null) {
-            final Collection annotations = ((Map)m_constructorAnnotationElements.get(key)).values();
+            final Collection annotations = ((Map) m_constructorAnnotationElements.get(key)).values();
             if (annotations.isEmpty()) {
                 return EMPTY_ANNOTATION_ELEMENT_ARRAY;
             }
@@ -538,7 +611,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(name, desc);
         Object map = m_methodAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationName)) {
+            if (((Map) map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -553,17 +626,16 @@ public class AnnotationReader {
      * @param desc           the method desc
      * @return the method annotation element
      */
-    public AnnotationElement.Annotation getMethodAnnotationElement(
-            final String annotationName,
-            final String name,
-            final String desc) {
+    public AnnotationElement.Annotation getMethodAnnotationElement(final String annotationName,
+                                                                   final String name,
+                                                                   final String desc) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(name, desc);
-        final Map annotations = (Map)m_methodAnnotationElements.get(key);
+        final Map annotations = (Map) m_methodAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
             return null;
         }
-        return (AnnotationElement.Annotation)annotations.get(annotationName);
+        return (AnnotationElement.Annotation) annotations.get(annotationName);
     }
 
     /**
@@ -577,7 +649,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMethodKey(name, desc);
         Object map = m_methodAnnotationElements.get(key);
         if (map != null) {
-            final Collection annotations = ((Map)m_methodAnnotationElements.get(key)).values();
+            final Collection annotations = ((Map) m_methodAnnotationElements.get(key)).values();
             if (annotations.isEmpty()) {
                 return EMPTY_ANNOTATION_ELEMENT_ARRAY;
             }
@@ -599,7 +671,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(name, desc);
         Object map = m_fieldAnnotationElements.get(key);
         if (map != null) {
-            if (((Map)map).containsKey(annotationName)) {
+            if (((Map) map).containsKey(annotationName)) {
                 return true;
             }
         }
@@ -614,17 +686,16 @@ public class AnnotationReader {
      * @param desc           the field desc
      * @return the field annotation element
      */
-    public AnnotationElement.Annotation getFieldAnnotationElement(
-            final String annotationName,
-            final String name,
-            final String desc) {
+    public AnnotationElement.Annotation getFieldAnnotationElement(final String annotationName,
+                                                                  final String name,
+                                                                  final String desc) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(name, desc);
-        final Map annotations = (Map)m_fieldAnnotationElements.get(key);
+        final Map annotations = (Map) m_fieldAnnotationElements.get(key);
         if (annotations == null) {
             // no such annotation
             return null;
         }
-        return (AnnotationElement.Annotation)annotations.get(annotationName);
+        return (AnnotationElement.Annotation) annotations.get(annotationName);
     }
 
     /**
@@ -638,7 +709,7 @@ public class AnnotationReader {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newFieldKey(name, desc);
         Object map = m_fieldAnnotationElements.get(key);
         if (map != null) {
-            final Collection annotations = ((Map)m_fieldAnnotationElements.get(key)).values();
+            final Collection annotations = ((Map) m_fieldAnnotationElements.get(key)).values();
             if (annotations.isEmpty()) {
                 return EMPTY_ANNOTATION_ELEMENT_ARRAY;
             }
@@ -658,7 +729,7 @@ public class AnnotationReader {
         int i = 0;
         final AnnotationElement.Annotation[] elementArray = new AnnotationElement.Annotation[annotations.size()];
         for (Iterator it = annotations.iterator(); it.hasNext();) {
-            elementArray[i++] = (AnnotationElement.Annotation)it.next();
+            elementArray[i++] = (AnnotationElement.Annotation) it.next();
         }
         return elementArray;
     }
@@ -677,19 +748,19 @@ public class AnnotationReader {
         if (annotationCache.size() == annotationElements.size()) {
             // all are cached - use cache
             for (Iterator it = annotationCache.values().iterator(); it.hasNext();) {
-                annotations[i++] = (Annotation)it.next();
+                annotations[i++] = (Annotation) it.next();
             }
             return annotations;
         } else {
             // cache not complete - fill it up with the ones missing
-            ClassLoader loader = m_classInfo.getClassLoader();
+            ClassLoader loader = m_classKey.getClassLoader();
             i = 0;
             for (Iterator it = annotationElements.iterator(); it.hasNext();) {
-                AnnotationElement.Annotation annotationElement = (AnnotationElement.Annotation)it.next();
+                AnnotationElement.Annotation annotationElement = (AnnotationElement.Annotation) it.next();
                 String annotationClassName = annotationElement.getInterfaceName();
                 if (annotationCache.containsKey(annotationClassName)) {
                     // proxy in cache - reuse
-                    annotations[i++] = (Annotation)annotationCache.get(annotationClassName);
+                    annotations[i++] = (Annotation) annotationCache.get(annotationClassName);
                 } else {
                     final Annotation annotation = ProxyFactory.newAnnotationProxy(annotationElement, loader);
                     annotationCache.put(annotationClassName, annotation);
@@ -707,7 +778,7 @@ public class AnnotationReader {
      * @return the cache
      */
     private Map getAnnotationCacheFor(final Constructor constructor) {
-        Map annotationMap = (Map)m_constructorAnnotationCache.get(constructor);
+        Map annotationMap = (Map) m_constructorAnnotationCache.get(constructor);
         if (annotationMap == null) {
             annotationMap = new HashMap();
             m_constructorAnnotationCache.put(constructor, annotationMap);
@@ -722,7 +793,7 @@ public class AnnotationReader {
      * @return the cache
      */
     private Map getAnnotationCacheFor(final Method method) {
-        Map annotationMap = (Map)m_methodAnnotationCache.get(method);
+        Map annotationMap = (Map) m_methodAnnotationCache.get(method);
         if (annotationMap == null) {
             annotationMap = new HashMap();
             m_methodAnnotationCache.put(method, annotationMap);
@@ -737,7 +808,7 @@ public class AnnotationReader {
      * @return the cache
      */
     private Map getAnnotationCacheFor(final Field field) {
-        Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
+        Map annotationMap = (Map) m_fieldAnnotationCache.get(field);
         if (annotationMap == null) {
             annotationMap = new HashMap();
             m_fieldAnnotationCache.put(field, annotationMap);
@@ -759,28 +830,44 @@ public class AnnotationReader {
         m_constructorAnnotationCache.clear();
         m_methodAnnotationCache.clear();
         m_fieldAnnotationCache.clear();
-        parse(m_classInfo);
+        parse(m_classKey);
     }
 
     /**
      * Parses the class bytecode and retrieves the annotations.
      *
-     * @param classInfo
+     * @param classKey
      */
-    private void parse(final ClassInfo classInfo) {
-        final String className = classInfo.getName();
-        final ClassLoader loader = classInfo.getClassLoader();
+    private void parse(final ClassKey classKey) {
+        final String className = classKey.getName();
+        final ClassLoader loader = classKey.getClassLoader();
         final byte[] bytes;
+        BytecodeProvider bytecodeProvider = null;
+//        try {
+//            Object provider = CLASS_SPECIFIC_BYTECODE_PROVIDER.get(classKey);
+//            if (provider != null) {
+//                bytecodeProvider = ((BytecodeProvider) provider);
+//                bytes = bytecodeProvider.getBytecode(className, loader);
+//            } else {
+//                bytecodeProvider = BYTECODE_PROVIDER;
+//                bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
+//            }
+//        } catch (Exception e) {
+//            throw new ReaderException(
+//                    "could not retrieve the bytecode for class [" + className + "] from the bytecode provider [" +
+//                    bytecodeProvider.getClass().getName() + "]", e
+//            );
+//        }
+
         try {
-            bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
+            bytes = getBytecodeFor(className, loader);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ReaderException(
-                    "could not retrieve the bytecode from the bytecode provider [" +
-                    BYTECODE_PROVIDER.getClass().getName() +
-                    "]",
-                    e
+                    "could not retrieve the bytecode for class [" + className + "]", e
             );
         }
+
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter writer = new ClassWriter(true);
         classReader.accept(new AnnotationRetrievingVisitor(writer), false);
@@ -789,14 +876,14 @@ public class AnnotationReader {
     /**
      * Creates a new instance of the annotation reader, reads from the class specified.
      *
-     * @param classInfo
+     * @param classKey
      */
-    private AnnotationReader(final ClassInfo classInfo) {
-        if (classInfo == null) {
+    private AnnotationReader(final ClassKey classKey) {
+        if (classKey == null) {
             throw new IllegalArgumentException("class info can not be null");
         }
-        m_classInfo = classInfo;
-        parse(classInfo);
+        m_classKey = classKey;
+        parse(classKey);
     }
 
     /**
@@ -818,12 +905,11 @@ public class AnnotationReader {
             return createAnnotationVisitor(annotation);
         }
 
-        public FieldVisitor visitField(
-                final int access,
-                final String name,
-                final String desc,
-                final String signature,
-                final Object value) {
+        public FieldVisitor visitField(final int access,
+                                       final String name,
+                                       final String desc,
+                                       final String signature,
+                                       final Object value) {
             final FieldVisitor visitor = cv.visitField(access, name, desc, signature, value);
 
             final MemberKey key = new MemberKey(name, desc);
@@ -832,7 +918,7 @@ public class AnnotationReader {
                     final String className = toJavaName(desc);
                     final AnnotationElement.Annotation annotation = new AnnotationElement.Annotation(className);
                     if (m_fieldAnnotationElements.containsKey(key)) {
-                        ((Map)m_fieldAnnotationElements.get(key)).put(className, annotation);
+                        ((Map) m_fieldAnnotationElements.get(key)).put(className, annotation);
                     } else {
                         final Map annotations = new HashMap();
                         annotations.put(className, annotation);
@@ -851,12 +937,11 @@ public class AnnotationReader {
             };
         }
 
-        public MethodVisitor visitMethod(
-                final int access,
-                final String name,
-                final String desc,
-                final String signature,
-                final String[] exceptions) {
+        public MethodVisitor visitMethod(final int access,
+                                         final String name,
+                                         final String desc,
+                                         final String signature,
+                                         final String[] exceptions) {
             MethodVisitor visitor = cv.visitMethod(access, name, desc, signature, exceptions);
 
             final MemberKey key = new MemberKey(name, desc);
@@ -866,7 +951,7 @@ public class AnnotationReader {
                         final String className = toJavaName(desc);
                         final AnnotationElement.Annotation annotation = new AnnotationElement.Annotation(className);
                         if (m_constructorAnnotationElements.containsKey(key)) {
-                            ((Map)m_constructorAnnotationElements.get(key)).put(className, annotation);
+                            ((Map) m_constructorAnnotationElements.get(key)).put(className, annotation);
                         } else {
                             final Map annotations = new HashMap();
                             annotations.put(className, annotation);
@@ -882,7 +967,7 @@ public class AnnotationReader {
                         String className = toJavaName(desc);
                         final AnnotationElement.Annotation annotation = new AnnotationElement.Annotation(className);
                         if (m_methodAnnotationElements.containsKey(key)) {
-                            ((Map)m_methodAnnotationElements.get(key)).put(className, annotation);
+                            ((Map) m_methodAnnotationElements.get(key)).put(className, annotation);
                         } else {
                             final Map annotations = new HashMap();
                             annotations.put(className, annotation);
@@ -968,42 +1053,42 @@ public class AnnotationReader {
                     AnnotationElement.NestedAnnotationElement arrayElement = new AnnotationElement.Array();
                     // non-string primitive array
                     if (value instanceof int[]) {
-                        int[] array = (int[])value;
+                        int[] array = (int[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Integer(array[i]));
                         }
                     } else if (value instanceof long[]) {
-                        long[] array = (long[])value;
+                        long[] array = (long[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Long(array[i]));
                         }
                     } else if (value instanceof short[]) {
-                        short[] array = (short[])value;
+                        short[] array = (short[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Short(array[i]));
                         }
                     } else if (value instanceof float[]) {
-                        float[] array = (float[])value;
+                        float[] array = (float[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Float(array[i]));
                         }
                     } else if (value instanceof double[]) {
-                        double[] array = (double[])value;
+                        double[] array = (double[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Double(array[i]));
                         }
                     } else if (value instanceof boolean[]) {
-                        boolean[] array = (boolean[])value;
+                        boolean[] array = (boolean[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Boolean(array[i]));
                         }
                     } else if (value instanceof byte[]) {
-                        byte[] array = (byte[])value;
+                        byte[] array = (byte[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Byte(array[i]));
                         }
                     } else if (value instanceof char[]) {
-                        char[] array = (char[])value;
+                        char[] array = (char[]) value;
                         for (int i = 0; i < array.length; i++) {
                             arrayElement.addElement(null, new Character(array[i]));
                         }
@@ -1023,12 +1108,12 @@ public class AnnotationReader {
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
-    public static class ClassInfo {
+    public static class ClassKey {
         private final String m_name;
         private final WeakReference m_loaderRef;
 
-        public ClassInfo(final String name, final ClassLoader loader) {
-            m_name = name;
+        public ClassKey(final String name, final ClassLoader loader) {
+            m_name = name.replace('.', '/');
             m_loaderRef = new WeakReference(loader);
         }
 
@@ -1037,23 +1122,23 @@ public class AnnotationReader {
         }
 
         public ClassLoader getClassLoader() {
-            return (ClassLoader)m_loaderRef.get();
+            return (ClassLoader) m_loaderRef.get();
         }
 
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ClassInfo)) {
+            if (!(o instanceof ClassKey)) {
                 return false;
             }
-            final ClassInfo classInfo = (ClassInfo)o;
-            ClassLoader loader1 = (ClassLoader)m_loaderRef.get();
-            ClassLoader loader2 = (ClassLoader)classInfo.m_loaderRef.get();
+            final ClassKey classKey = (ClassKey) o;
+            ClassLoader loader1 = (ClassLoader) m_loaderRef.get();
+            ClassLoader loader2 = (ClassLoader) classKey.m_loaderRef.get();
             if (loader1 != null ? !loader1.equals(loader2) : loader2 != null) {
                 return false;
             }
-            if (m_name != null ? !m_name.equals(classInfo.m_name) : classInfo.m_name != null) {
+            if (m_name != null ? !m_name.equals(classKey.m_name) : classKey.m_name != null) {
                 return false;
             }
             return true;
@@ -1062,7 +1147,7 @@ public class AnnotationReader {
         public int hashCode() {
             int result;
             result = (m_name != null ? m_name.hashCode() : 0);
-            ClassLoader loader = (ClassLoader)m_loaderRef.get();
+            ClassLoader loader = (ClassLoader) m_loaderRef.get();
             result = 29 * result + (loader != null ? loader.hashCode() : 0);
             return result;
         }
@@ -1115,7 +1200,7 @@ public class AnnotationReader {
             if (!(o instanceof MemberKey)) {
                 return false;
             }
-            final MemberKey memberKey = (MemberKey)o;
+            final MemberKey memberKey = (MemberKey) o;
             if (m_desc != null ? !m_desc.equals(memberKey.m_desc) : memberKey.m_desc != null) {
                 return false;
             }

@@ -32,7 +32,7 @@ public class AnnotationDefaults {
      * Cache of default values, key is annotationClass, value is Annotation whose elements are named according
      * to the element name which have a default value.
      */
-    private static Map annotationDefaults = new WeakHashMap();
+    private static Map s_annotationDefaults = new WeakHashMap();
 
     /**
      * Retrieve (create if not in cache) the annotation defaults
@@ -41,16 +41,16 @@ public class AnnotationDefaults {
      * @return
      */
     public static AnnotationElement.Annotation getDefaults(Class annotationClass) {
-        AnnotationElement.Annotation defaults = (AnnotationElement.Annotation) annotationDefaults.get(annotationClass);
+        AnnotationElement.Annotation defaults = (AnnotationElement.Annotation) s_annotationDefaults.get(annotationClass);
         if (defaults == null) {
             final AnnotationElement.Annotation newDefaults = new AnnotationElement.Annotation(Type.getDescriptor(annotationClass));
             final String className = annotationClass.getName();
             final ClassLoader loader = annotationClass.getClassLoader();
             final byte[] bytes;
             try {
-                bytes = AnnotationReader.BYTECODE_PROVIDER.getBytecode(className, loader);
+                bytes = AnnotationReader.getBytecodeFor(className, loader);
             } catch (Exception e) {
-                throw new ReaderException("could not retrieve the bytecode from the bytecode provider [" + AnnotationReader.BYTECODE_PROVIDER.getClass().getName() + "]", e);
+                throw new ReaderException("could not retrieve the bytecode from the bytecode provider for class [" + className + "]", e);
             }
             ClassReader cr = new ClassReader(bytes);
             ClassWriter cw = new ClassWriter(false, true);
@@ -67,7 +67,7 @@ public class AnnotationDefaults {
                     true
             );
             defaults = newDefaults;
-            annotationDefaults.put(annotationClass, newDefaults);
+            s_annotationDefaults.put(annotationClass, newDefaults);
         }
         return defaults;
     }
