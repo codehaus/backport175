@@ -35,7 +35,7 @@ public class NestedTest extends TestCase {
     }
 
     public void testThreeLevel() {
-        Target.ThreeLevel annotation = (Target.ThreeLevel)Annotations.getAnnotation(Target.TwoLevel.class, Target.class);
+        Target.ThreeLevel annotation = (Target.ThreeLevel)Annotations.getAnnotation(Target.ThreeLevel.class, Target.class);
         Target.TwoLevel two = annotation.value();
         Target.OneLevel one = two.value();
         Target.Simple simple = one.value();
