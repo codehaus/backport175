@@ -11,6 +11,9 @@
       <library name="backport175-eclipse.jar">
          <export name="*"/>
       </library>
+      <library name="lib/backport175-1.0.RC1.jar">
+         <export name="*"/>
+      </library>
    </runtime>
 
    <requires>
@@ -69,7 +72,7 @@
       <objectContribution
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
-            id="actions.ToggleProjectNatureActionDelegateContribution">
+            id="backport175.actions.ToggleProjectNatureActionDelegateContribution">
          <visibility>
             <and>
                <objectState
@@ -88,13 +91,13 @@
                label="Enable Backport175 Annotations"
                class="org.codehaus.backport175.ide.eclipse.core.actions.ToggleProjectNatureActionDelegate"
                enablesFor="1"
-               id="actions.ToggleProjectNatureActionDelegate">
+               id="backport175.actions.ToggleProjectNatureActionDelegate">
          </action>
       </objectContribution>
       <objectContribution
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
-            id="actions.ToggleProjectNatureActionDelegateContribution">
+            id="backport175.actions.ToggleProjectNatureActionDelegateContribution">
          <visibility>
             <objectState
                   name="nature"
@@ -105,7 +108,7 @@
                label="Disable Backport175 Annotations"
                class="org.codehaus.backport175.ide.eclipse.core.actions.ToggleProjectNatureActionDelegate"
                enablesFor="1"
-               id="actions.ToggleProjectNatureActionDelegate">
+               id="backport175.actions.ToggleProjectNatureActionDelegate">
          </action>
       </objectContribution>
    </extension>
