@@ -66,6 +66,7 @@ import org.aspectj.weaver.ShadowMunger;
 import org.aspectj.weaver.TypeX;
 import org.aspectj.weaver.WeaverMessages;
 import org.aspectj.weaver.World;
+import org.aspectj.weaver.annotationStyle.Ajc5MemberMaker;
 import org.aspectj.weaver.ast.Var;
 
 
@@ -1082,26 +1083,34 @@ public class BcelShadow extends Shadow {
 		
 		return il;
 	}
-    
+
+    //ALEX added boolean param to say it is a ESJP that we want
     public BcelVar getThisJoinPointStaticPartBcelVar() {
+        return getThisJoinPointStaticPartBcelVar(false);
+    }
+    public BcelVar getThisJoinPointStaticPartBcelVar(final boolean isEnclosingJp) {
     	if (thisJoinPointStaticPartVar == null) {
-    		Field field = getEnclosingClass().getTjpField(this);
+    		Field field = getEnclosingClass().getTjpField(this, isEnclosingJp);
     		thisJoinPointStaticPartVar =
     			new BcelFieldRef(
-    				world.getCoreType(TypeX.forName("org.aspectj.lang.JoinPoint$StaticPart")),
+    				isEnclosingJp?
+                        world.getCoreType(TypeX.forName("org.aspectj.lang.JoinPoint$EnclosingStaticPart")):
+                        world.getCoreType(TypeX.forName("org.aspectj.lang.JoinPoint$StaticPart")),
     				getEnclosingClass().getClassName(),
     				field.getName());
 //    		getEnclosingClass().warnOnAddedStaticInitializer(this,munger.getSourceLocation());
     	}
     	return thisJoinPointStaticPartVar;
     }
-    
+
+    //ALEX added true to say it is a ESJP that we want
+    //ALEX Note: weird to delegate since there is another check on thisJoinPointStaticPartVar==null then
     public BcelVar getThisEnclosingJoinPointStaticPartBcelVar() {
     	if (enclosingShadow == null) {
     		// the enclosing of an execution is itself
-    		return getThisJoinPointStaticPartBcelVar();
+    		return getThisJoinPointStaticPartBcelVar(true);
     	} else {
-    		return ((BcelShadow)enclosingShadow).getThisJoinPointStaticPartBcelVar();
+    		return ((BcelShadow)enclosingShadow).getThisJoinPointStaticPartBcelVar(true);
     	}
     }
     
@@ -2133,7 +2142,24 @@ public class BcelShadow extends Shadow {
         InstructionList advice = new InstructionList();
         advice.append(munger.getAdviceArgSetup(this, null, closureInstantiation));
 //        advice.append(closureInstantiation);
-        advice.append(munger.getNonTestAdviceInstructions(this));
+
+        //ALEX
+        if (Ajc5MemberMaker.isAnnotationStyleAspect(munger.getConcreteAspect())) {
+            //advice.append(new POP());
+            advice.append(Utility.createInvoke(
+                    getFactory(),
+                    getWorld(),
+                    new Member(
+                            Member.METHOD,
+                            TypeX.forName("org.aspectj.runtime.internal.AroundClosure"),
+                            Modifier.PUBLIC,
+                            "getJoinPoint",
+                            "()Lorg/aspectj/lang/JoinPoint;"
+                            )
+            ));
+        }
+
+        advice.append(munger.getNonTestAdviceInstructions(this));//ALEX invoke the advice
         advice.append(returnConversionCode);         
         
 		if (!hasDynamicTest) {
