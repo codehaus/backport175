@@ -9,6 +9,8 @@ package org.codehaus.backport175.reader.proxy;
 
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 import org.codehaus.backport175.reader.bytecode.AnnotationReader;
+import org.codehaus.backport175.reader.Annotations;
+import org.codehaus.backport175.reader.Annotation;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.InvocationHandler;

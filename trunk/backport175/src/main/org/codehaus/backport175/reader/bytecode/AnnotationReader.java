@@ -32,7 +32,7 @@ public class AnnotationReader {
     private static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
     private static final String INIT_METHOD_NAME = "<init>";
 
-    private static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
+    public static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
     private static final Map READERS = new WeakHashMap();
 
@@ -636,13 +636,13 @@ public class AnnotationReader {
          * 
          * @return
          */
-        private AnnotationVisitor createAnnotationVisitor(final AnnotationElement.Annotation annotation) {
+        public AnnotationVisitor createAnnotationVisitor(final AnnotationElement.Annotation annotation) {
             return new AnnotationBuilderVisitor(annotation);
 //            return new TraceAnnotationVisitor();
         }
     }
 
-    private class AnnotationBuilderVisitor implements AnnotationVisitor {
+    static class AnnotationBuilderVisitor implements AnnotationVisitor {
 
         private final AnnotationElement.NestedAnnotationElement m_nestedAnnotationElement;
 
