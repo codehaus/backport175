@@ -52,7 +52,7 @@ public class PrimitiveTest extends TestCase {
         );
         assertEquals(Target.Double.class, annotation.annotationType());
         Target.Double ann = (Target.Double)annotation;
-        assertEquals(1.123456789123456789D, ann.v());
+        assertEquals(1.123456789123456789D, ann.v(), 0);
         assertEquals(1.0D, ann.arr()[0], 0);
         assertEquals(2.4D, ann.arr()[1], 0);
         assertEquals(3.56D, ann.arr()[2], 0);
