@@ -47,6 +47,11 @@ public class BufferedMessageHandler implements MessageHandler {
      */
     public List vfSourceLocations = new ArrayList();
 
+    /**
+     * Set of all vf that we have processed (even those whithout any annotations)
+     */
+    public Set vfs = new HashSet();
+
     public BufferedMessageHandler(Project project) {
         m_project = project;
     }
@@ -72,6 +77,7 @@ public class BufferedMessageHandler implements MessageHandler {
     public void flush() {
         vfCompilerExceptions.clear();
         vfSourceLocations.clear();
+        vfs.clear();
     }
 
     /**
@@ -80,15 +86,6 @@ public class BufferedMessageHandler implements MessageHandler {
      * @return
      */
     public Set getVirtualFiles() {
-        Set vfs = new HashSet();
-        for (Iterator iterator = vfCompilerExceptions.iterator(); iterator.hasNext();) {
-            VfCompilerException vfCompilerException = (VfCompilerException) iterator.next();
-            vfs.add(vfCompilerException.vf);
-        }
-        for (Iterator iterator = vfSourceLocations.iterator(); iterator.hasNext();) {
-            VfSourceLocation vfSourceLocation = (VfSourceLocation) iterator.next();
-            vfs.add(vfSourceLocation.vf);
-        }
         return vfs;
     }
 

@@ -135,6 +135,8 @@ public class BpCompiler implements ClassInstrumentingCompiler {
 //                                    -1
 //                            );
 
+                            m_messageHandler.vfs.add(vf);
+                            
                             final Module module = compileContext.getModuleByFile(vf);
                             VirtualFile destDir = compileContext.getModuleOutputDirectory(module);
 
