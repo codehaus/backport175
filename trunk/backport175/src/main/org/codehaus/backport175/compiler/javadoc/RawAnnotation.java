@@ -7,8 +7,6 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler.javadoc;
 
-import java.io.Serializable;
-
 /**
  * Raw info about an annotation. Holds the name (the FQN of the annotation interface) of the annotations
  * and its unparsed "content".
@@ -16,7 +14,8 @@ import java.io.Serializable;
  * @author <a href="mailto:alex@gnilux.org">Alexander Vasseur</a>
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
-public class RawAnnotation implements Serializable {
+public class RawAnnotation {
+
     private final Class m_annotationClass;
     private final String m_value;
 

@@ -26,9 +26,8 @@ import java.util.ArrayList;
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
 public class JavaDocAnnotationInvocationHander implements InvocationHandler, Serializable {
-
-    //TODO calculate
-    private static final long serialVersionUID = 1L;
+    static final long serialVersionUID = 1584167345753299421L;
+    
     private static final String TO_STRING_METHOD_NAME = "toString";
     private static final String ANNOTATION_TYPE_METHOD_NAME = "annotationType";
 
