@@ -10,7 +10,6 @@ package org.codehaus.backport175.reader.proxy;
 import org.codehaus.backport175.reader.Annotation;
 import org.codehaus.backport175.reader.Annotations;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
-import org.codehaus.backport175.reader.bytecode.AnnotationDefaults;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -38,13 +37,6 @@ public class ProxyFactory {
             interfaceClass = Class.forName(annotation.getInterfaceName(), false, loader);
         } catch (ClassNotFoundException e) {
             throw new ResolveAnnotationException("annotation interface [" + annotation.getInterfaceName() + "] could not be found");
-        }
-
-        // annotation default overrides
-        AnnotationElement.Annotation defaults = AnnotationDefaults.getDefaults(interfaceClass);
-        for (Iterator iterator = defaults.getElements().iterator(); iterator.hasNext();) {
-            AnnotationElement.NamedValue defaultedElement = (AnnotationElement.NamedValue) iterator.next();
-            annotation.mergeDefaultedElement(defaultedElement);
         }
 
         final InvocationHandler handler = new JavaDocAnnotationInvocationHander(interfaceClass, annotation);

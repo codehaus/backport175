@@ -9,8 +9,8 @@ package test.java5;
 
 import org.codehaus.backport175.reader.Annotation;
 import org.codehaus.backport175.reader.Annotations;
-import org.codehaus.backport175.reader.bytecode.AnnotationDefaults;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
+import org.codehaus.backport175.reader.bytecode.AnnotationReader;
 import junit.framework.TestCase;
 
 /**
@@ -24,7 +24,7 @@ public class AnnotationReaderTest extends TestCase {
 
     public void testClassAnnReflection() {
         java.lang.annotation.Annotation[] annotations = Target5.class.getAnnotations();
-        assertEquals(2, annotations.length);
+        assertEquals(3, annotations.length);
     }
 
     public void testMethodAnnReflection() {
@@ -98,15 +98,20 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testDefaulted() {
-        AnnotationElement.Annotation e = AnnotationDefaults.getDefaults(Target5.DefaultedTest.class);
-        assertEquals(2, e.getElements().size());
-        assertEquals("test=1", (e.getElements().get(0)).toString());
-        assertEquals("test2=default", (e.getElements().get(1)).toString());
-
         Annotation defaulted = Annotations.getAnnotation(Target5.DefaultedTest.class, Target5.class);
         assertNotNull(defaulted);
-        assertEquals(1, ((Target5.DefaultedTest)defaulted).test());
+        assertEquals(1, ((Target5.DefaultedTest)defaulted).test());//default value
         assertEquals("notdefault", ((Target5.DefaultedTest)defaulted).test2());
+
+        AnnotationElement.Annotation anno = AnnotationReader.getReaderFor(Target5.class).getAnnotationElement(Target5.DefaultedTest.class.getName().replace('/', '.'));
+        assertNotNull(anno);
+        assertEquals(2, anno.getElements().size());// since default is part of it already
+
+        Annotation defaultedWithNested = Annotations.getAnnotation(Target5.DefaultedWithNestedTest.class, Target5.class);
+        assertNotNull(defaultedWithNested);
+        assertNotNull(((Target5.DefaultedWithNestedTest)defaultedWithNested).nested());//default nested annotation
+        Target5.DefaultedIsNestedTest isNested = (Target5.DefaultedIsNestedTest) (((Target5.DefaultedWithNestedTest)defaultedWithNested).nested());
+        assertEquals(false, isNested.value());
     }
 
 
