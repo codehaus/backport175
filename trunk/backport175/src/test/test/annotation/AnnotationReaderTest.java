@@ -122,6 +122,25 @@ public class AnnotationReaderTest extends TestCase {
         assertEquals(6l, longArr[2]);
     }
 
+    public void testClassAnnDuplicatedMapping() {
+        Annotation[] annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(Target.class);
+        int found = 0;
+        for (int i = 0; i < annotations.length; i++) {
+            Annotation annotation = annotations[i];
+            if (annotation instanceof Annotations.LongArray) {
+                found++;
+            }
+        }
+        assertEquals(1, found);
+    }
+
+    public void testClassAnnNotThere() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "noThere", Target.class
+        );
+        assertNull(annotation);
+    }
+
     public void testClassAnn6() {
         Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
                 "test.annotation.Annotations$Complex", Target.class

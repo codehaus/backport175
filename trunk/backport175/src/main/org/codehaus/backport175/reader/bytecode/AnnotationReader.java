@@ -157,12 +157,18 @@ public class AnnotationReader {
             return (Annotation)cachedAnnotation;
         } else {
             final Annotation annotation;
-            annotation = ProxyFactory.newAnnotationProxy(
-                    (AnnotationElement.Annotation)m_classAnnotationElements.get(annotationName),
-                    ((Class)m_classRef.get()).getClassLoader()
-            );
-            m_classAnnotationCache.put(annotationName, annotation);
-            return annotation;
+            final AnnotationElement.Annotation annotationInfo =
+                    (AnnotationElement.Annotation)m_classAnnotationElements.get(annotationName);
+            if (annotationInfo != null) {
+                annotation = ProxyFactory.newAnnotationProxy(
+                        annotationInfo,
+                        ((Class)m_classRef.get()).getClassLoader()
+                );
+                m_classAnnotationCache.put(annotationName, annotation);
+                return annotation;
+            } else {
+                return null;
+            }
         }
     }
 

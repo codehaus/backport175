@@ -7,6 +7,8 @@
  *******************************************************************************************/
 package org.codehaus.backport175.reader.bytecode;
 
+import org.objectweb.asm.Type;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
@@ -24,7 +26,16 @@ public class SignatureHelper {
      * @return
      */
     public static String getConstructorSignature(final Constructor constructor) {
-        return getMethodSignature(constructor.getParameterTypes(), Void.TYPE);
+        //TODO: raise issue in ASM for the Type API to accept Constructor
+        Class[] paramTypes = constructor.getParameterTypes();
+        StringBuffer buf = new StringBuffer();
+        buf.append('(');
+        for (int i = 0; i < paramTypes.length; i++) {
+            buf.append(Type.getDescriptor(paramTypes[i]));
+        }
+        buf.append(')');
+        buf.append(Type.VOID_TYPE.getDescriptor());
+        return buf.toString();
     }
 
     /**
@@ -34,7 +45,7 @@ public class SignatureHelper {
      * @return
      */
     public static String getMethodSignature(final Method method) {
-        return getMethodSignature(method.getParameterTypes(), method.getReturnType());
+        return Type.getMethodDescriptor(method);
     }
 
     /**
@@ -44,7 +55,7 @@ public class SignatureHelper {
      * @return
      */
     public static String getFieldSignature(final Field field) {
-        return getClassSignature(field.getType());
+        return Type.getDescriptor(field.getType());
     }
 
     /**
@@ -54,54 +65,7 @@ public class SignatureHelper {
      * @return
      */
     public static String getClassSignature(Class klass) {
-        StringBuffer buf = new StringBuffer();
-        while (klass.isArray()) {
-            buf.append('[');
-            klass = klass.getComponentType();
-        }
-        if (klass.isPrimitive()) {
-            if (klass == Integer.TYPE) {
-                buf.append('I');
-            } else if (klass == Byte.TYPE) {
-                buf.append('B');
-            } else if (klass == Long.TYPE) {
-                buf.append('J');
-            } else if (klass == Float.TYPE) {
-                buf.append('F');
-            } else if (klass == Double.TYPE) {
-                buf.append('D');
-            } else if (klass == Short.TYPE) {
-                buf.append('S');
-            } else if (klass == Character.TYPE) {
-                buf.append('C');
-            } else if (klass == Boolean.TYPE) {
-                buf.append('Z');
-            } else if (klass == Void.TYPE) {
-                buf.append('V');
-            } else {
-                throw new InternalError();
-            }
-        } else {
-            buf.append('L' + klass.getName().replace('.', '/') + ';');
-        }
-        return buf.toString();
+        return Type.getDescriptor(klass);
     }
 
-    /**
-     * Returns JVM type signature for given list of parameters and return type.
-     *
-     * @param paramTypes
-     * @param retType
-     * @return
-     */
-    private static String getMethodSignature(final Class[] paramTypes, final Class retType) {
-        StringBuffer buf = new StringBuffer();
-        buf.append('(');
-        for (int i = 0; i < paramTypes.length; i++) {
-            buf.append(getClassSignature(paramTypes[i]));
-        }
-        buf.append(')');
-        buf.append(getClassSignature(retType));
-        return buf.toString();
-    }
 }

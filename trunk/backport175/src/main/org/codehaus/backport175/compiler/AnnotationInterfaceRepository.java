@@ -31,16 +31,29 @@ public class AnnotationInterfaceRepository {
     private static final Properties ANNOTATION_DEFINITION = new Properties();
 
     /**
+     * String list of doclet not found, to avoid fallback lookup everytime
+     */
+    private static final List ANNOTATION_IGNORED = new ArrayList();
+
+    /**
      * Registers an annotation interface into the repository.
      *
-     * @param interfaceName
-     * @param loader
+     * @param name
+     * @param interfaceClass
      */
-    public static void registerAnnotationInterface(final String interfaceName, final ClassLoader loader) {
-        final Class interfaceClass = loadAnnotationInterface(interfaceName, loader);
-        if (interfaceClass != null) {
-            ANNOTATION_ALIAS_INTERFACE_MAP.put(interfaceName, interfaceClass);
+    public static void registerAnnotationInterface(final String name, final Class interfaceClass) {
+        if (ANNOTATION_ALIAS_INTERFACE_MAP.containsValue(interfaceClass)) {
+            for (Iterator iterator = ANNOTATION_ALIAS_INTERFACE_MAP.entrySet().iterator(); iterator.hasNext();) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                if (entry.getValue().equals(interfaceClass)) {
+                    throw new CompilerException("unable to register [" + interfaceClass.getName() +
+                            "] as [" + name + "] since it is already registered under the name [" +
+                            entry.getKey() + ']');
+                }
+            }
         }
+        AnnotationC.logInfo("register annotation [" + name + " :: " + interfaceClass + ']');
+        ANNOTATION_ALIAS_INTERFACE_MAP.put(name, interfaceClass);
     }
 
     /**
@@ -55,55 +68,6 @@ public class AnnotationInterfaceRepository {
         }
         loadPropertiesFiles(propertiesFiles);
         loadAnnotationInterfacesDefinedInPropertiesFiles(loader);
-    }
-
-    /**
-     * Returns the annotation interface class for a specific annotation or NULL if the annotation name is unknown.
-     *
-     * @param annotationName
-     * @param loader
-     * @return the interface class for the annotation or NULL if the annotation name is unknown
-     */
-    public static Class getAnnotationInterfaceFor(final String annotationName, final ClassLoader loader) {
-        Object value = ANNOTATION_ALIAS_INTERFACE_MAP.get(annotationName);
-        if (value != null) {
-            // interface found in map
-            final Class interfaceClass = (Class)value;
-            if (!interfaceClass.isInterface()) {
-                throw new CompilerException("annotation class [" + interfaceClass.getName() + "] is not an interface");
-            }
-            return interfaceClass;
-        }
-        // interface not found in map, resolve class and put it in map
-        final Class interfaceClass = loadAnnotationInterface(annotationName, loader);
-        if (interfaceClass != null && !interfaceClass.isInterface()) {
-            ANNOTATION_ALIAS_INTERFACE_MAP.put(annotationName, interfaceClass);
-        }
-        return interfaceClass;
-    }
-
-    /**
-     * Loads the annotation interface. Has logic to handle resolvment of inner classes specific with a dot.
-     *
-     * @param interfaceName
-     * @param loader
-     * @return the class if resolved else null
-     */
-    private static Class loadAnnotationInterface(final String interfaceName, final ClassLoader loader) {
-        Class interfaceClass = null;
-        try {
-            interfaceClass = Class.forName(interfaceName, false, loader);
-        } catch (ClassNotFoundException e) {
-            int index = interfaceName.lastIndexOf('.');
-            if (index != -1) {
-                // recusively search for potential inner classes
-                String split1 = interfaceName.substring(0, index);
-                String split2 = interfaceName.substring(index + 1, interfaceName.length());
-                String innerClassInterface = split1 + '$' + split2;
-                interfaceClass = loadAnnotationInterface(innerClassInterface, loader);
-            }
-        }
-        return interfaceClass;
     }
 
     /**
@@ -149,11 +113,76 @@ public class AnnotationInterfaceRepository {
                         "] defined in the 'annotation.properties' file"
                 );
             } else {
-                annotationInterfaceClass = loadAnnotationInterface(className, loader);
+                annotationInterfaceClass = loadClassHandlingNestedSyntax(className, loader);
+                if (annotationInterfaceClass == null) {
+                    throw new CompilerException("[" + className + "] could not be found on system classpath or class path provided as argument to the compiler");
+                }
             }
-            AnnotationC.logInfo("register annotation alias [" + name + " :: " + className + ']');
+            registerAnnotationInterface(name, annotationInterfaceClass);
+        }
+    }
 
-            ANNOTATION_ALIAS_INTERFACE_MAP.put(name, annotationInterfaceClass);
+    /**
+     * Returns the annotation interface class for a specific annotation or NULL if the annotation name is unknown.
+     * <p/>
+     * Hanldes nested class with either '$' or '.' ('$' is faster).
+     * Classes are added to the mapping map when found.
+     *
+     * @param annotationName
+     * @param loader the loader where to search for the class if not found in aliased ones
+     * @return the interface class for the annotation or NULL if the annotation name is unknown
+     */
+    public static Class getAnnotationInterfaceFor(final String annotationName, ClassLoader loader) {
+        // check ignored list
+        if (ANNOTATION_IGNORED.contains(annotationName)) {
+            return null;
+        }
+
+        // look up, and register if found, else add to ignore list
+        final Class annotationInterfaceClass;
+        Object klass = ANNOTATION_ALIAS_INTERFACE_MAP.get(annotationName);
+        if (klass != null) {
+            annotationInterfaceClass = (Class) klass;
+        }  else {
+            annotationInterfaceClass = loadClassHandlingNestedSyntax(annotationName, loader);
+            if (annotationInterfaceClass == null) {
+                // add it to ignored ones
+                ANNOTATION_IGNORED.add(annotationName);
+                return null;
+            } else {
+                // add it to the alias for faster lookup next time
+                registerAnnotationInterface(annotationName, annotationInterfaceClass);
+            }
+        }
+
+        if (!annotationInterfaceClass.isInterface()) {
+            throw new CompilerException("annotation class is not defined as an interface for " + annotationName);
+        }
+        return annotationInterfaceClass;
+    }
+
+    /**
+     * Try to load the given class from its className.
+     * <p/>
+     * Nested classes are handled thru a fallback mechanism so that foo.Bar.Nested is resolved in foo.Bar$Nested
+     * when not found at the first lookup.
+     *
+     * @param className
+     * @param loader
+     * @return
+     */
+    private static Class loadClassHandlingNestedSyntax(String className, ClassLoader loader) {
+        try {
+            return Class.forName(className, false, loader);
+        } catch (ClassNotFoundException e) {
+            int lastDot = className.lastIndexOf('.');
+            if (lastDot > 0) {
+                char[] classNameHopes = className.toCharArray();
+                classNameHopes[lastDot] = '$';
+                return loadClassHandlingNestedSyntax(new String(classNameHopes), loader);
+            } else {
+                return null;
+            }
         }
     }
 }

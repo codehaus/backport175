@@ -90,11 +90,11 @@ public class JavaDocParser {
     /**
      * Extract the raw information of the annotation, the "content" inside the parenthesis).
      *
-     * @param annotationName
+     * @param annotationClass
      * @param tag
      * @return RawAnnotation or null if not found
      */
-    public static RawAnnotation getRawAnnotation(final String annotationName, final DocletTag tag) {
+    public static RawAnnotation getRawAnnotation(final Class annotationClass, final DocletTag tag) {
         String rawAnnotationString = tag.getName() + " " + tag.getValue();
         rawAnnotationString = rawAnnotationString.trim();
 
@@ -111,7 +111,7 @@ public class JavaDocParser {
         } else {
             value = "";
         }
-        return new RawAnnotation(annotationName, value);
+        return new RawAnnotation(annotationClass, value);
     }
 
     /**

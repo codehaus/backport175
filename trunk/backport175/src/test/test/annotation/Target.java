@@ -13,6 +13,7 @@ package test.annotation;
  * @DefaultString("hello")
  * @StringArray(ss={"hello", "world"})
  * @LongArray(l={1l, 2l, 6l})
+ * @AliasedLongArray(l={1l, 2l, 6l})
  * @NestedAnnotation(ann=@Simple(val="foo"))
  * @NestedAnnotationArray(annArr={@Simple(val="foo"), @Simple(val="bar")})
  * @Complex(i=3, doubleArr={1.1D, 1.2D, 1234.123456d}, type=java.lang.String[][].class)
@@ -39,7 +40,7 @@ public class Target {
     }
 
     /**
-     * @test.annotation.Annotations$VoidTyped
+     * @test.annotation.Annotations.VoidTyped
      * @Simple(val="foo", s="bar")
      * @DefaultString("hello")
      * @StringArray(ss={"hello", "world"})
@@ -51,7 +52,7 @@ public class Target {
     private String field;
 
     /**
-     * @test.annotation.Annotations$VoidTyped
+     * @test.annotation.Annotations.VoidTyped
      * @Simple(val="foo", s="bar")
      * @DefaultString("hello")
      * @StringArray(ss={"hello", "world"})
