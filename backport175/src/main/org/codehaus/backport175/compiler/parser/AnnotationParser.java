@@ -132,15 +132,25 @@ public class AnnotationParser implements AnnotationParserVisitor {
     public Object visit(ASTBoolean node, Object data) {
         ParseContext ctx = (ParseContext)data;
         AnnotationValidator.validateBoolean(ctx);
-        Boolean bool = Boolean.valueOf(node.getValue());
-        ctx.munger.visit(ctx.elementName, bool);
+
+        ctx.munger.visit(ctx.elementName, Boolean.valueOf(node.getValue()));
         return null;
     }
 
     public Object visit(ASTChar node, Object data) {
         ParseContext ctx = (ParseContext)data;
         AnnotationValidator.validateCharacter(ctx);
-        Character character = new Character(node.getValue().charAt(0));
+
+        char[] value = node.getValue().trim().toCharArray();
+        Character character;
+        if (value.length == 1) {
+            character = new Character(value[0]);
+        } else if (value.length == 3 && value[0] == '\'' && value[2] == '\'') {
+            character = new Character(value[1]);
+        } else {
+            throw new ParseException("could not parse character [" + value + "]");
+        }
+
         ctx.munger.visit(ctx.elementName, character);
         return null;
     }

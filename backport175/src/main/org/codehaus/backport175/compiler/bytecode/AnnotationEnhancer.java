@@ -111,7 +111,7 @@ public class AnnotationEnhancer {
             }
         } catch (Exception e) {
             throw new InstrumentationException(
-                    "could not add annotations to bytecode of class [" + className + "]", e
+                    "could not add annotations to bytecode of class [" + className + "] due to: " + e.toString(), e
             );
         }
         return true;
