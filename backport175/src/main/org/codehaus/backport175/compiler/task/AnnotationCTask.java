@@ -222,7 +222,7 @@ public class AnnotationCTask extends Task {
                     (String[]) classpathDirs.toArray(new String[]{}),
                     m_destdir == null ? null : m_destdir.getAbsolutePath(),
                     (String[]) allProperties.toArray(new String[]{}),
-                    new AnnotationC.StdEventHandler(m_verbose)
+                    new AnnotationC.StdMessageHandler(m_verbose)
             );
 
             if (m_destdir != null) {

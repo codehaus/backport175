@@ -41,7 +41,7 @@ public class ValidationTest extends TestCase {
 
     private static final String CLASSPATH = "target/testcompiler-classes";
     private static final String SOURCE_DIR = "src/test/compiler/test/compiler/validation/";
-    private static final AnnotationC.EventHandler EVENT_HANDLER = new AnnotationC.StdEventHandler(true);
+    private static final AnnotationC.MessageHandler MESSAGE_HANDLER = new AnnotationC.StdMessageHandler(true);
 
     static {
         try {
@@ -101,7 +101,7 @@ public class ValidationTest extends TestCase {
                     new String[]{CLASSPATH},
                     CLASSPATH,
                     new String[]{},
-                    EVENT_HANDLER
+                    MESSAGE_HANDLER
             );
         } catch (AnnotationValidationException e) {
             // TODO check the error message in exception
@@ -118,7 +118,7 @@ public class ValidationTest extends TestCase {
                     new String[]{CLASSPATH},
                     CLASSPATH,
                     new String[]{},
-                    EVENT_HANDLER
+                    MESSAGE_HANDLER
             );
         } catch (AnnotationValidationException e) {
             // TODO check the error message in exception
@@ -135,7 +135,7 @@ public class ValidationTest extends TestCase {
                     new String[]{CLASSPATH},
                     CLASSPATH,
                     new String[]{},
-                    EVENT_HANDLER
+                    MESSAGE_HANDLER
             );
         } catch (AnnotationValidationException e) {
             // TODO check the error message in exception
@@ -152,7 +152,7 @@ public class ValidationTest extends TestCase {
                     new String[]{CLASSPATH},
                     CLASSPATH,
                     new String[]{},
-                    EVENT_HANDLER
+                    MESSAGE_HANDLER
             );
         } catch (AnnotationValidationException e) {
             // TODO check the error message in exception
@@ -169,7 +169,7 @@ public class ValidationTest extends TestCase {
                     new String[]{CLASSPATH},
                     CLASSPATH,
                     new String[]{},
-                    EVENT_HANDLER
+                    MESSAGE_HANDLER
             );
         } catch (AnnotationValidationException e) {
             // TODO check the error message in exception
