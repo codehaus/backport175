@@ -9,7 +9,6 @@ package org.codehaus.backport175.compiler.parser;
 
 import org.codehaus.backport175.compiler.parser.ast.*;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
-import org.codehaus.backport175.compiler.CompilerException;
 import org.codehaus.backport175.compiler.SourceLocation;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.AnnotationVisitor;
