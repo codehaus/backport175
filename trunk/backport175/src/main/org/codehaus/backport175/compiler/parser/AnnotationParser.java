@@ -39,8 +39,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
     protected Class m_annotationClass;
 
     /**
-     * FIXME remove and only use Context
-     * The ASM bytecode munger.
+     * The top level annotation bytecode munger.
      */
     protected AnnotationVisitor m_bytecodeMunger;
 
