@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.backport175.compiler.CompilerException;
+import org.codehaus.backport175.compiler.SourceLocation;
 import org.codehaus.backport175.ide.eclipse.core.BpLog;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -50,7 +51,7 @@ public class AnnotationMarkerResolution implements IMarkerResolutionGenerator2 {
      */
     public IMarkerResolution[] getResolutions(IMarker marker) {
         try {
-            CompilerException.Location location = (CompilerException.Location) marker.getAttribute(AnnotationEventHandler.LOCATION_ATTRIBUTE);
+            SourceLocation location = (SourceLocation) marker.getAttribute(AnnotationEventHandler.LOCATION_ATTRIBUTE);
             IJavaProject jproject = (IJavaProject) marker.getAttribute(AnnotationEventHandler.JAVAPROJECT_ATTRIBUTE);
             
             List resolutions = new ArrayList();
@@ -69,13 +70,13 @@ public class AnnotationMarkerResolution implements IMarkerResolutionGenerator2 {
         
         private final IJavaProject m_jproject;
         
-        public AnnotationMarkerResolutionAction(CompilerException.Location location, IJavaProject jproject) {
+        public AnnotationMarkerResolutionAction(SourceLocation location, IJavaProject jproject) {
             m_jproject = jproject;
-            m_annotationClassName = location.annotationClassName;
+            m_annotationClassName = location.getAnnnotationClassName();
             
             //label
             StringBuffer sb = new StringBuffer();
-            sb.append("Go to: " + location.annotationClassName);
+            sb.append("Go to: " + location.getAnnnotationClassName());
             m_label = sb.toString();
         }
 

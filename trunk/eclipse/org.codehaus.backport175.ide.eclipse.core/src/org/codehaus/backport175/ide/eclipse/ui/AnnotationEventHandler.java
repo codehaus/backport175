@@ -26,7 +26,8 @@ import org.eclipse.ui.texteditor.MarkerUtilities;
 
 import org.codehaus.backport175.compiler.AnnotationC;
 import org.codehaus.backport175.compiler.CompilerException;
-import org.codehaus.backport175.compiler.CompilerException.Location;
+import org.codehaus.backport175.compiler.MessageHandler;
+import org.codehaus.backport175.compiler.SourceLocation;
 import org.codehaus.backport175.ide.eclipse.core.BpCorePlugin;
 import org.codehaus.backport175.ide.eclipse.core.BpLog;
 import org.codehaus.backport175.org.objectweb.asm.Type;
@@ -37,7 +38,7 @@ import org.codehaus.backport175.org.objectweb.asm.Type;
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-public class AnnotationEventHandler implements AnnotationC.IEventHandler {
+public class AnnotationEventHandler implements MessageHandler {
     
     private final static String ANNOTATION_MARKER = "org.codehaus.backport175.ide.eclipse.core.annotation";
     private final static String ANNOTATION_PROBLEM_MARKER = "org.codehaus.backport175.ide.eclipse.core.annotationProblem";
@@ -54,17 +55,13 @@ public class AnnotationEventHandler implements AnnotationC.IEventHandler {
 	/* (non-Javadoc)
 	 * @see org.codehaus.backport175.compiler.AnnotationC.IEventHandler#info(java.lang.String, org.codehaus.backport175.compiler.CompilerException.Location)
 	 */
-	public void info(String message, Location location) {
-		if (location != null) {
-			BpLog.logTrace(message + " " + location.toString());
-		} else {
-			BpLog.logTrace(message); 
-		}
+	public void info(String message) {
+		BpLog.logTrace(message); 
 	}
 	
-	public void accept(final Location location) {
-		String className = location.className;
-		BpLog.logInfo("notified for " + className + ":" + location.lineNumber);
+	public void accept(final SourceLocation location) {
+		String className = location.getClassName();
+		BpLog.logInfo("notified for " + className + ":" + location.getLine());
         final IType atClass;
         final IResource resource;
         try {
@@ -105,14 +102,14 @@ public class AnnotationEventHandler implements AnnotationC.IEventHandler {
 	 * @see org.codehaus.backport175.compiler.AnnotationC.IEventHandler#error(org.codehaus.backport175.compiler.CompilerException)
 	 */
 	public void error(CompilerException compilerException) {
-		Location location = compilerException.getLocation();
+		SourceLocation location = compilerException.getLocation();
 		if (location == null) {
 			BpLog.logError(compilerException);
 		} else {
 	        final IType atClass;
 	        final IResource resource;
 	        try {
-	            atClass = m_jproject.findType(location.className);
+	            atClass = m_jproject.findType(location.getClassName());
 		        if (atClass == null) {
 		            return;
 		        }
@@ -153,21 +150,21 @@ public class AnnotationEventHandler implements AnnotationC.IEventHandler {
         }
       }
     
-    private void createMarker(IResource resource, Location location)
+    private void createMarker(IResource resource, SourceLocation location)
             throws JavaModelException, CoreException {
 		Map map= new HashMap();
-		MarkerUtilities.setLineNumber(map, location.lineNumber);
-		MarkerUtilities.setMessage(map, location.annotationClassName);
+		MarkerUtilities.setLineNumber(map, location.getLine());
+		MarkerUtilities.setMessage(map, location.getAnnnotationClassName());
 		map.put(LOCATION_ATTRIBUTE, location);
 		map.put(JAVAPROJECT_ATTRIBUTE, m_jproject);
         MarkerUtilities.createMarker(resource, map, ANNOTATION_MARKER);
     }
     
-    private void createErrorMarker(IResource resource, String hint, Location location)
+    private void createErrorMarker(IResource resource, String hint, SourceLocation location)
     throws JavaModelException, CoreException {
 		Map map= new HashMap();
-		MarkerUtilities.setLineNumber(map, location.lineNumber);
-		MarkerUtilities.setMessage(map, location.annotationClassName + " : " + hint);
+		MarkerUtilities.setLineNumber(map, location.getLine());
+		MarkerUtilities.setMessage(map, location.getAnnnotationClassName() + " : " + hint);
 		map.put(LOCATION_ATTRIBUTE, location);
 		map.put(JAVAPROJECT_ATTRIBUTE, m_jproject);
 		map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_ERROR));
