@@ -5,7 +5,7 @@
  * The software in this package is published under the terms of Apache License Version 2.0 *
  * a copy of which has been included with this distribution in the license.txt file.       *
  *******************************************************************************************/
-package test.reader;
+package test;
 
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 

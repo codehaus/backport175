@@ -8,7 +8,7 @@
 package test.java5;
 
 import test.*;
-import test.Target;
+import test.reader.Target;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
