@@ -353,8 +353,7 @@ public class AnnotationC {
 
         Class annotationInterface = AnnotationInterfaceRepository.getAnnotationInterfaceFor(annotationName, s_loader);
         if (annotationInterface == null) {
-            // not found
-            // TODO optimize not found annotations 
+            // not found, and the AnnotationInterfaceRepository.ANNOTATION_IGNORED has been populated
             logInfo("JavaDoc tag [" + annotationName + "] is not treated as an annotation - class could not be resolved");
             return null;
         }
