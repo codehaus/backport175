@@ -1,0 +1,27 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+  <name>Plugin name here</name>
+  <description>short description of the plugin</description>
+  <version>1.0</version>
+  <vendor>YourCompany</vendor>
+  <idea-version since-build="3000"/>
+
+    <project-components>
+        <component>
+            <implementation-class>org.codehaus.backport175.ide.intellij.BpProjectComponent</implementation-class>
+            <interface-class>org.codehaus.backport175.ide.intellij.BpProjectComponent</interface-class>
+            <option name="workspace" value="true"/><!-- for configuration save in iws files -->
+        </component>
+    </project-components>
+
+    <actions>
+        <action class="org.codehaus.backport175.ide.intellij.ToggleBpCompilerAction"
+            text="Enable Backport175 Annotations"
+            description="Backport175 Annotations compilation - http://backport175.codehaus.org"
+            id="org.codehaus.backport175.ide.intellij.ToggleBpCompilerAction">
+            <add-to-group anchor="after" group-id="BuildMenu" relative-to-action="Compile"/>
+        </action>
+    </actions>
+
+</idea-plugin>
+
