@@ -8,7 +8,7 @@
 package test.annotation;
 
 /**
- * @test.annotation.Annotations$VoidTyped
+ * @test.annotation.Annotations.VoidTyped
  * @Simple(val="foo", s="bar")
  * @DefaultString("hello")
  * @StringArray(ss={"hello", "world"})
@@ -20,7 +20,7 @@ package test.annotation;
 public class Target {
 
     /**
-     * @test.annotation.Annotations$VoidTyped
+     * @test.annotation.Annotations.VoidTyped
      * @Simple(val="foo", s="bar")
      * @DefaultString("hello")
      * @StringArray(ss={"hello", "world"})
