@@ -34,7 +34,11 @@ public class RawAnnotation {
      * @param enclosingClassName
      * @param enclosingClassFile
      */
-    public RawAnnotation(final Class annotationClass, final String value, int line, String enclosingClassName, String enclosingClassFile) {
+    public RawAnnotation(final Class annotationClass,
+                         final String value,
+                         final int line,
+                         final String enclosingClassName,
+                         final String enclosingClassFile) {
         m_annotationClass = annotationClass;
         m_value = value;
         m_lineNumber = line;

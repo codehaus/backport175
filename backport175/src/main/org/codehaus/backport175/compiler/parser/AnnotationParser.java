@@ -26,7 +26,6 @@ import org.codehaus.backport175.compiler.CompilerException;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.AnnotationVisitor;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 
@@ -167,18 +166,22 @@ public class AnnotationParser implements AnnotationParserVisitor {
     }
 
     public Object visit(ASTBoolean node, Object elementName) {
+        AnnotationValidator.validateBoolean(m_annotationClass, (String)elementName);
         Boolean bool = Boolean.valueOf(node.getValue());
         m_currentBytecodeMunger.visit((String)elementName, bool);
         return null;
     }
 
     public Object visit(ASTChar node, Object elementName) {
+        AnnotationValidator.validateCharacter(m_annotationClass, (String)elementName);
         Character character = new Character(node.getValue().charAt(0));
         m_currentBytecodeMunger.visit((String)elementName, character);
         return null;
     }
 
     public Object visit(ASTString node, Object elementName) {
+        AnnotationValidator.validateString(m_annotationClass, (String)elementName);
+
         // the node contains the  \" string escapes
         String string;
         if (node.getValue().length() >= 2) {
@@ -186,6 +189,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             string = node.getValue();
         }
+
         m_currentBytecodeMunger.visit((String)elementName, string);
         return null;
     }
@@ -199,9 +203,12 @@ public class AnnotationParser implements AnnotationParserVisitor {
             integer = new Long(value.substring(0, value.length() - 1));
         } else if (value.length() > 9) {
             integer = new Long(value);
+            AnnotationValidator.validateLong(m_annotationClass, (String)elementName);
         } else {
             integer = new Integer(value);
+            AnnotationValidator.validateInteger(m_annotationClass, (String)elementName);
         }
+
         m_currentBytecodeMunger.visit((String)elementName, integer);
         return null;
     }
@@ -212,10 +219,13 @@ public class AnnotationParser implements AnnotationParserVisitor {
         Object decimalNumber;
         if ((lastChar == 'D') || (lastChar == 'd')) {
             decimalNumber = new Double(value.substring(0, value.length() - 1));
+            AnnotationValidator.validateDouble(m_annotationClass, (String)elementName);
         } else if ((lastChar == 'F') || (lastChar == 'f')) {
             decimalNumber = new Float(value.substring(0, value.length() - 1));
+            AnnotationValidator.validateFloat(m_annotationClass, (String)elementName);
         } else {
             decimalNumber = new Double(value);
+            AnnotationValidator.validateDouble(m_annotationClass, (String)elementName);
         }
         m_currentBytecodeMunger.visit((String)elementName, decimalNumber);
         return null;
@@ -231,6 +241,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
 
     public Object visit(ASTArray node, Object name) {
         String elementName = (String)name;
+        AnnotationValidator.validateArray(m_annotationClass, elementName);
+
         Class elementType = getMethodFor(elementName, m_annotationClass).getReturnType();
         if (!elementType.isArray()) {
             throw new ParseException("type for element [" + elementName + "] is not of type array");
@@ -242,6 +254,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
                     "]"
             );
         }
+
         AnnotationVisitor parentBytecodeMunger = m_currentBytecodeMunger;
         m_currentBytecodeMunger = m_currentBytecodeMunger.visitArray(elementName);
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
@@ -255,9 +268,11 @@ public class AnnotationParser implements AnnotationParserVisitor {
     protected void handleAnnotation(final ASTAnnotation node, final Object elementName) {
         int nr = node.jjtGetNumChildren();
         if (nr == 1) {
+            AnnotationValidator.validateAnnotation(m_annotationClass, DEFAULT_VALUE_NAME);
             // default value
             node.jjtGetChild(0).jjtAccept(this, DEFAULT_VALUE_NAME);
         } else {
+            AnnotationValidator.validateAnnotation(m_annotationClass, (String)elementName);
             // key-value pairs
             for (int i = 0; i < nr; i++) {
                 node.jjtGetChild(i).jjtAccept(this, elementName);
@@ -266,6 +281,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
     }
 
     protected void handleNestedAnnotation(final ASTAnnotation node, final String elementName) {
+        AnnotationValidator.validateAnnotation(m_annotationClass, elementName);
+
         Class elementType = getMethodFor(elementName, m_annotationClass).getReturnType();
         if (elementType.isArray()) {
             // if we have an array of annotations
@@ -282,18 +299,9 @@ public class AnnotationParser implements AnnotationParserVisitor {
         m_currentBytecodeMunger = parentBytecodeVisitor;
     }
 
-    protected boolean isJavaReferenceType(final String valueAsString) {
-        int first = valueAsString.indexOf('.');
-        int last = valueAsString.lastIndexOf('.');
-        int comma = valueAsString.indexOf(',');
-        if ((first > 0) && (last > 0) && (first != last) && (comma < 0)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     protected Object handleClassIdentifier(final String identifier, final String elementName) {
+        AnnotationValidator.validateClass(m_annotationClass, elementName);
+
         int index = identifier.lastIndexOf('.');
         String componentClassName = identifier.substring(0, index);
         int dimension = 0;
@@ -352,6 +360,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
     }
 
     protected Object handleReferenceIdentifier(final String identifier, final String elementName) {
+        AnnotationValidator.validateEnum(m_annotationClass, elementName);
+
         int index = identifier.lastIndexOf('.');
         String className = identifier.substring(0, index);
         String fieldName = identifier.substring(index + 1, identifier.length());
@@ -365,6 +375,17 @@ public class AnnotationParser implements AnnotationParserVisitor {
             );
         }
         return null;
+    }
+
+    protected boolean isJavaReferenceType(final String valueAsString) {
+        int first = valueAsString.indexOf('.');
+        int last = valueAsString.lastIndexOf('.');
+        int comma = valueAsString.indexOf(',');
+        if ((first > 0) && (last > 0) && (first != last) && (comma < 0)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

@@ -9,9 +9,6 @@ package org.codehaus.backport175.compiler.parser;
 
 import org.codehaus.backport175.compiler.CompilerException;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
-
 /**
  * Thrown when error in parsing the annotation expression
  * ie when the JSR-175 checks fails.
