@@ -22,6 +22,7 @@ public class BpLog {
      */
     public static void logTrace(String message) {
         System.out.println("BP TRACE : " + message);
+	LOG.info(message);
     }
 
     /**

@@ -7,8 +7,6 @@
  *******************************************************************************************/
 package org.codehaus.backport175.ide.intellij;
 
-import com.intellij.util.IconUtil;
-
 import javax.swing.*;
 
 /**
