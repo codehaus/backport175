@@ -5,27 +5,27 @@
  * The software in this package is published under the terms of Apache License Version 2.0 *
  * a copy of which has been included with this distribution in the license.txt file.       *
  *******************************************************************************************/
-package test.validation;
+package test.compiler.validation;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
-public class EnumAnnoTarget {
+public class TypeRefAnnoTarget {
 
     /**
-     * @test.validation.ValidationTest.EnumAnno(test.validation.MyEnum.class)
+     * @test.compiler.validation.ValidationTest.TypeRefAnno(1)
      */
     public void nonWellFormedAnno0() {
     }
 
     /**
-     * @test.validation.ValidationTest.EnumAnno(test.validation.MyEnum.WALUE)
+     * @test.compiler.validation.ValidationTest.TypeRefAnno(test.compiler.validation.Target)
      */
     public void nonWellFormedAnno1() {
     }
 
     /**
-     * @test.validation.ValidationTest.EnumAnno(123)
+     * @test.compiler.validation.ValidationTest.TypeRefAnno(test.compiler.validation.MyEnum.VALUE)
      */
     public void nonWellFormedAnno2() {
     }

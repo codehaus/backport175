@@ -5,12 +5,12 @@
  * The software in this package is published under the terms of Apache License Version 2.0 *
  * a copy of which has been included with this distribution in the license.txt file.       *
  *******************************************************************************************/
-package test;
+package test.compiler;
 
 import junit.framework.TestCase;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import test.validation.ValidationTest;
+import test.compiler.validation.ValidationTest;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>

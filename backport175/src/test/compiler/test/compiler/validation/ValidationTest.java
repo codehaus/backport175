@@ -5,7 +5,7 @@
  * The software in this package is published under the terms of Apache License Version 2.0 *
  * a copy of which has been included with this distribution in the license.txt file.       *
  *******************************************************************************************/
-package test.validation;
+package test.compiler.validation;
 
 import junit.framework.TestCase;
 
@@ -40,7 +40,7 @@ public class ValidationTest extends TestCase {
     private static Method enumM2;
 
     private static final String CLASSPATH = "target/testcompiler-classes";
-    private static final String SOURCE_DIR = "src/testcompiler/test/validation/";
+    private static final String SOURCE_DIR = "src/test/compiler/test/compiler/validation/";
     private static final AnnotationC.StdEventHandler EVENT_HANDLER = new AnnotationC.StdEventHandler(true);
 
     static {
