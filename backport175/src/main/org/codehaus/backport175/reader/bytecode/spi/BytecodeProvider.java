@@ -21,6 +21,7 @@ public interface BytecodeProvider {
      * @param className the fully qualified name of the class
      * @param loader    the class loader that has loaded the class
      * @return the bytecode
+     * @throws Exception upon failure
      */
-    byte[] getBytecode(String className, ClassLoader loader);
+    byte[] getBytecode(String className, ClassLoader loader) throws Exception;
 }

@@ -24,6 +24,7 @@ public class AllTests extends TestCase {
 
         suite.addTestSuite(AnnotationReaderTest.class);
         suite.addTestSuite(NoDuplicateTest.class);
+        suite.addTestSuite(ProxyTest.class);
 
         return suite;
     }
@@ -31,6 +32,6 @@ public class AllTests extends TestCase {
     public static void main(String[] args) {
         junit.textui.TestRunner.run(suite());
     }
-    
+
 
 }

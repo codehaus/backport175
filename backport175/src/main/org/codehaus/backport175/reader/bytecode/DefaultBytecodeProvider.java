@@ -7,7 +7,6 @@
  *******************************************************************************************/
 package org.codehaus.backport175.reader.bytecode;
 
-import org.codehaus.backport175.compiler.AnnotationC;
 import org.codehaus.backport175.reader.bytecode.spi.BytecodeProvider;
 
 import java.io.InputStream;
@@ -28,7 +27,7 @@ public class DefaultBytecodeProvider implements BytecodeProvider {
      * @param loader    the class loader that has loaded the class
      * @return the bytecode
      */
-    public byte[] getBytecode(final String className, final ClassLoader loader) {
+    public byte[] getBytecode(final String className, final ClassLoader loader) throws Exception {
         byte[] bytes;
         InputStream in = null;
         try {
@@ -37,14 +36,18 @@ public class DefaultBytecodeProvider implements BytecodeProvider {
             } else {
                 in = ClassLoader.getSystemClassLoader().getResourceAsStream(className.replace('.', '/') + ".class");
             }
-            bytes = toByteArray(in);
+            if (in != null) {
+                bytes = toByteArray(in);
+            } else {
+                throw new Exception("could not read class [" + className + "] as byte array");
+            }
         } catch (IOException e) {
-            throw new RuntimeException("could not read in class as byte array due to: " + e.toString());
+            throw new Exception("could not read class [" + className + "]as byte array due to: " + e.toString());
         } finally {
             try {
                 in.close();
             } catch (Exception e) {
-                AnnotationC.logWarning("could not close bytecode input stream for class [" + className + "]");
+                ;// we don't care
             }
         }
         return bytes;
