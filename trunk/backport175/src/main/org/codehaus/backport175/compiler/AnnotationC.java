@@ -186,7 +186,7 @@ public class AnnotationC {
             JavaDocParser.addSource(srcFiles[i]);
         }
 
-        AnnotationInterfaceRepository.registerPropertyFiles(annotationPropertiesFiles, s_loader);
+        AnnotationInterfaceRepository.registerPropertiesFiles(annotationPropertiesFiles, s_loader);
 
         doCompile(classPath, destDirToUse);
     }
@@ -346,27 +346,15 @@ public class AnnotationC {
      */
     private static RawAnnotation getRawAnnotation(final DocletTag tag) {
         String annotationName = tag.getName();
-
         int index = annotationName.indexOf('(');
         if (index != -1) {
             annotationName = annotationName.substring(0, index);
         }
-
-        String interfaceName;
-        Class annotationInterface = AnnotationInterfaceRepository.getAnnotationInterfaceFor(annotationName);
-        if (annotationInterface != null) {
-            interfaceName = annotationInterface.getName();
-        } else {
-            interfaceName = annotationName;
-            try {
-                Class interfaceClass = Class.forName(interfaceName, false, s_loader);
-                AnnotationInterfaceRepository.registerAnnotationInterface(interfaceClass);
-            } catch (ClassNotFoundException e) {
-                return null;
-            }
+        final Class interfaceClass = AnnotationInterfaceRepository.getAnnotationInterfaceFor(annotationName, s_loader);
+        if (interfaceClass != null) {
+            return JavaDocParser.getRawAnnotation(interfaceClass.getName(), tag);
         }
-
-        return JavaDocParser.getRawAnnotation(interfaceName, tag);
+        return null;
     }
 
     /**
