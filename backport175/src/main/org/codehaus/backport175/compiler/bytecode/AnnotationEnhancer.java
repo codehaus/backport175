@@ -105,13 +105,13 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Inserts an reader on class level.
+     * Inserts an annotation on class level.
      *
-     * @param annotation the reader
+     * @param annotation the annotation
      */
     public void insertClassAnnotation(final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("reader enhancer is not initialized");
+            throw new IllegalStateException("annotation enhancer is not initialized");
         }
         if (hasClassAnnotation(annotation)) {
             throw new CompilerException(
@@ -123,14 +123,14 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Inserts an reader on field level.
+     * Inserts an annotation on field level.
      *
      * @param field      the QDox java field
-     * @param annotation the reader
+     * @param annotation the annotation
      */
     public void insertFieldAnnotation(final JavaField field, final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("reader enhancer is not initialized");
+            throw new IllegalStateException("annotation enhancer is not initialized");
         }
         FieldAnnotationInfo info = new FieldAnnotationInfo(field, annotation);
         if (hasFieldAnnotation(info)) {
@@ -143,14 +143,14 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Inserts an reader on method level.
+     * Inserts an annotation on method level.
      *
      * @param method     the QDox java method
-     * @param annotation the reader
+     * @param annotation the annotation
      */
     public void insertMethodAnnotation(final JavaMethod method, final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("reader enhancer is not initialized");
+            throw new IllegalStateException("annotation enhancer is not initialized");
         }
         MethodAnnotationInfo info = new MethodAnnotationInfo(method, annotation);
         if (hasMethodAnnotation(info)) {
@@ -163,14 +163,14 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Inserts an reader on constructor level.
+     * Inserts an annotation on constructor level.
      *
      * @param constructor the QDox java method
-     * @param annotation  the reader
+     * @param annotation  the annotation
      */
     public void insertConstructorAnnotation(final JavaMethod constructor, final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("reader enhancer is not initialized");
+            throw new IllegalStateException("annotation enhancer is not initialized");
         }
         MethodAnnotationInfo info = new MethodAnnotationInfo(constructor, annotation);
         if (hasConstructorAnnotation(info)) {
@@ -189,7 +189,7 @@ public class AnnotationEnhancer {
      */
     public void write(final String destDir) {
         if (m_reader == null) {
-            throw new IllegalStateException("reader enhancer is not initialized");
+            throw new IllegalStateException("annotation enhancer is not initialized");
         }
 
         ClassWriter writer = new ClassWriter(true);
@@ -382,8 +382,8 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Two FieldAnnotationInfo are equals if method equals and reader class is equals ie RawAnnotation is equals.
-     * Used to ensure no reader duplicate
+     * Two FieldAnnotationInfo are equals if method equals and annotation class is equals ie RawAnnotation is equals.
+     * Used to ensure no annotation duplicate
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
@@ -425,8 +425,8 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Two MethodAnnotationInfo are equals if method equals and reader class is equals ie RawAnnotation is equals.
-     * Used to ensure no reader duplicate.
+     * Two MethodAnnotationInfo are equals if method equals and annotation class is equals ie RawAnnotation is equals.
+     * Used to ensure no annotation duplicate.
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
@@ -468,7 +468,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the class has already the given reader
+     * Checks if the class has already the given annotation
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
@@ -480,7 +480,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the method has already the given reader
+     * Checks if the method has already the given annotation
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
@@ -492,7 +492,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the field has already the given reader
+     * Checks if the field has already the given annotation
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
@@ -504,7 +504,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the constructor has already the given reader
+     * Checks if the constructor has already the given annotation
      * <p/>
      * Note: rely on RawAnnotation.equals
      *

@@ -26,18 +26,13 @@ public class RawAnnotation {
     private final String m_enclosingClassFile;
 
     /**
-     * Creates a new raw reader.
+     * Creates a new raw annotation.
      *
-<<<<<<< RawAnnotation.java
-     * @param annotationClass the reader interface
-     * @param value the unparsed reader "content"
-=======
      * @param annotationClass the annotation interface
      * @param value the unparsed annotation "content"
      * @param line number
      * @param enclosingClassName
      * @param enclosingClassFile
->>>>>>> 1.6
      */
     public RawAnnotation(final Class annotationClass, final String value, int line, String enclosingClassName, String enclosingClassFile) {
         m_annotationClass = annotationClass;
@@ -48,7 +43,7 @@ public class RawAnnotation {
     }
 
     /**
-     * Returns the reader name (which is the FQN of the reader interface).
+     * Returns the annotation name (which is the FQN of the annotation interface).
      *
      * @return
      */
@@ -57,7 +52,7 @@ public class RawAnnotation {
     }
 
     /**
-     * Returns the reader "content".
+     * Returns the annotation "content".
      *
      * @return
      */
@@ -66,7 +61,7 @@ public class RawAnnotation {
     }
 
     /**
-     * Returns the reader class
+     * Returns the annotation class
      *
      * @return
      */

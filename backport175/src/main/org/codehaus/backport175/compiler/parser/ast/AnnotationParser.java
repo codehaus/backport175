@@ -13,7 +13,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 /**
- * The reader javadoc.
+ * The annotation javadoc.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
@@ -273,6 +273,7 @@ public class AnnotationParser/*@bgen(jjtree)*/implements AnnotationParserTreeCon
   static final public void Boolean() throws ParseException {
  /*@bgen(jjtree) Boolean */
     ASTBoolean jjtn000 = new ASTBoolean(JJTBOOLEAN);
+
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);Token value;
     try {

@@ -46,7 +46,7 @@ public class AnnotationInterfaceRepository {
     }
 
     /**
-     * Registers an reader interface into the repository.
+     * Registers an annotation interface into the repository.
      *
      * @param name
      * @param interfaceClass
@@ -67,7 +67,7 @@ public class AnnotationInterfaceRepository {
     }
 
     /**
-     * Registers the reader property files.
+     * Registers the annotation property files.
      *
      * @param propertiesFiles
      * @param loader
@@ -94,7 +94,7 @@ public class AnnotationInterfaceRepository {
                 m_properties.load(in);
             } catch (Exception e) {
                 throw new CompilerException(
-                        "reader properties file " + propertiesFile + " can not be loaded: " + e.toString()
+                        "annotation properties file " + propertiesFile + " can not be loaded: " + e.toString()
                 );
             } finally {
                 try {
@@ -107,7 +107,7 @@ public class AnnotationInterfaceRepository {
     }
 
     /**
-     * Loads the reader interface defined in the property files.
+     * Loads the annotation interface defined in the property files.
      *
      * @param loader
      */
@@ -119,8 +119,8 @@ public class AnnotationInterfaceRepository {
             Class annotationInterfaceClass;
             if (className.equals("")) {
                 throw new CompilerException(
-                        "no reader interface mapped to the alias [" + name +
-                        "] defined in the 'reader.properties' file"
+                        "no annotation interface mapped to the alias [" + name +
+                        "] defined in the 'annotation.properties' file"
                 );
             } else {
                 annotationInterfaceClass = loadClassHandlingNestedSyntax(className, loader);
@@ -133,14 +133,14 @@ public class AnnotationInterfaceRepository {
     }
 
     /**
-     * Returns the reader interface class for a specific reader or NULL if the reader name is unknown.
+     * Returns the annotation interface class for a specific annotation or NULL if the annotation name is unknown.
      * <p/>
      * Hanldes nested class with either '$' or '.' ('$' is faster).
      * Classes are added to the mapping map when found.
      *
      * @param annotationName
      * @param loader the loader where to search for the class if not found in aliased ones
-     * @return the interface class for the reader or NULL if the reader name is unknown
+     * @return the interface class for the annotation or NULL if the annotation name is unknown
      */
     public Class getAnnotationInterfaceFor(final String annotationName, ClassLoader loader) {
         // check ignored list
@@ -167,7 +167,7 @@ public class AnnotationInterfaceRepository {
         }
 
         if (!annotationInterfaceClass.isInterface()) {
-            throw new CompilerException("reader class is not defined as an interface for " + annotationName);
+            throw new CompilerException("annotation class is not defined as an interface for " + annotationName);
         }
         return annotationInterfaceClass;
     }

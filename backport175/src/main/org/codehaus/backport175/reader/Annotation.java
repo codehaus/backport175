@@ -15,7 +15,7 @@ package org.codehaus.backport175.reader;
 public interface Annotation {
 
     /**
-     * Returns the reader type, e.g. the reader interface type.
+     * Returns the annotation type, e.g. the annotation interface type.
      *
      * @return the type
      */

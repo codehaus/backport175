@@ -22,7 +22,7 @@ public class AnnotationElement implements Serializable {
     public static final String DEFAULT_VALUE_NAME = "value";
 
     /**
-     * Enum for the different reader element types.
+     * Enum for the different annotation element types.
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
@@ -53,7 +53,7 @@ public class AnnotationElement implements Serializable {
     }
 
     /**
-     * Abstraction for the reader element type.
+     * Abstraction for the annotation element type.
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
@@ -173,7 +173,7 @@ public class AnnotationElement implements Serializable {
                 m_type = Type.ANNOTATION;
             } else {
                 throw new IllegalArgumentException(
-                        "not valid type for named value in reader [" + value.toString() + "]"
+                        "not valid type for named value in annotation [" + value.toString() + "]"
                 );
             }
         }
@@ -252,7 +252,7 @@ public class AnnotationElement implements Serializable {
     }
 
     /**
-     * Interface for the nested reader element type. Composite pattern.
+     * Interface for the nested annotation element type. Composite pattern.
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */

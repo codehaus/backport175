@@ -49,7 +49,7 @@ public class JavaDocParser {
             try {
                 m_javaDocParser.addSourceTree(new File(srcDirs[i]));
             } catch (Exception e) {
-                throw new SourceParseException("source file in source tree [" + srcDirs[i] + "] could not be parsed - current javadoc does not understant Java 5 specific code (reader, enums etc)", e);
+                throw new SourceParseException("source file in source tree [" + srcDirs[i] + "] could not be parsed - current javadoc does not understant Java 5 specific code (annotation, enums etc)", e);
             }
         }
     }
@@ -63,7 +63,7 @@ public class JavaDocParser {
         try {
             m_javaDocParser.addSource(new File(srcFile));
         } catch (Exception e) {
-            throw new SourceParseException("source file [" + srcFile + "] could not be parsed - current javadoc does not understant Java 5 specific code (reader, enums etc)", e);
+            throw new SourceParseException("source file [" + srcFile + "] could not be parsed - current javadoc does not understant Java 5 specific code (annotation, enums etc)", e);
         }
     }
 
@@ -88,7 +88,7 @@ public class JavaDocParser {
     }
 
     /**
-     * Extract the raw information of the reader, the "content" inside the parenthesis).
+     * Extract the raw information of the annotation, the "content" inside the parenthesis).
      *
      * @param annotationClass
      * @param tag
@@ -104,7 +104,7 @@ public class JavaDocParser {
 
         int contentStartIndex = rawAnnotationString.indexOf('(');
         if (contentStartIndex != -1 && !rawAnnotationString.endsWith(")")) {
-            throw new SourceParseException("reader not well-formed, needs to end with a closing parenthesis [" + rawAnnotationString + "]");
+            throw new SourceParseException("annotation not well-formed, needs to end with a closing parenthesis [" + rawAnnotationString + "]");
         }
 
         final String value;
