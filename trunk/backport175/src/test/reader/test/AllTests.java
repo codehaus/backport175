@@ -16,6 +16,7 @@ import test.proxy.ProxyTest;
 import test.reader.AnnotationReaderTest;
 import test.primitives.PrimitiveTest;
 import test.nested.NestedTest;
+import test.defaultvalue.DefaultTest;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
@@ -32,6 +33,7 @@ public class AllTests extends TestCase {
         suite.addTestSuite(MemberFilteringTest.class);
         suite.addTestSuite(PrimitiveTest.class);
         suite.addTestSuite(NestedTest.class);
+        suite.addTestSuite(DefaultTest.class);
 
         return suite;
     }

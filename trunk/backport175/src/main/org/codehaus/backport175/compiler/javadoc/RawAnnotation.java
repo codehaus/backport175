@@ -7,6 +7,8 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler.javadoc;
 
+import org.codehaus.backport175.DefaultValue;
+
 /**
  * Raw info about an reader. Holds the name (the FQN of the reader interface) of the annotations
  * and its unparsed "content".
@@ -107,5 +109,13 @@ public class RawAnnotation {
 
     public int getLineNumber() {
         return m_lineNumber;
+    }
+
+    /**
+     * Returns true if the annotation represents an annotation default value
+     * @return
+     */
+    public boolean isAnnotationDefaultValue() {
+        return m_annotationClass.getName().equals(DefaultValue.class.getName());
     }
 }
