@@ -27,7 +27,7 @@
 
     <target name="init">
         <property name="name" value="backport175-intellij"/>
-        <property name="version" value="1.0-beta1"/>
+        <property name="version" value="1.0.RC1"/>
         <property environment="env"/>
 
         <fail unless="env.IDEA_HOME" message="Set IDEA_HOME !"/>
@@ -42,7 +42,9 @@
     </target>
 
     <target name="clean" depends="init">
-        <delete dir="target/classes"/>
+        <delete dir="target/${name}-${version}/lib"/>
+	<delete dir="target/${name}-${version}"/>
+	<delete dir="target/classes"/>
         <delete dir="target"/>
         <mkdir dir="target"/>
         <mkdir dir="target/classes"/>
@@ -64,6 +66,15 @@
             <fileset dir="." includes="META-INF/*"/>
             <fileset dir="src" includes="icons/*"/>
         </jar>
+	<mkdir dir="target/${name}-${version}"/>
+	<mkdir dir="target/${name}-${version}/lib"/>
+	<copy todir="target/${name}-${version}/lib">
+		<fileset dir="target" includes="*.jar"/>
+		<fileset dir="lib" includes="*.jar"/>
+	</copy>
+	<zip destfile="target/${name}-${version}.zip">
+		<fileset dir="target/${name}-${version}" includes="**/*"/>
+	</zip>
     </target>
 
     <target name="install" depends="dist">
