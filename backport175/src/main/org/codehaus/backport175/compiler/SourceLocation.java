@@ -16,10 +16,10 @@ import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */
 public class SourceLocation {
-    private String className;
-    private String file;
-    private int lineNumber;
-    private String annotationClassName;
+    private String m_className;
+    private String m_file;
+    private int m_lineNumber;
+    private String m_annotationClassName;
 
     /**
      * Renders a new source location.
@@ -29,23 +29,39 @@ public class SourceLocation {
      */
     public static SourceLocation render(final RawAnnotation annotation) {
         SourceLocation sourceLocation = new SourceLocation();
-        sourceLocation.className = annotation.getEnclosingClassName();
-        sourceLocation.file = annotation.getEnclosingClassFile();
-        sourceLocation.lineNumber = annotation.getLineNumber();
-        sourceLocation.annotationClassName = annotation.getName();
+        sourceLocation.m_className = annotation.getEnclosingClassName();
+        sourceLocation.m_file = annotation.getEnclosingClassFile();
+        sourceLocation.m_lineNumber = annotation.getLineNumber();
+        sourceLocation.m_annotationClassName = annotation.getName();
         return sourceLocation;
     }
 
     public String toString() {
         final StringBuffer sb = new StringBuffer();
-        sb.append(className);
+        sb.append(m_className);
         sb.append(':');
-        sb.append(lineNumber);
+        sb.append(m_lineNumber);
         sb.append(" @");
-        sb.append(annotationClassName);
+        sb.append(m_annotationClassName);
         sb.append(" in source file [");
-        sb.append(file);
+        sb.append(m_file);
         sb.append(']');
         return sb.toString();
+    }
+
+    public String getClassName() {
+        return m_className;
+    }
+
+    public String getAnnnotationClassName() {
+        return m_annotationClassName;
+    }
+
+    public int getLine() {
+        return m_lineNumber;
+    }
+
+    public String getFile() {
+        return m_file;
     }
 }
