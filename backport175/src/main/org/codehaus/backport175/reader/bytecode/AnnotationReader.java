@@ -11,6 +11,7 @@ import org.objectweb.asm.*;
 import org.codehaus.backport175.reader.bytecode.spi.BytecodeProvider;
 import org.codehaus.backport175.reader.proxy.ProxyFactory;
 import org.codehaus.backport175.reader.Annotation;
+import org.codehaus.backport175.reader.ReaderException;
 
 import java.util.*;
 import java.lang.ref.WeakReference;
@@ -29,6 +30,7 @@ import java.lang.reflect.Constructor;
 public class AnnotationReader {
 
     private static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
+    private static final String INIT_METHOD_NAME = "<init>";
 
     private static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
@@ -38,13 +40,13 @@ public class AnnotationReader {
 
     // ===========================================================================
     // Implementation notes:
-    // Parsing and annotation creation is made in two steps
+    // Parsing and reader creation is made in two steps
     //
-    // 1. The bytecode is parsed and the annotation content is put in elements,
+    // 1. The bytecode is parsed and the reader content is put in elements,
     //    which are stored for later processing
     //
-    // 2. Upon annotation access the elements are processed and a dynamic proxy
-    //    for the annotation is created and cached.
+    // 2. Upon reader access the elements are processed and a dynamic proxy
+    //    for the reader is created and cached.
     //
     // This gives much better performance than reflective access of Java 5
     // annotations (reflective access is around 5 times slower)
@@ -74,12 +76,12 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the annotation reader for the class specified.
+     * Returns the reader reader for the class specified.
      * <p/>
-     * The annotation reader is created and cached if non-existant.
+     * The reader reader is created and cached if non-existant.
      *
      * @param klass
-     * @return the annotation reader
+     * @return the reader reader
      */
     public static AnnotationReader getReaderFor(final Class klass) {
         final AnnotationReader reader;
@@ -96,7 +98,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Resets the annotation reader for the class specified and triggers a new parsing of the newly read bytecode.
+     * Resets the reader reader for the class specified and triggers a new parsing of the newly read bytecode.
      * <p/>
      * This method calls <code>parse</code> and is therefore all the is needed to invoke to get a fully updated reader.
      *
@@ -110,7 +112,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Resets *all* the annotation reader and triggers a new parsing of the newly read bytecode.
+     * Resets *all* the reader reader and triggers a new parsing of the newly read bytecode.
      * <p/>
      * This method will force parsing of all classes bytecode which might be very time consuming, use with care.
      * <p/>
@@ -136,20 +138,20 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an annotation is present at a specific class.
+     * Checks if an reader is present at a specific class.
      *
-     * @param annotationType the annotation type
-     * @return true if the annotation is present else false
+     * @param annotationType the reader type
+     * @return true if the reader is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType) {
         return m_classAnnotationElements.containsKey(annotationType.getName());
     }
 
     /**
-     * Returns the class annotation with the name specified.
+     * Returns the class reader with the name specified.
      *
      * @param annotationName
-     * @return the class annotation
+     * @return the class reader
      */
     public Annotation getAnnotation(final String annotationName) {
         Object cachedAnnotation = m_classAnnotationCache.get(annotationName);
@@ -186,10 +188,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an annotation is present at a specific constructor.
+     * Checks if an reader is present at a specific constructor.
      *
-     * @param annotationType the annotation type
-     * @return true if the annotation is present else false
+     * @param annotationType the reader type
+     * @return true if the reader is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType, final Constructor constructor) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
@@ -203,10 +205,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the constructor annotation with the name specified for the constructor specified.
+     * Returns the constructor reader with the name specified for the constructor specified.
      *
      * @param annotationName
-     * @return the constructor annotation
+     * @return the constructor reader
      */
     public Annotation getAnnotation(final String annotationName, final Constructor constructor) {
         Map annotationMap = getAnnotationCacheFor(constructor);
@@ -251,10 +253,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an annotation is present at a specific method.
+     * Checks if an reader is present at a specific method.
      *
-     * @param annotationType the annotation type
-     * @return true if the annotation is present else false
+     * @param annotationType the reader type
+     * @return true if the reader is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType, final Method method) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
@@ -268,10 +270,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the method annotation with the name specified for the method specified.
+     * Returns the method reader with the name specified for the method specified.
      *
      * @param annotationName
-     * @return the method annotation
+     * @return the method reader
      */
     public Annotation getAnnotation(final String annotationName, final Method method) {
         Map annotationMap = (Map)m_methodAnnotationCache.get(method);
@@ -320,10 +322,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Checks if an annotation is present at a specific field.
+     * Checks if an reader is present at a specific field.
      *
-     * @param annotationType the annotation type
-     * @return true if the annotation is present else false
+     * @param annotationType the reader type
+     * @return true if the reader is present else false
      */
     public boolean isAnnotationPresent(final Class annotationType, final Field field) {
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
@@ -337,10 +339,10 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the field annotation with the name specified for the field specified.
+     * Returns the field reader with the name specified for the field specified.
      *
      * @param annotationName
-     * @return the field annotation
+     * @return the field reader
      */
     public Annotation getAnnotation(final String annotationName, final Field field) {
         Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
@@ -391,8 +393,8 @@ public class AnnotationReader {
     /**
      * Returns the annotations for a specific member.
      *
-     * @param annotationElements the annotation elements for the member
-     * @param annotationCache    the annotation cache to use
+     * @param annotationElements the reader elements for the member
+     * @param annotationCache    the reader cache to use
      * @return an array with the annotations
      */
     private Annotation[] getAnnotations(final Collection annotationElements, final Map annotationCache) {
@@ -425,7 +427,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the annotation cache for a specific constructor.
+     * Returns the reader cache for a specific constructor.
      *
      * @param constructor the constructor
      * @return the cache
@@ -440,7 +442,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the annotation cache for a specific method.
+     * Returns the reader cache for a specific method.
      *
      * @param method the method
      * @return the cache
@@ -455,7 +457,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Returns the annotation cache for a specific field.
+     * Returns the reader cache for a specific field.
      *
      * @param field the field
      * @return the cache
@@ -470,7 +472,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Resets the annotation reader and triggers a new parsing of the newly read bytecode.
+     * Resets the reader reader and triggers a new parsing of the newly read bytecode.
      * <p/>
      * This method calls <code>parse</code> and is therefore all the is needed to invoke to get a fully updated reader.
      */
@@ -498,9 +500,7 @@ public class AnnotationReader {
         try {
             bytes = BYTECODE_PROVIDER.getBytecode(className, loader);
         } catch (Exception e) {
-            //FIXME logme
-            //e.printStackTrace();
-            throw new RuntimeException(e.toString());
+            throw new ReaderException("could not retrieve the bytecode from the bytecode provider [" + BYTECODE_PROVIDER.getClass().getName() + "]", e);
         }
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter writer = new ClassWriter(true);
@@ -508,7 +508,7 @@ public class AnnotationReader {
     }
 
     /**
-     * Creates a new instance of the annotation reader, reads from the class specified.
+     * Creates a new instance of the reader reader, reads from the class specified.
      *
      * @param klass
      */
@@ -526,7 +526,6 @@ public class AnnotationReader {
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
     private class AnnotationRetrievingVisitor extends ClassAdapter {
-        private static final String INIT_METHOD_NAME = "<init>";
 
         public AnnotationRetrievingVisitor(final ClassVisitor cv) {
             super(cv);
@@ -617,7 +616,7 @@ public class AnnotationReader {
         }
 
         /**
-         * Returns the annotation visitor to use.
+         * Returns the reader visitor to use.
          * <p/>
          * Swap to the 'tracing' visitor for simple debugging.
          *
@@ -750,7 +749,7 @@ public class AnnotationReader {
         private final String m_desc;
 
         public static MemberKey newMemberKey(final Constructor method) {
-            return new MemberKey("<init>", SignatureHelper.getConstructorSignature(method));
+            return new MemberKey(INIT_METHOD_NAME, SignatureHelper.getConstructorSignature(method));
         }
 
         public static MemberKey newMemberKey(final Method method) {
@@ -793,45 +792,6 @@ public class AnnotationReader {
             return result;
         }
     }
-
-    /**
-     * Unique key for the a specific class.
-     *
-     * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
-     */
-//    public static class ClassKey {
-//        private final String m_className;
-//        private final int m_loaderHash;
-//
-//        public ClassKey(final Class klass) {
-//            m_className = klass.getName();
-//            m_loaderHash = klass.getClassLoader().hashCode();
-//        }
-//
-//        public boolean equals(Object o) {
-//            if (this == o) {
-//                return true;
-//            }
-//            if (!(o instanceof ClassKey)) {
-//                return false;
-//            }
-//            final ClassKey classKey = (ClassKey)o;
-//            if (m_loaderHash != classKey.m_loaderHash) {
-//                return false;
-//            }
-//            if (m_className != null ? !m_className.equals(classKey.m_className) : classKey.m_className != null) {
-//                return false;
-//            }
-//            return true;
-//        }
-//
-//        public int hashCode() {
-//            int result;
-//            result = (m_className != null ? m_className.hashCode() : 0);
-//            result = 29 * result + m_loaderHash;
-//            return result;
-//        }
-//    }
 
     /**
      * To be used for debugging purposes.

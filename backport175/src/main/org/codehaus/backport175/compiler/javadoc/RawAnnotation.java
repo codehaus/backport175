@@ -8,7 +8,7 @@
 package org.codehaus.backport175.compiler.javadoc;
 
 /**
- * Raw info about an annotation. Holds the name (the FQN of the annotation interface) of the annotations
+ * Raw info about an reader. Holds the name (the FQN of the reader interface) of the annotations
  * and its unparsed "content".
  * <p/>
  * Note: Two RawAnnotation instances are considered equals when the annotationClass is the same, no matter the value.
@@ -26,13 +26,18 @@ public class RawAnnotation {
     private final String m_enclosingClassFile;
 
     /**
-     * Creates a new raw annotation.
+     * Creates a new raw reader.
      *
+<<<<<<< RawAnnotation.java
+     * @param annotationClass the reader interface
+     * @param value the unparsed reader "content"
+=======
      * @param annotationClass the annotation interface
      * @param value the unparsed annotation "content"
      * @param line number
      * @param enclosingClassName
      * @param enclosingClassFile
+>>>>>>> 1.6
      */
     public RawAnnotation(final Class annotationClass, final String value, int line, String enclosingClassName, String enclosingClassFile) {
         m_annotationClass = annotationClass;
@@ -43,7 +48,7 @@ public class RawAnnotation {
     }
 
     /**
-     * Returns the annotation name (which is the FQN of the annotation interface).
+     * Returns the reader name (which is the FQN of the reader interface).
      *
      * @return
      */
@@ -52,7 +57,7 @@ public class RawAnnotation {
     }
 
     /**
-     * Returns the annotation "content".
+     * Returns the reader "content".
      *
      * @return
      */
@@ -61,7 +66,7 @@ public class RawAnnotation {
     }
 
     /**
-     * Returns the annotation class
+     * Returns the reader class
      *
      * @return
      */

@@ -13,10 +13,14 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
+<<<<<<< ParseException.java
+ * Thrown when error in parsing the reader expression.
+=======
  * Thrown when error in parsing the annotation expression
  * ie when the JSR-175 checks fails.
  *
  * Those errors should not interrupt the compilation
+>>>>>>> 1.2
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */

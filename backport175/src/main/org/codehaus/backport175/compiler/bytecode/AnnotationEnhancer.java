@@ -26,7 +26,7 @@ import com.thoughtworks.qdox.model.*;
 
 /**
  * Enhances the target class with the JavaDoc annotations by putting them  in the class bytecode as Java 5 {@link
- * java.lang.annotation.RetentionPolicy.RUNTIME} annotations.
+ * java.lang.reader.RetentionPolicy.RUNTIME} annotations.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
@@ -97,19 +97,21 @@ public class AnnotationEnhancer {
                 classAsStream.close();
             }
         } catch (Exception e) {
-            throw new InstrumentationException("could not add annotations to bytecode of class [" + className + "]", e);
+            throw new InstrumentationException(
+                    "could not add annotations to bytecode of class [" + className + "]", e
+            );
         }
         return true;
     }
 
     /**
-     * Inserts an annotation on class level.
+     * Inserts an reader on class level.
      *
-     * @param annotation the annotation
+     * @param annotation the reader
      */
     public void insertClassAnnotation(final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("annotation enhancer is not initialized");
+            throw new IllegalStateException("reader enhancer is not initialized");
         }
         if (hasClassAnnotation(annotation)) {
             throw new CompilerException(
@@ -121,14 +123,14 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Inserts an annotation on field level.
+     * Inserts an reader on field level.
      *
      * @param field      the QDox java field
-     * @param annotation the annotation
+     * @param annotation the reader
      */
     public void insertFieldAnnotation(final JavaField field, final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("annotation enhancer is not initialized");
+            throw new IllegalStateException("reader enhancer is not initialized");
         }
         FieldAnnotationInfo info = new FieldAnnotationInfo(field, annotation);
         if (hasFieldAnnotation(info)) {
@@ -141,14 +143,14 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Inserts an annotation on method level.
+     * Inserts an reader on method level.
      *
      * @param method     the QDox java method
-     * @param annotation the annotation
+     * @param annotation the reader
      */
     public void insertMethodAnnotation(final JavaMethod method, final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("annotation enhancer is not initialized");
+            throw new IllegalStateException("reader enhancer is not initialized");
         }
         MethodAnnotationInfo info = new MethodAnnotationInfo(method, annotation);
         if (hasMethodAnnotation(info)) {
@@ -157,23 +159,18 @@ public class AnnotationEnhancer {
                     CompilerException.Location.render(annotation)
             );
         }
-        //FIXME ?? dead code
-//        final String[] methodParamTypes = new String[method.getParameters().length];
-//        for (int i = 0; i < methodParamTypes.length; i++) {
-//            methodParamTypes[i] = convertQDoxTypeNameToJavaTypeName(method.getParameters()[i].getType());
-//        }
         m_methodAnnotations.add(new MethodAnnotationInfo(method, annotation));
     }
 
     /**
-     * Inserts an annotation on constructor level.
+     * Inserts an reader on constructor level.
      *
      * @param constructor the QDox java method
-     * @param annotation  the annotation
+     * @param annotation  the reader
      */
     public void insertConstructorAnnotation(final JavaMethod constructor, final RawAnnotation annotation) {
         if (m_reader == null) {
-            throw new IllegalStateException("annotation enhancer is not initialized");
+            throw new IllegalStateException("reader enhancer is not initialized");
         }
         MethodAnnotationInfo info = new MethodAnnotationInfo(constructor, annotation);
         if (hasConstructorAnnotation(info)) {
@@ -182,11 +179,6 @@ public class AnnotationEnhancer {
                     CompilerException.Location.render(annotation)
             );
         }
-        //FIXME dead code
-//        final String[] methodParamTypes = new String[constructor.getParameters().length];
-//        for (int i = 0; i < methodParamTypes.length; i++) {
-//            methodParamTypes[i] = convertQDoxTypeNameToJavaTypeName(constructor.getParameters()[i].getType());
-//        }
         m_constructorAnnotations.add(new MethodAnnotationInfo(constructor, annotation));
     }
 
@@ -197,7 +189,7 @@ public class AnnotationEnhancer {
      */
     public void write(final String destDir) {
         if (m_reader == null) {
-            throw new IllegalStateException("annotation enhancer is not initialized");
+            throw new IllegalStateException("reader enhancer is not initialized");
         }
 
         ClassWriter writer = new ClassWriter(true);
@@ -230,19 +222,73 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Converts a QDox type name to a Java language declaration equivalent.
+     * Returns the VM desc for a QDox field.
      *
-     * @param type the qdox type name
-     * @return the java type name
+     * @param field the QDox field
+     * @return the desc
      */
-    public static String convertQDoxTypeNameToJavaTypeName(final com.thoughtworks.qdox.model.Type type) {
-        StringBuffer dim = new StringBuffer();
+    public static String getFieldDesc(final JavaField field) {
+        return getDescForQDoxType(field.getType());
+    }
+
+    /**
+     * Returns the VM desc for a QDox method.
+     *
+     * @param method the QDox method
+     * @return the desc
+     */
+    public static String getMethodDesc(final JavaMethod method) {
+        StringBuffer sig = new StringBuffer();
+        sig.append('(');
+        final String[] methodParamTypes = new String[method.getParameters().length];
+        for (int i = 0; i < methodParamTypes.length; i++) {
+            sig.append(getDescForQDoxType(method.getParameters()[i].getType()));
+        }
+        sig.append(')');
+        com.thoughtworks.qdox.model.Type returns = method.getReturns();
+        sig.append(getDescForQDoxType(returns));
+        return sig.toString();
+    }
+
+    /**
+     * Returns the VM desc for a QDox Type.
+     *
+     * @param type the qdox type
+     * @return the desc
+     */
+    public static String getDescForQDoxType(final com.thoughtworks.qdox.model.Type type) {
+        if (type == null) {
+            return "V"; // constructor
+        }
+        final StringBuffer desc = new StringBuffer();
         if (type.isArray()) {
             for (int i = type.getDimensions(); i > 0; --i) {
-                dim.append("[]");
+                desc.append('[');
             }
         }
-        return type.getValue() + dim;
+        String value = type.getValue();
+        if (value.equals("void")) {
+            desc.append("V");
+        } else if (value.equals("int")) {
+            desc.append("I");
+        } else if (value.equals("long")) {
+            desc.append("J");
+        } else if (value.equals("short")) {
+            desc.append("S");
+        } else if (value.equals("float")) {
+            desc.append("F");
+        } else if (value.equals("double")) {
+            desc.append("D");
+        } else if (value.equals("boolean")) {
+            desc.append("Z");
+        } else if (value.equals("char")) {
+            desc.append("C");
+        } else if (value.equals("byte")) {
+            desc.append("B");
+        } else {
+            desc.append('L').append(value.replace('.', '/')).append(';');
+        }
+        return desc.toString();
     }
 
     /**
@@ -266,14 +312,17 @@ public class AnnotationEnhancer {
             FieldVisitor fieldVisitor = super.visitField(access, name, desc, signature, value);
             for (Iterator it = m_fieldAnnotations.iterator(); it.hasNext();) {
                 final FieldAnnotationInfo annotationInfo = (FieldAnnotationInfo)it.next();
-                final Class annotationInterface = annotationInfo.annotation.getAnnotationClass();
-                //FIXME test field equals BEWARE qdox repr.
-                final AnnotationVisitor bytecodeMunger = fieldVisitor.visitAnnotation(
-                        Type.getDescriptor(annotationInterface),
-                        true
-                );
-                AnnotationParser.parse(bytecodeMunger, annotationInterface, annotationInfo.annotation);
-                bytecodeMunger.visitEnd();
+                String fieldDesc = getFieldDesc(annotationInfo.field);
+                if (annotationInfo.field.getName().equals(name) &&
+                    fieldDesc.equals(desc)) {
+                    final Class annotationInterface = annotationInfo.annotation.getAnnotationClass();
+                    final AnnotationVisitor bytecodeMunger = fieldVisitor.visitAnnotation(
+                            Type.getDescriptor(annotationInterface),
+                            true
+                    );
+                    AnnotationParser.parse(bytecodeMunger, annotationInterface, annotationInfo.annotation);
+                    bytecodeMunger.visitEnd();
+                }
             }
             return fieldVisitor;
         }
@@ -287,27 +336,30 @@ public class AnnotationEnhancer {
             MethodVisitor methodVisitor = super.visitMethod(access, name, desc, signature, exceptions);
             if (name.equals(INIT_METHOD_NAME)) {
                 for (Iterator it = m_constructorAnnotations.iterator(); it.hasNext();) {
-                    //FIXME test ctor equals BEWARE qdox repr.
                     final MethodAnnotationInfo annotationInfo = (MethodAnnotationInfo)it.next();
-                    final Class annIntf = annotationInfo.annotation.getAnnotationClass();
-                    final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
-                            Type.getDescriptor(annIntf),
-                            true
-                    );
-                    AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
-                    bytecodeMunger.visitEnd();
+                    if (getMethodDesc(annotationInfo.method).equals(desc)) {
+                        final Class annIntf = annotationInfo.annotation.getAnnotationClass();
+                        final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
+                                Type.getDescriptor(annIntf),
+                                true
+                        );
+                        AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
+                        bytecodeMunger.visitEnd();
+                    }
                 }
             } else {
                 for (Iterator it = m_methodAnnotations.iterator(); it.hasNext();) {
-                    //FIXME test method equals BEWARE qdox repr.
                     final MethodAnnotationInfo annotationInfo = (MethodAnnotationInfo)it.next();
-                    final Class annIntf = annotationInfo.annotation.getAnnotationClass();
-                    final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
-                            Type.getDescriptor(annIntf),
-                            true
-                    );
-                    AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
-                    bytecodeMunger.visitEnd();
+                    if (annotationInfo.method.getName().equals(name) &&
+                        getMethodDesc(annotationInfo.method).equals(desc)) {
+                        final Class annIntf = annotationInfo.annotation.getAnnotationClass();
+                        final AnnotationVisitor bytecodeMunger = methodVisitor.visitAnnotation(
+                                Type.getDescriptor(annIntf),
+                                true
+                        );
+                        AnnotationParser.parse(bytecodeMunger, annIntf, annotationInfo.annotation);
+                        bytecodeMunger.visitEnd();
+                    }
                 }
             }
             return methodVisitor;
@@ -330,8 +382,8 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Two FieldAnnotationInfo are equals if method equals and annotation class is equals ie RawAnnotation is equals.
-     * Used to ensure no annotation duplicate
+     * Two FieldAnnotationInfo are equals if method equals and reader class is equals ie RawAnnotation is equals.
+     * Used to ensure no reader duplicate
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
@@ -345,13 +397,21 @@ public class AnnotationEnhancer {
         }
 
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof FieldAnnotationInfo)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof FieldAnnotationInfo)) {
+                return false;
+            }
 
-            final FieldAnnotationInfo fieldAnnotationInfo = (FieldAnnotationInfo) o;
+            final FieldAnnotationInfo fieldAnnotationInfo = (FieldAnnotationInfo)o;
 
-            if (!annotation.equals(fieldAnnotationInfo.annotation)) return false;
-            if (!field.equals(fieldAnnotationInfo.field)) return false;
+            if (!annotation.equals(fieldAnnotationInfo.annotation)) {
+                return false;
+            }
+            if (!field.equals(fieldAnnotationInfo.field)) {
+                return false;
+            }
 
             return true;
         }
@@ -365,8 +425,8 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Two MethodAnnotationInfo are equals if method equals and annotation class is equals ie RawAnnotation is equals.
-     * Used to ensure no annotation duplicate.
+     * Two MethodAnnotationInfo are equals if method equals and reader class is equals ie RawAnnotation is equals.
+     * Used to ensure no reader duplicate.
      *
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
      */
@@ -380,13 +440,21 @@ public class AnnotationEnhancer {
         }
 
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof MethodAnnotationInfo)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof MethodAnnotationInfo)) {
+                return false;
+            }
 
-            final MethodAnnotationInfo methodAnnotationInfo = (MethodAnnotationInfo) o;
+            final MethodAnnotationInfo methodAnnotationInfo = (MethodAnnotationInfo)o;
 
-            if (!annotation.equals(methodAnnotationInfo.annotation)) return false;
-            if (!method.equals(methodAnnotationInfo.method)) return false;
+            if (!annotation.equals(methodAnnotationInfo.annotation)) {
+                return false;
+            }
+            if (!method.equals(methodAnnotationInfo.method)) {
+                return false;
+            }
 
             return true;
         }
@@ -400,7 +468,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the class has already the given annotation
+     * Checks if the class has already the given reader
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
@@ -412,7 +480,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the method has already the given annotation
+     * Checks if the method has already the given reader
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
@@ -424,7 +492,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the field has already the given annotation
+     * Checks if the field has already the given reader
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
@@ -436,7 +504,7 @@ public class AnnotationEnhancer {
     }
 
     /**
-     * Checks if the constructor has already the given annotation
+     * Checks if the constructor has already the given reader
      * <p/>
      * Note: rely on RawAnnotation.equals
      *
