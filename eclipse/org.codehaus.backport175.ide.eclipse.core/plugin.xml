@@ -11,9 +11,6 @@
       <library name="backport175-eclipse.jar">
          <export name="*"/>
       </library>
-      <library name="lib/backport175-1.0-beta1.jar">
-         <export name="*"/>
-      </library>
    </runtime>
 
    <requires>
