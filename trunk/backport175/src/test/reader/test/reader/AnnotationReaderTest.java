@@ -466,6 +466,10 @@ public class AnnotationReaderTest extends TestCase {
     }
 
     public void testMethodAnn3bis() {
+        //FIXME - is having null for a String element when no default value exist ok ?
+        // else may be we need to reject it at compilation time since null is not a constant value
+        // in JSR-175 - ie user would have to always use "" as default (rather boring for the user)
+        // -- or we should assume the value is "" instead of null.
         final AnnotationReader reader = AnnotationReader.getReaderFor(Target.METHOD2.getDeclaringClass());
         Annotation annotation = reader.getAnnotation("test.TestAnnotations$Simple", Target.METHOD2);
         Class type = annotation.annotationType();

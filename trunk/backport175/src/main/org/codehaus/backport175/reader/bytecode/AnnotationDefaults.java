@@ -43,7 +43,7 @@ public class AnnotationDefaults {
     public static AnnotationElement.Annotation getDefaults(Class annotationClass) {
         AnnotationElement.Annotation defaults = (AnnotationElement.Annotation) s_annotationDefaults.get(annotationClass);
         if (defaults == null) {
-            final AnnotationElement.Annotation newDefaults = new AnnotationElement.Annotation(Type.getDescriptor(annotationClass));
+            final AnnotationElement.Annotation newDefaults = new AnnotationElement.Annotation(annotationClass.getName().replace('/', '.'));
             final String className = annotationClass.getName();
             final ClassLoader loader = annotationClass.getClassLoader();
             final byte[] bytes;
