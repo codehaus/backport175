@@ -8,6 +8,7 @@
 package org.codehaus.backport175.compiler.bytecode;
 
 import org.codehaus.backport175.compiler.CompilerException;
+import org.codehaus.backport175.compiler.SourceLocation;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
 import org.codehaus.backport175.compiler.parser.AnnotationParser;
 import org.codehaus.backport175.compiler.parser.ParseException;
@@ -128,7 +129,7 @@ public class AnnotationEnhancer {
         if (hasClassAnnotation(annotation)) {
             throw new CompilerException(
                     "duplicate class annotation " + annotation,
-                    CompilerException.Location.render(annotation)
+                    SourceLocation.render(annotation)
             );
         }
         m_classAnnotations.add(annotation);
@@ -148,7 +149,7 @@ public class AnnotationEnhancer {
         if (hasFieldAnnotation(info)) {
             throw new CompilerException(
                     "duplicate field annotation " + annotation,
-                    CompilerException.Location.render(annotation)
+                    SourceLocation.render(annotation)
             );
         }
         m_fieldAnnotations.add(new FieldAnnotationInfo(field, annotation));
@@ -168,7 +169,7 @@ public class AnnotationEnhancer {
         if (hasMethodAnnotation(info)) {
             throw new ParseException(
                     "duplicate method annotation " + annotation,
-                    CompilerException.Location.render(annotation)
+                    SourceLocation.render(annotation)
             );
         }
         m_methodAnnotations.add(new MethodAnnotationInfo(method, annotation));
@@ -188,7 +189,7 @@ public class AnnotationEnhancer {
         if (hasConstructorAnnotation(info)) {
             throw new CompilerException(
                     "duplicate constructor annotation " + annotation,
-                    CompilerException.Location.render(annotation)
+                    SourceLocation.render(annotation)
             );
         }
         m_constructorAnnotations.add(new MethodAnnotationInfo(constructor, annotation));

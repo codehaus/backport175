@@ -53,7 +53,7 @@ public class AnnotationC {
     /**
      * Compilation event handler
      */
-    private IEventHandler m_handler;
+    private EventHandler m_handler;
 
     /**
      * The class loader
@@ -70,7 +70,19 @@ public class AnnotationC {
      */
     private AnnotationInterfaceRepository m_repository;
 
-    private AnnotationC(ClassLoader loader, JavaDocParser parser, AnnotationInterfaceRepository repository, IEventHandler handler) {
+    /**
+     * Creates a new AnnotationC compiler instance.
+     *
+     * @param loader
+     * @param parser
+     * @param repository
+     * @param handler
+     */
+    private AnnotationC(
+            final ClassLoader loader,
+            final JavaDocParser parser,
+            final AnnotationInterfaceRepository repository,
+            final EventHandler handler) {
         m_loader = loader;
         m_javaDocParser = parser;
         m_repository = repository;
@@ -152,8 +164,14 @@ public class AnnotationC {
             srcFiles = loadSourceList(srcFileIncludes);
         }
 
-        compile(srcDirs, srcFiles, split(classPath, File.pathSeparator), destDir, annotationPropetiesFiles,
-                new StdEventHandler(verbose));
+        compile(
+                srcDirs,
+                srcFiles,
+                split(classPath, File.pathSeparator),
+                destDir,
+                annotationPropetiesFiles,
+                new StdEventHandler(verbose)
+        );
     }
 
     /**
@@ -172,7 +190,7 @@ public class AnnotationC {
             final String[] classpath,
             final String destDir,
             final String[] annotationPropertiesFiles,
-            final IEventHandler handler) {
+            final EventHandler handler) {
 
         URL[] classPath = new URL[classpath.length];
         final ClassLoader compilationLoader;
@@ -207,7 +225,7 @@ public class AnnotationC {
             for (int i = 0; i < srcDirs.length; i++) {
                 logDirs.append("\n\t" + srcDirs[i]);
             }
-            handler.info(logDirs.toString(), null);
+            handler.info(logDirs.toString());
             javaDocParser.addSourceTrees(srcDirs);
 
             // src files
@@ -217,7 +235,7 @@ public class AnnotationC {
                 javaDocParser.addSource(srcFiles[i]);
             }
             if (srcFiles.length > 0) {
-                handler.info(logDirs.toString(), null);
+                handler.info(logDirs.toString());
             }
 
             final AnnotationInterfaceRepository repository = new AnnotationInterfaceRepository(handler);
@@ -281,9 +299,12 @@ public class AnnotationC {
                 return;
             } catch (Throwable t) {
                 t.printStackTrace();
-                m_handler.error(new CompilerException(
-                        "could not compile annotations for class ["//FIXME location
-                        + clazz.getFullyQualifiedName() + "] due to: " + t.toString()
+                m_handler.error(
+                        new CompilerException(
+                                "could not compile annotations for class ["//FIXME location
+                                + clazz.getFullyQualifiedName() +
+                                "] due to: " +
+                                t.toString()
                         )
                 );
                 return;
@@ -302,7 +323,9 @@ public class AnnotationC {
     private void handleClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
         DocletTag[] tags = clazz.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
+            RawAnnotation rawAnnotation = getRawAnnotation(
+                    tags[i], enhancer.getClassName(), enhancer.getClassFileName()
+            );
             if (rawAnnotation == null) {
                 continue;
             }
@@ -311,7 +334,7 @@ public class AnnotationC {
                     "\tprocessing class annotation [" + rawAnnotation.getName() + " @ "
                     + clazz.getFullyQualifiedName() + ']'
             );
-            m_handler.accept(CompilerException.Location.render(rawAnnotation));
+            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
@@ -324,7 +347,9 @@ public class AnnotationC {
     private void handleMethodAnnotations(final AnnotationEnhancer enhancer, final JavaMethod method) {
         DocletTag[] tags = method.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
+            RawAnnotation rawAnnotation = getRawAnnotation(
+                    tags[i], enhancer.getClassName(), enhancer.getClassFileName()
+            );
             if (rawAnnotation == null) {
                 continue;
             }
@@ -335,7 +360,7 @@ public class AnnotationC {
                     method.getName()
                     + ']'
             );
-            m_handler.accept(CompilerException.Location.render(rawAnnotation));
+            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
@@ -348,7 +373,9 @@ public class AnnotationC {
     private void handleConstructorAnnotations(final AnnotationEnhancer enhancer, final JavaMethod constructor) {
         DocletTag[] tags = constructor.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
+            RawAnnotation rawAnnotation = getRawAnnotation(
+                    tags[i], enhancer.getClassName(), enhancer.getClassFileName()
+            );
             if (rawAnnotation == null) {
                 continue;
             }
@@ -359,7 +386,7 @@ public class AnnotationC {
                     constructor.getName()
                     + ']'
             );
-            m_handler.accept(CompilerException.Location.render(rawAnnotation));
+            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
@@ -372,44 +399,28 @@ public class AnnotationC {
     private void handleFieldAnnotations(final AnnotationEnhancer enhancer, final JavaField field) {
         DocletTag[] tags = field.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
+            RawAnnotation rawAnnotation = getRawAnnotation(
+                    tags[i], enhancer.getClassName(), enhancer.getClassFileName()
+            );
             if (rawAnnotation == null) {
                 continue;
             }
             enhancer.insertFieldAnnotation(field, rawAnnotation);
             logInfo("\tprocessing field annotation [" + rawAnnotation.getName() + " @ " + field.getName() + ']');
-            m_handler.accept(CompilerException.Location.render(rawAnnotation));
-        }
-    }
-
-    /**
-     * Handles the inner class annotations.
-     *
-     * @param enhancer
-     * @param clazz
-     */
-    private void handleInnerClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz, String destDir) {
-        JavaClass[] innerClasses = clazz.getInnerClasses();
-        for (int i = 0; i < innerClasses.length; i++) {
-            // must have another enhancer
-            AnnotationEnhancer nestedEnhancer = new AnnotationEnhancer();
-            if (nestedEnhancer.initialize(innerClasses[i].getFullyQualifiedName(), enhancer.getClassLoader())) {
-                handleClassAnnotations(nestedEnhancer, innerClasses[i]);
-                //FIXME other stuff like method
-                nestedEnhancer.write(destDir);
-            }
+            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
     /**
      * Processes the doclet tags and creates a raw annotation to use for further processing.
      *
-     * @param tag the doclet tag
+     * @param tag                    the doclet tag
      * @param enclosingClassName
      * @param enclosingClassFileName
      * @return the raw annotation data
      */
-    private RawAnnotation getRawAnnotation(final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
+    private RawAnnotation getRawAnnotation(
+            final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
         String annotationName = tag.getName();
         int index = annotationName.indexOf('(');
         if (index != -1) {
@@ -420,8 +431,11 @@ public class AnnotationC {
         if (annotationInterface == null) {
             // not found, and the AnnotationInterfaceRepository.ANNOTATION_IGNORED has been populated
             //FIXME - raise what ? a warning with location but then we should ignore real javadoc tags like author etc ?
-            logInfo("JavaDoc tag [" + annotationName + "] is not treated as an annotation - class could not be resolved"
-                + " at " + enclosingClassName + " in " + enclosingClassFileName + ", line " + tag.getLineNumber()
+            logInfo(
+                    "JavaDoc tag [" + annotationName +
+                    "] is not treated as an annotation - class could not be resolved"
+                    + " at " + enclosingClassName + " in " + enclosingClassFileName + ", line " +
+                    tag.getLineNumber()
             );
             return null;
         }
@@ -488,7 +502,7 @@ public class AnnotationC {
      * @param message the message
      */
     public void logInfo(final String message) {
-        m_handler.info(message, null);
+        m_handler.info(message);
     }
 
     /**
@@ -560,15 +574,46 @@ public class AnnotationC {
         return (String[])files.toArray(new String[files.size()]);
     }
 
-    public static interface IEventHandler {
-        // location can be null
-        void info(String message, CompilerException.Location location);
-        // exception.location can be null
+    /**
+     * Handles info and error messages.
+     */
+    public static interface EventHandler {
+
+        /**
+         * TODO document me
+         *
+         * @param message
+         */
+        void info(String message);
+
+        /**
+         * TODO document me
+         *
+         * @param message
+         */
+        void warning(String message);
+
+        /**
+         * TODO document me - difference from accept()???
+         *
+         * @param exception
+         */
         void error(CompilerException exception);
-        void accept(CompilerException.Location location);
+
+        /**
+         * TODO document me - what does this method do?
+         *
+         * @param sourceLocation
+         */
+        void accept(SourceLocation sourceLocation);
     }
 
-    public static class StdEventHandler implements IEventHandler {
+    /**
+     * Default impl of the EventHandler interface, prints the messages to standard out.
+     * <p/>
+     * TODO fix the error reporting format
+     */
+    public static class StdEventHandler implements EventHandler {
 
         private boolean m_verbose = false;
 
@@ -576,23 +621,29 @@ public class AnnotationC {
             m_verbose = isVerbose;
         }
 
-        public void info(String message, CompilerException.Location location) {
+        public void info(String message) {
             if (m_verbose) {
                 System.out.println("INFO: " + message);
             }
         }
 
-        public void accept(CompilerException.Location location) {
+        public void warning(String message) {
+            if (m_verbose) {
+                System.out.println("WARNING: " + message);
+            }
         }
 
         public void error(CompilerException exception) {
             if (exception.getLocation() != null) {
-                System.err.println("ERROR: with " + exception.getLocation().toString());
+                System.err.println("ERROR: " + exception.getLocation().toString());
             } else {
                 System.err.println("ERROR:");
             }
             exception.printStackTrace();
         }
 
+        public void accept(SourceLocation sourceLocation) {
+            // FIXME what does this method do?
+        }
     }
 }

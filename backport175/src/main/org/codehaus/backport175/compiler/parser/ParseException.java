@@ -8,6 +8,7 @@
 package org.codehaus.backport175.compiler.parser;
 
 import org.codehaus.backport175.compiler.CompilerException;
+import org.codehaus.backport175.compiler.SourceLocation;
 
 /**
  * Thrown when error in parsing the annotation expression
@@ -34,16 +35,27 @@ public class ParseException extends CompilerException {
      * @param message   the detail of the error message
      * @param throwable the original exception
      */
-    public ParseException(String message, Throwable throwable) {
+    public ParseException(final String message, final Throwable throwable) {
         super(message, throwable);
     }
 
-    public ParseException(String message, Throwable throwable, Location location) {
-        super(message, location);
+    /**
+     *
+     * @param message
+     * @param throwable
+     * @param sourceLocation
+     */
+    public ParseException(final String message, final Throwable throwable, final SourceLocation sourceLocation) {
+        super(message, sourceLocation);
         m_originalException = throwable;
     }
 
-    public ParseException(String message, Location location) {
-        super(message, location);
+    /**
+     *
+     * @param message
+     * @param sourceLocation
+     */
+    public ParseException(final String message, final SourceLocation sourceLocation) {
+        super(message, sourceLocation);
     }
 }

@@ -41,7 +41,7 @@ public class ValidationTest extends TestCase {
 
     private static final String CLASSPATH = "target/testcompiler-classes";
     private static final String SOURCE_DIR = "src/test/compiler/test/compiler/validation/";
-    private static final AnnotationC.StdEventHandler EVENT_HANDLER = new AnnotationC.StdEventHandler(true);
+    private static final AnnotationC.EventHandler EVENT_HANDLER = new AnnotationC.StdEventHandler(true);
 
     static {
         try {
