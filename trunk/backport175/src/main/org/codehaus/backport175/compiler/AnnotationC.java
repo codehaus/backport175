@@ -53,7 +53,7 @@ public class AnnotationC {
     /**
      * Compilation event handler
      */
-    private EventHandler m_handler;
+    private MessageHandler m_handler;
 
     /**
      * The class loader
@@ -82,7 +82,7 @@ public class AnnotationC {
             final ClassLoader loader,
             final JavaDocParser parser,
             final AnnotationInterfaceRepository repository,
-            final EventHandler handler) {
+            final MessageHandler handler) {
         m_loader = loader;
         m_javaDocParser = parser;
         m_repository = repository;
@@ -170,7 +170,7 @@ public class AnnotationC {
                 split(classPath, File.pathSeparator),
                 destDir,
                 annotationPropetiesFiles,
-                new StdEventHandler(verbose)
+                new StdMessageHandler(verbose)
         );
     }
 
@@ -190,7 +190,7 @@ public class AnnotationC {
             final String[] classpath,
             final String destDir,
             final String[] annotationPropertiesFiles,
-            final EventHandler handler) {
+            final MessageHandler handler) {
 
         URL[] classPath = new URL[classpath.length];
         final ClassLoader compilationLoader;
@@ -577,7 +577,7 @@ public class AnnotationC {
     /**
      * Handles info and error messages.
      */
-    public static interface EventHandler {
+    public static interface MessageHandler {
 
         /**
          * TODO document me
@@ -609,15 +609,13 @@ public class AnnotationC {
     }
 
     /**
-     * Default impl of the EventHandler interface, prints the messages to standard out.
-     * <p/>
-     * TODO fix the error reporting format
+     * Default impl of the MessageHandler interface, prints the messages to standard out.
      */
-    public static class StdEventHandler implements EventHandler {
+    public static class StdMessageHandler implements MessageHandler {
 
         private boolean m_verbose = false;
 
-        public StdEventHandler(boolean isVerbose) {
+        public StdMessageHandler(boolean isVerbose) {
             m_verbose = isVerbose;
         }
 

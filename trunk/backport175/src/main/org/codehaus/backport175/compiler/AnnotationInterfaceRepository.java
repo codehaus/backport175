@@ -39,9 +39,9 @@ public class AnnotationInterfaceRepository {
     /**
      * The handler we report to
      */
-    private AnnotationC.EventHandler m_handler;
+    private AnnotationC.MessageHandler m_handler;
 
-    public AnnotationInterfaceRepository(AnnotationC.EventHandler handler) {
+    public AnnotationInterfaceRepository(AnnotationC.MessageHandler handler) {
         m_handler = handler;
     }
 
