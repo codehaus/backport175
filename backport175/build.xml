@@ -148,7 +148,7 @@
     <!--  all tests -->
     <!-- =================================================== -->
     <target name="test" depends="clean, dist, test:annotationc">
-        <java fork="true" classname="test.annotation.AnnotationReaderTest">
+        <java fork="true" classname="test.annotation.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
                 <pathelement path="${test.classes}"/>
@@ -160,18 +160,12 @@
     <!-- =================================================== -->
     <target name="samples:task:annotationc" depends="init, compile:all">
         <taskdef name="annotationc"
-
             classname="org.codehaus.${name}.AnnotationCTask"
-
             classpathref="project.class.path"/>
         <annotationc
-
             verbose="true"
-
             destdir="${basedir}/target/samples-classes"
-
             properties="${basedir}/src/samples/annotation.properties"
-
             copytodest="**/*.RESIDUALPROPS">
             <properties path="${basedir}/src/samples/annotation.properties"/>
             <src path="${basedir}/src/samples"/>
