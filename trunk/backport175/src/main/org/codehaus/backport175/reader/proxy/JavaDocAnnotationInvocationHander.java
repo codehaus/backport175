@@ -114,27 +114,33 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
      * @return
      */
     private Object resolveValue(final AnnotationElement.NamedValue namedValue, final Class valueType) {
+        if (namedValue.isResolved()) {
+            return namedValue.getResolvedValue();
+        }
         AnnotationElement.Type type = namedValue.getType();
         ClassLoader loader = valueType.getClassLoader();
         if (loader == null) {
             loader = ClassLoader.getSystemClassLoader();
         }
+        final Object value;
         if (type.equals(AnnotationElement.Type.ANNOTATION)) {
             AnnotationElement.Annotation annotation = (AnnotationElement.Annotation)namedValue.getValue();
-            return ProxyFactory.newAnnotationProxy(annotation, valueType.getClassLoader());
+            value = ProxyFactory.newAnnotationProxy(annotation, valueType.getClassLoader());
 
         } else if (type.equals(AnnotationElement.Type.ARRAY)) {
-            return resolveArray(namedValue, valueType);
+            value = resolveArray(namedValue, valueType);
 
         } else if (type.equals(AnnotationElement.Type.ENUM)) {
-            return resolveEnum(namedValue, loader);
+            value = resolveEnum(namedValue, loader);
 
         } else if (type.equals(AnnotationElement.Type.TYPE)) {
-            return resolveType(namedValue, loader);
+            value = resolveType(namedValue, loader);
 
         } else {
-            return namedValue.getValue();
+            value = namedValue.getValue();
         }
+        namedValue.setResolvedValue(value);
+        return value;
     }
 
     /**

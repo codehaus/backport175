@@ -592,6 +592,43 @@ public class AnnotationReaderTest extends TestCase {
         annotations = org.codehaus.backport175.reader.Annotations.getAnnotations(method);
     }
 
+    public void testReadInResolvedValues() {
+        Annotation annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$Complex", method
+        );
+        Annotations.Complex ann = (Annotations.Complex)annotation;
+        assertEquals(111, ann.i());
+        double[] doubleArr = ann.doubleArr();
+        assertEquals(1.1D, doubleArr[0], 0);
+        assertEquals(2.2D, doubleArr[1], 0);
+        assertEquals(3.3D, doubleArr[2], 0);
+        assertEquals(4.4D, doubleArr[3], 0);
+        assertEquals(double[][][].class, ann.type());
+        Class[] types = ann.typeArr();
+        assertEquals(Target[].class, types[0]);
+        assertEquals(Target.class, types[1]);
+        AnnotationElement.Type enumRef = ann.enumeration();
+        assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
+
+        // second time -> values are not resolved again but cache is used
+        annotation = org.codehaus.backport175.reader.Annotations.getAnnotation(
+                "test.annotation.Annotations$Complex", method
+        );
+        ann = (Annotations.Complex)annotation;
+        assertEquals(111, ann.i());
+        doubleArr = ann.doubleArr();
+        assertEquals(1.1D, doubleArr[0], 0);
+        assertEquals(2.2D, doubleArr[1], 0);
+        assertEquals(3.3D, doubleArr[2], 0);
+        assertEquals(4.4D, doubleArr[3], 0);
+        assertEquals(double[][][].class, ann.type());
+        types = ann.typeArr();
+        assertEquals(Target[].class, types[0]);
+        assertEquals(Target.class, types[1]);
+        enumRef = ann.enumeration();
+        assertTrue(enumRef.equals(AnnotationElement.Type.ANNOTATION));
+    }
+
     // === for testing Java 5 reflection compatibility ===
 
 //    public void testClassAnnReflection() {

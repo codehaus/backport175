@@ -129,6 +129,8 @@ public class AnnotationElement implements Serializable {
         private final String m_name;
         private final Object m_value;
         private final Type m_type;
+        private boolean m_isResolved = false;
+        private Object m_resolvedValue;
 
         public NamedValue(final String name, final Object value) {
             if (name == null) {
@@ -180,6 +182,19 @@ public class AnnotationElement implements Serializable {
 
         public Type getType() {
             return m_type;
+        }
+
+        public void setResolvedValue(final Object value) {
+            m_isResolved = true;
+            m_resolvedValue = value;
+        }
+
+        public boolean isResolved() {
+            return m_isResolved;
+        }
+
+        public Object getResolvedValue() {
+            return m_resolvedValue;
         }
 
         public String toString() {
