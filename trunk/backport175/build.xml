@@ -188,7 +188,7 @@
                 <pathelement path="${test.reader.classes}"/>
             </classpath>
         </java>
-        <java fork="true" classname="test.compiler.AllCompilerTests">
+        <java fork="true" classname="test.compiler.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
                 <pathelement path="${test.compiler.classes}"/>
