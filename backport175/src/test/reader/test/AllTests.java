@@ -15,8 +15,10 @@ import test.noduplicate.NoDuplicateTest;
 import test.proxy.ProxyTest;
 import test.reader.AnnotationReaderTest;
 import test.primitives.PrimitiveTest;
+import test.nested.NestedTest;
 
 /**
+ * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class AllTests extends TestCase {
@@ -29,6 +31,7 @@ public class AllTests extends TestCase {
         suite.addTestSuite(ProxyTest.class);
         suite.addTestSuite(MemberFilteringTest.class);
         suite.addTestSuite(PrimitiveTest.class);
+        suite.addTestSuite(NestedTest.class);
 
         return suite;
     }
