@@ -58,6 +58,8 @@ public class AnnotationElement implements Serializable {
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
     public static class Annotation extends AnnotationElement implements NestedAnnotationElement {
+        static final long serialVersionUID = 8769673036736880936L;
+
         private final String m_desc;
         private final List m_elements = new ArrayList();
 
@@ -96,6 +98,8 @@ public class AnnotationElement implements Serializable {
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
     public static class Array extends AnnotationElement implements NestedAnnotationElement {
+        static final long serialVersionUID = -6792525450471409048L;
+
         private final List m_elements = new ArrayList();
 
         public void addElement(final String name, final Object element) {
@@ -126,6 +130,8 @@ public class AnnotationElement implements Serializable {
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
     public static class NamedValue extends AnnotationElement {
+        static final long serialVersionUID = 4284696449802391088L;
+
         private final String m_name;
         private final Object m_value;
         private final Type m_type;
@@ -218,6 +224,8 @@ public class AnnotationElement implements Serializable {
      * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
      */
     public static class Enum extends AnnotationElement {
+        static final long serialVersionUID = 1136400223420236391L;
+        
         private final String m_desc;
         private final String m_value;
 
