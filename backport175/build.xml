@@ -148,7 +148,7 @@
     <!--  all tests -->
     <!-- =================================================== -->
     <target name="test" depends="clean, dist, test:annotationc">
-        <java fork="true" classname="test.annotation.AllTests">
+        <java fork="true" classname="test.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
                 <pathelement path="${test.classes}"/>
