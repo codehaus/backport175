@@ -10,6 +10,15 @@ package org.codehaus.backport175.ide.intellij;
 import com.intellij.openapi.diagnostic.Logger;
 
 /**
+ * Wraps IDEA Log4J in one place
+ *
+ * Turn on by adding at the end of IDEA_HOME/bin/log.xml:
+ * (+ idea.lax stdout redirect)
+ * <category name="org.codehaus.backport175">
+ *  <priority value="DEBUG"/>
+ *  <appender-ref ref="FILE"/>
+ * </category>
+*
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class BpLog {
@@ -20,9 +29,8 @@ public class BpLog {
      * For debug only / stdout
      * @param message
      */
-    public static void logTrace(String message) {
-        System.out.println("BP TRACE : " + message);
-	LOG.info(message);
+    public static void info(String message) {
+	    LOG.info(message);
     }
 
     /**
@@ -30,7 +38,7 @@ public class BpLog {
      * @param message
      * @param t
      */
-    public static void logError(String message, Throwable t) {
+    public static void error(String message, Throwable t) {
         LOG.error(message, t);
     }
 }

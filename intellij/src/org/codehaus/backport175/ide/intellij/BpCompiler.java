@@ -67,6 +67,9 @@ public class BpCompiler implements ClassInstrumentingCompiler {
 
     private BufferedMessageHandler m_messageHandler;
 
+    /**
+     * All markers have this custom user data to remember them and remove them
+     */
     private final static Key MARKER_KEY = new Key(BpCompiler.class.getName());
 
     public BpCompiler(Project project) {
@@ -76,6 +79,8 @@ public class BpCompiler implements ClassInstrumentingCompiler {
 
     public ProcessingItem[] getProcessingItems(CompileContext compileContext) {
         //TODO: we should link a class with its annotation to ensure correct recompilation
+        // using the PSI / javadoc
+
         // when Anno interface changes
         List item = new ArrayList();
         CompileScope compileScope = compileContext.getCompileScope();
@@ -95,8 +100,7 @@ public class BpCompiler implements ClassInstrumentingCompiler {
             );
         }
 
-        BpLog.logTrace("getProcessingItems.." + item.size());
-
+        BpLog.info("getProcessingItems.." + item.size());
         return (ProcessingItem[]) item.toArray(new ProcessingItem[]{});
     }
 
@@ -107,9 +111,9 @@ public class BpCompiler implements ClassInstrumentingCompiler {
         // correctly compiled
         final List processedItems = new ArrayList();
 
-        BpLog.logTrace("process.." + processingItems.length);
+        BpLog.info("process.." + processingItems.length);
 
-	for (int i = 0; i < processingItems.length; i++) {
+        for (int i = 0; i < processingItems.length; i++) {
             final ProcessingItem processingItem = processingItems[i];
             try {
                 // run in an IDEA read action since we access VirtualFiles..
@@ -117,112 +121,109 @@ public class BpCompiler implements ClassInstrumentingCompiler {
                         new ActionRunner.InterruptibleRunnable() {
                     public void run() throws Exception {
                         VirtualFile vf = processingItem.getFile();
-			
-			BpLog.logTrace("do " + vf.getPath());
 
-			//IDEA v4.5
-			// we end up in having non java files here.. despite getProcessingItems()
-			if (vf.getPath().endsWith(".java")) {
-			
+                        BpLog.info("do " + vf.getPath());
 
-                        compileContext.addMessage(
-                                CompilerMessageCategory.INFORMATION,
-                                "Annotating " + vf.getName(),
-                                vf.getUrl(),
-                                -1,
-                                -1
-                        );
+                        //IDEA v4.5
+                        // we end up in having non java files here.. despite getProcessingItems()
+                        if (vf.getPath().endsWith(".java")) {
+//                            compileContext.addMessage(
+//                                    CompilerMessageCategory.INFORMATION,
+//                                    "Annotating " + vf.getName(),
+//                                    vf.getUrl(),
+//                                    -1,
+//                                    -1
+//                            );
 
-                        final Module module = compileContext.getModuleByFile(vf);
-                        VirtualFile destDir = compileContext.getModuleOutputDirectory(module);
+                            final Module module = compileContext.getModuleByFile(vf);
+                            VirtualFile destDir = compileContext.getModuleOutputDirectory(module);
 
-                        // project paths
-                        ModuleRootManager pathManager = ModuleRootManager.getInstance(module);
-                        String[] paths = pathManager.getUrls(OrderRootType.CLASSES_AND_OUTPUT);
-                        URL[] pathsU = new URL[paths.length];
-                        // IDEA path are URL like and we just need file based path
-                        for (int j = 0; j < paths.length; j++) {
-                            if (paths[j].startsWith("file:")) {
-                                pathsU[j] = new URL(paths[j]);
-                                paths[j] = paths[j].substring(7);
-                            } else if (paths[j].startsWith("jar:")) {
-                                pathsU[j] = new File(paths[j].substring(6, paths[j].length() - 2)).toURL();
-                                paths[j] = paths[j].substring(6, paths[j].length() - 2);
-                            } else {
-                            continue;//TODO ignore ?
-                            }
-                        }
-
-                        // get the annotation.properties files which must be in module root
-                        // we do not support discovery thru classloader since it is VERY SLOW [5 s]
-                        List annotationPropsFileList = new ArrayList();
-                        VirtualFile[] srcRoots = ModuleRootManager.getInstance(module).getSourceRoots();
-                        for (int j = 0; j < srcRoots.length; j++) {
-                            VirtualFile srcRoot = srcRoots[j];
-                            VirtualFile annoProps = srcRoot.findChild("annotation.properties");
-                            if (annoProps != null) {
-                                annotationPropsFileList.add(annoProps.getPath());
-                                compileContext.addMessage(
-                                        CompilerMessageCategory.INFORMATION,
-                                        "Using custom annotations " + annoProps.getPath(),
-                                        null,
-                                        -1,
-                                        -1
-                                );
-                            }
-                        }
-                        String[] annotationPropsFiles = (String[]) annotationPropsFileList.toArray(new String[]{});
-
-                        // do the AnnotationC
-                        m_messageHandler.currentFile = vf;
-                        //ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
-                        try {
-                            //Thread.currentThread().setContextClassLoader(loader);
-                            AnnotationC.compile(new String[0],
-                                    new String[]{vf.getPath()},
-                                    paths,
-                                    destDir.getPath(),
-                                            annotationPropsFiles.length == 0 ? null : annotationPropsFiles,
-                                    m_messageHandler
-                            );
-                        } finally {
-                            //Thread.currentThread().setContextClassLoader(currentCL);
-                        }
-
-                        // handle error without location as compilation errors
-                        boolean vfHasError = false;
-                        for (Iterator iterator = m_messageHandler.vfCompilerExceptions.iterator(
-                                     ); iterator.hasNext();) {
-                            BufferedMessageHandler.VfCompilerException vfCompilerException = (BufferedMessageHandler.VfCompilerException) iterator.next(
-                                    );
-                            if (vfCompilerException.vf.equals(vf)) {
-                                vfHasError = true;
-                                int line = -1;
-                                if (vfCompilerException.compilerException.getLocation() != null) {
-                                    line = vfCompilerException.compilerException.getLocation().getLine();
+                            // project paths
+                            ModuleRootManager pathManager = ModuleRootManager.getInstance(module);
+                            String[] paths = pathManager.getUrls(OrderRootType.CLASSES_AND_OUTPUT);
+                            URL[] pathsU = new URL[paths.length];
+                            // IDEA path are URL like and we just need file based path
+                            for (int j = 0; j < paths.length; j++) {
+                                if (paths[j].startsWith("file:")) {
+                                    pathsU[j] = new URL(paths[j]);
+                                    paths[j] = paths[j].substring(7);
+                                } else if (paths[j].startsWith("jar:")) {
+                                    pathsU[j] = new File(paths[j].substring(6, paths[j].length() - 2)).toURL();
+                                    paths[j] = paths[j].substring(6, paths[j].length() - 2);
+                                } else {
+                                continue;//TODO ignore ?
                                 }
-                                compileContext.addMessage(
-                                        CompilerMessageCategory.ERROR,
-                                        "Annotation: " + vfCompilerException.compilerException.getMessage(),
-                                        vf.getUrl(),
-                                        line,
-                                        -1
-                                );
                             }
-                        }
-                        if (!vfHasError) {
-                            processedItems.add(processingItem);
-                        }
 
-			} // end if ".java"
-			else {
-				BpLog.logTrace("skip " + vf.getPath());
-			}
+                            // get the annotation.properties files which must be in module root
+                            // we do not support discovery thru classloader since it is VERY SLOW [5 s]
+                            List annotationPropsFileList = new ArrayList();
+                            VirtualFile[] srcRoots = ModuleRootManager.getInstance(module).getSourceRoots();
+                            for (int j = 0; j < srcRoots.length; j++) {
+                                VirtualFile srcRoot = srcRoots[j];
+                                VirtualFile annoProps = srcRoot.findChild("annotation.properties");
+                                if (annoProps != null) {
+                                    annotationPropsFileList.add(annoProps.getPath());
+                                    compileContext.addMessage(
+                                            CompilerMessageCategory.INFORMATION,
+                                            "Using custom annotations " + annoProps.getPath(),
+                                            null,
+                                            -1,
+                                            -1
+                                    );
+                                }
+                            }
+                            String[] annotationPropsFiles = (String[]) annotationPropsFileList.toArray(new String[]{});
+
+                            // do the AnnotationC
+                            m_messageHandler.currentFile = vf;
+                            //ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
+                            try {
+                                //Thread.currentThread().setContextClassLoader(loader);
+                                AnnotationC.compile(new String[0],
+                                        new String[]{vf.getPath()},
+                                        paths,
+                                        destDir.getPath(),
+                                                annotationPropsFiles.length == 0 ? null : annotationPropsFiles,
+                                        m_messageHandler
+                                );
+                            } finally {
+                                //Thread.currentThread().setContextClassLoader(currentCL);
+                            }
+
+                            // handle error without location as compilation errors
+                            boolean vfHasError = false;
+                            for (Iterator iterator = m_messageHandler.vfCompilerExceptions.iterator(
+                                         ); iterator.hasNext();) {
+                                BufferedMessageHandler.VfCompilerException vfCompilerException = (BufferedMessageHandler.VfCompilerException) iterator.next(
+                                        );
+                                if (vfCompilerException.vf.equals(vf)) {
+                                    vfHasError = true;
+                                    int line = -1;
+                                    if (vfCompilerException.compilerException.getLocation() != null) {
+                                        line = vfCompilerException.compilerException.getLocation().getLine();
+                                    }
+                                    compileContext.addMessage(
+                                            CompilerMessageCategory.ERROR,
+                                            "Annotation: " + vfCompilerException.compilerException.getMessage(),
+                                            vf.getUrl(),
+                                            line,
+                                            -1
+                                    );
+                                }
+                            }
+                            if (!vfHasError) {
+                                processedItems.add(processingItem);
+                            }
+
+                        } else { // end if ".java"
+                            BpLog.info("skip " + vf.getPath());
+                        }
                     }
                 }
                 );
             } catch (Exception e) {
-                BpLog.logError("Unexpected", e);
+                BpLog.error("Unexpected", e);
             }
         }
         // return only correctly processed items
@@ -244,12 +245,16 @@ public class BpCompiler implements ClassInstrumentingCompiler {
                 Document document = FileDocumentManager.getInstance().getDocument(vfCompilerException.vf);
                 MarkupModel model = document.getMarkupModel(m_project);
                 RangeHighlighter rh = model.addLineHighlighter(
-                        vfCompilerException.compilerException.getLocation().getLine() -1,
+                        vfCompilerException.compilerException.getLocation().getLine() - 1,
                         HighlighterLayer.FIRST,
                         null
                 );
                 rh.putUserData(MARKER_KEY, Boolean.TRUE);
-                addGutterIcon(rh, vfCompilerException.compilerException, vfCompilerException.compilerException.getLocation());
+                addGutterIcon(
+                        rh,
+                        vfCompilerException.compilerException,
+                        vfCompilerException.compilerException.getLocation()
+                );
 
             }
         }
@@ -261,7 +266,7 @@ public class BpCompiler implements ClassInstrumentingCompiler {
             Document document = FileDocumentManager.getInstance().getDocument(vfSourceLocation.vf);
             MarkupModel model = document.getMarkupModel(m_project);
             RangeHighlighter rh = model.addLineHighlighter(
-                    vfSourceLocation.sourceLocation.getLine() -1,
+                    vfSourceLocation.sourceLocation.getLine() - 1,
                     HighlighterLayer.FIRST,
                     null
             );
@@ -321,7 +326,7 @@ public class BpCompiler implements ClassInstrumentingCompiler {
      * @param location
      */
     private void addGutterIcon(RangeHighlighter rangeHighlighter,
-                              final SourceLocation location) {
+                               final SourceLocation location) {
         rangeHighlighter.setGutterIconRenderer(new GutterIconRenderer() {
             public Icon getIcon() {
                 return Icons.OK;
@@ -350,8 +355,8 @@ public class BpCompiler implements ClassInstrumentingCompiler {
      * @param location
      */
     private void addGutterIcon(RangeHighlighter rangeHighlighter,
-                              final CompilerException error,
-                              final SourceLocation location) {
+                               final CompilerException error,
+                               final SourceLocation location) {
         rangeHighlighter.setGutterIconRenderer(new GutterIconRenderer() {
             public Icon getIcon() {
                 return Icons.ERROR;

@@ -15,15 +15,39 @@ import com.intellij.openapi.project.Project;
 import org.codehaus.backport175.ide.intellij.BpProjectComponent;
 
 /**
+ * Toggle plugin, menu appears in "Build > .."
+ *
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class ToggleBpCompilerAction extends AnAction {
 
+    /**
+     * Toggle plugin for module, update menu text
+     *
+     * @param event
+     */
     public void actionPerformed(AnActionEvent event) {
         Project currentProject = (Project) event.getDataContext().getData(DataConstants.PROJECT);
-        if (currentProject.hasComponent(BpProjectComponent.class)) {
+        if (currentProject != null && currentProject.hasComponent(BpProjectComponent.class)) {
             BpProjectComponent bpComponent = (BpProjectComponent)currentProject.getComponent(BpProjectComponent.class);
             bpComponent.toggle();
+            if (bpComponent.isActivated()) {
+                event.getPresentation().setText("Disable Backport175 Annotations");
+            } else {
+                event.getPresentation().setText("Enable Backport175 Annotations");
+            }
+        }
+    }
+
+    /**
+     * We need to sync the menu with the actual state (since persisted in IWS file)
+     *
+     * @param event
+     */
+    public void update(AnActionEvent event) {
+        Project currentProject = (Project) event.getDataContext().getData(DataConstants.PROJECT);
+        if (currentProject != null && currentProject.hasComponent(BpProjectComponent.class)) {
+            BpProjectComponent bpComponent = (BpProjectComponent)currentProject.getComponent(BpProjectComponent.class);
             if (bpComponent.isActivated()) {
                 event.getPresentation().setText("Disable Backport175 Annotations");
             } else {
