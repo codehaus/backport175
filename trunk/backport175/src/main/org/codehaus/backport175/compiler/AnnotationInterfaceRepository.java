@@ -190,7 +190,7 @@ public class AnnotationInterfaceRepository {
     private static Class loadClassHandlingNestedSyntax(String className, ClassLoader loader) {
         try {
             return Class.forName(className, false, loader);
-        } catch (ClassNotFoundException e) {
+        } catch (Throwable e) {//NoClassDefFoundError / ClassNotFound etc
             int lastDot = className.lastIndexOf('.');
             if (lastDot > 0) {
                 char[] classNameHopes = className.toCharArray();
