@@ -21,15 +21,25 @@ public class RawAnnotation {
     private final Class m_annotationClass;
     private final String m_value;
 
+    private final int m_lineNumber;
+    private final String m_enclosingClassName;
+    private final String m_enclosingClassFile;
+
     /**
      * Creates a new raw annotation.
      *
      * @param annotationClass the annotation interface
      * @param value the unparsed annotation "content"
+     * @param line number
+     * @param enclosingClassName
+     * @param enclosingClassFile
      */
-    public RawAnnotation(final Class annotationClass, final String value) {
+    public RawAnnotation(final Class annotationClass, final String value, int line, String enclosingClassName, String enclosingClassFile) {
         m_annotationClass = annotationClass;
         m_value = value;
+        m_lineNumber = line;
+        m_enclosingClassName = enclosingClassName;
+        m_enclosingClassFile = enclosingClassFile;
     }
 
     /**
@@ -81,5 +91,17 @@ public class RawAnnotation {
         sb.append(getName());
         sb.append('(').append(getValue()).append(')');
         return sb.toString();
+    }
+
+    public String getEnclosingClassName() {
+        return m_enclosingClassName;
+    }
+
+    public String getEnclosingClassFile() {
+        return m_enclosingClassFile;
+    }
+
+    public int getLineNumber() {
+        return m_lineNumber;
     }
 }

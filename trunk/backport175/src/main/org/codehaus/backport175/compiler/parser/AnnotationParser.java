@@ -22,6 +22,7 @@ import org.codehaus.backport175.compiler.parser.ast.ASTString;
 import org.codehaus.backport175.compiler.parser.ast.AnnotationParserVisitor;
 import org.codehaus.backport175.compiler.parser.ast.SimpleNode;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
+import org.codehaus.backport175.compiler.CompilerException;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.AnnotationVisitor;
 
@@ -83,7 +84,9 @@ public class AnnotationParser implements AnnotationParserVisitor {
             annotationParser.visit(PARSER.parse(representation.toString()), null);
         } catch (org.codehaus.backport175.compiler.parser.ast.ParseException e) {
             throw new ParseException(
-                    "cannot parse annotation [" + representation.toString() + "] due to: " + e.toString(), e
+                    "cannot parse annotation [" + representation.toString() + "] due to: " + e.toString(),
+                    e,
+                    CompilerException.Location.render(rawAnnotation)
             );
         }
     }

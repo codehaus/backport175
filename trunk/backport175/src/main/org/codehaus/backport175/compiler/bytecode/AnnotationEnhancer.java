@@ -10,6 +10,7 @@ package org.codehaus.backport175.compiler.bytecode;
 import org.codehaus.backport175.compiler.CompilerException;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
 import org.codehaus.backport175.compiler.parser.AnnotationParser;
+import org.codehaus.backport175.compiler.parser.ParseException;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
 
@@ -106,14 +107,14 @@ public class AnnotationEnhancer {
      *
      * @param annotation the annotation
      */
-    public void insertClassAnnotation(final RawAnnotation annotation, int line) {
+    public void insertClassAnnotation(final RawAnnotation annotation) {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
         if (hasClassAnnotation(annotation)) {
             throw new CompilerException(
                     "duplicate class annotation " + annotation,
-                    CompilerException.Location.render(m_className, m_classFileName, line)
+                    CompilerException.Location.render(annotation)
             );
         }
         m_classAnnotations.add(annotation);
@@ -125,7 +126,7 @@ public class AnnotationEnhancer {
      * @param field      the QDox java field
      * @param annotation the annotation
      */
-    public void insertFieldAnnotation(final JavaField field, final RawAnnotation annotation, int line) {
+    public void insertFieldAnnotation(final JavaField field, final RawAnnotation annotation) {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
@@ -133,7 +134,7 @@ public class AnnotationEnhancer {
         if (hasFieldAnnotation(info)) {
             throw new CompilerException(
                     "duplicate field annotation " + annotation,
-                    CompilerException.Location.render(m_className, m_classFileName, line)
+                    CompilerException.Location.render(annotation)
             );
         }
         m_fieldAnnotations.add(new FieldAnnotationInfo(field, annotation));
@@ -145,15 +146,15 @@ public class AnnotationEnhancer {
      * @param method     the QDox java method
      * @param annotation the annotation
      */
-    public void insertMethodAnnotation(final JavaMethod method, final RawAnnotation annotation, int line) {
+    public void insertMethodAnnotation(final JavaMethod method, final RawAnnotation annotation) {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
         MethodAnnotationInfo info = new MethodAnnotationInfo(method, annotation);
         if (hasMethodAnnotation(info)) {
-            throw new CompilerException(
+            throw new ParseException(
                     "duplicate method annotation " + annotation,
-                    CompilerException.Location.render(m_className, m_classFileName, line)
+                    CompilerException.Location.render(annotation)
             );
         }
         //FIXME ?? dead code
@@ -170,7 +171,7 @@ public class AnnotationEnhancer {
      * @param constructor the QDox java method
      * @param annotation  the annotation
      */
-    public void insertConstructorAnnotation(final JavaMethod constructor, final RawAnnotation annotation, int line) {
+    public void insertConstructorAnnotation(final JavaMethod constructor, final RawAnnotation annotation) {
         if (m_reader == null) {
             throw new IllegalStateException("annotation enhancer is not initialized");
         }
@@ -178,7 +179,7 @@ public class AnnotationEnhancer {
         if (hasConstructorAnnotation(info)) {
             throw new CompilerException(
                     "duplicate constructor annotation " + annotation,
-                    CompilerException.Location.render(m_className, m_classFileName, line)
+                    CompilerException.Location.render(annotation)
             );
         }
         //FIXME dead code
@@ -444,5 +445,13 @@ public class AnnotationEnhancer {
      */
     private boolean hasConstructorAnnotation(MethodAnnotationInfo annotation) {
         return m_constructorAnnotations.contains(annotation);
+    }
+
+    public String getClassName() {
+        return m_className;
+    }
+
+    public String getClassFileName() {
+        return m_classFileName;
     }
 }

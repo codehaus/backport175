@@ -16,6 +16,7 @@ import org.apache.tools.ant.BuildException;
 import org.codehaus.backport175.compiler.bytecode.AnnotationEnhancer;
 import org.codehaus.backport175.compiler.javadoc.JavaDocParser;
 import org.codehaus.backport175.compiler.javadoc.RawAnnotation;
+import org.codehaus.backport175.compiler.parser.ParseException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -269,8 +270,11 @@ public class AnnotationC {
                     // write enhanced class to disk
                     enhancer.write(destDir);
                 }
-            } catch (CompilerException e) {
-                m_handler.error(e);
+            } catch (ParseException pe) {
+                m_handler.error(pe);
+                // non critical, go on
+            } catch (CompilerException ce) {
+                m_handler.error(ce);
                 return;
             } catch (Throwable t) {
                 m_handler.error(new CompilerException(
@@ -294,11 +298,11 @@ public class AnnotationC {
     private void handleClassAnnotations(final AnnotationEnhancer enhancer, final JavaClass clazz) {
         DocletTag[] tags = clazz.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
+            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertClassAnnotation(rawAnnotation, tags[i].getLineNumber());
+            enhancer.insertClassAnnotation(rawAnnotation);
             logInfo(
                     "\tprocessing class annotation [" + rawAnnotation.getName() + " @ "
                     + clazz.getFullyQualifiedName() + ']'
@@ -315,11 +319,11 @@ public class AnnotationC {
     private void handleMethodAnnotations(final AnnotationEnhancer enhancer, final JavaMethod method) {
         DocletTag[] tags = method.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
+            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertMethodAnnotation(method, rawAnnotation, tags[i].getLineNumber());
+            enhancer.insertMethodAnnotation(method, rawAnnotation);
             logInfo(
                     "\tprocessing method annotation [" + rawAnnotation.getName() + " @ "
                     + method.getParentClass().getName() + '.' +
@@ -338,11 +342,11 @@ public class AnnotationC {
     private void handleConstructorAnnotations(final AnnotationEnhancer enhancer, final JavaMethod constructor) {
         DocletTag[] tags = constructor.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
+            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertConstructorAnnotation(constructor, rawAnnotation, tags[i].getLineNumber());
+            enhancer.insertConstructorAnnotation(constructor, rawAnnotation);
             logInfo(
                     "\tprocessing constructor annotation [" + rawAnnotation.getName() + " @ "
                     + constructor.getParentClass().getName() + '.' +
@@ -361,11 +365,11 @@ public class AnnotationC {
     private void handleFieldAnnotations(final AnnotationEnhancer enhancer, final JavaField field) {
         DocletTag[] tags = field.getTags();
         for (int i = 0; i < tags.length; i++) {
-            RawAnnotation rawAnnotation = getRawAnnotation(tags[i]);
+            RawAnnotation rawAnnotation = getRawAnnotation(tags[i], enhancer.getClassName(), enhancer.getClassFileName());
             if (rawAnnotation == null) {
                 continue;
             }
-            enhancer.insertFieldAnnotation(field, rawAnnotation, tags[i].getLineNumber());
+            enhancer.insertFieldAnnotation(field, rawAnnotation);
             logInfo("\tprocessing field annotation [" + rawAnnotation.getName() + " @ " + field.getName() + ']');
         }
     }
@@ -387,9 +391,11 @@ public class AnnotationC {
      * Processes the doclet tags and creates a raw annotation to use for further processing.
      *
      * @param tag the doclet tag
+     * @param enclosingClassName
+     * @param enclosingClassFileName
      * @return the raw annotation data
      */
-    private RawAnnotation getRawAnnotation(final DocletTag tag) {
+    private RawAnnotation getRawAnnotation(final DocletTag tag, final String enclosingClassName, final String enclosingClassFileName) {
         String annotationName = tag.getName();
         int index = annotationName.indexOf('(');
         if (index != -1) {
@@ -399,11 +405,14 @@ public class AnnotationC {
         Class annotationInterface = m_repository.getAnnotationInterfaceFor(annotationName, m_loader);
         if (annotationInterface == null) {
             // not found, and the AnnotationInterfaceRepository.ANNOTATION_IGNORED has been populated
-            logInfo("JavaDoc tag [" + annotationName + "] is not treated as an annotation - class could not be resolved");
+            //FIXME - raise what ? a warning with location but then we should ignore real javadoc tags like author etc ?
+            logInfo("JavaDoc tag [" + annotationName + "] is not treated as an annotation - class could not be resolved"
+                + " at " + enclosingClassName + " in " + enclosingClassFileName + ", line " + tag.getLineNumber()
+            );
             return null;
         }
 
-        return JavaDocParser.getRawAnnotation(annotationInterface, tag);
+        return JavaDocParser.getRawAnnotation(annotationInterface, tag, enclosingClassName, enclosingClassFileName);
     }
 
     /**
@@ -551,8 +560,9 @@ public class AnnotationC {
         }
 
         public void info(String message, CompilerException.Location location) {
-            //TODO
-            System.out.println("INFO: " + message);
+            if (m_verbose) {
+                System.out.println("INFO: " + message);
+            }
         }
 
         public void error(CompilerException exception) {
@@ -561,8 +571,9 @@ public class AnnotationC {
                     + " in " + exception.getLocation().file
                     + ", line " + exception.getLocation().lineNumber
                 );
+            } else {
+                System.err.println("ERROR:");
             }
-
             exception.printStackTrace();
         }
     }

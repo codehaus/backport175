@@ -7,19 +7,20 @@
  *******************************************************************************************/
 package org.codehaus.backport175.compiler.parser;
 
+import org.codehaus.backport175.compiler.CompilerException;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
- * Thrown when error in parsing the annotation expression.
+ * Thrown when error in parsing the annotation expression
+ * ie when the JSR-175 checks fails.
+ *
+ * Those errors should not interrupt the compilation
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
  */
-public class ParseException extends RuntimeException {
-    /**
-     * Original exception which caused this exception.
-     */
-    private Throwable m_originalException;
+public class ParseException extends CompilerException {
 
     /**
      * Sets the message for the exception.
@@ -37,38 +38,15 @@ public class ParseException extends RuntimeException {
      * @param throwable the original exception
      */
     public ParseException(String message, Throwable throwable) {
-        super(message);
+        super(message, throwable);
+    }
+
+    public ParseException(String message, Throwable throwable, Location location) {
+        super(message, location);
         m_originalException = throwable;
     }
 
-    /**
-     * Print the full stack trace, including the original exception.
-     */
-    public void printStackTrace() {
-        printStackTrace(System.err);
-    }
-
-    /**
-     * Print the full stack trace, including the original exception.
-     *
-     * @param ps the byte stream in which to print the stack trace
-     */
-    public void printStackTrace(PrintStream ps) {
-        super.printStackTrace(ps);
-        if (m_originalException != null) {
-            m_originalException.printStackTrace(ps);
-        }
-    }
-
-    /**
-     * Print the full stack trace, including the original exception.
-     *
-     * @param pw the character stream in which to print the stack trace
-     */
-    public void printStackTrace(PrintWriter pw) {
-        super.printStackTrace(pw);
-        if (m_originalException != null) {
-            m_originalException.printStackTrace(pw);
-        }
+    public ParseException(String message, Location location) {
+        super(message, location);
     }
 }
