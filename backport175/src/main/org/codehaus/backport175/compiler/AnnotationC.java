@@ -273,7 +273,7 @@ public class AnnotationC {
             JavaClass clazz = classes[i];
             logInfo("parsing class [" + clazz.getFullyQualifiedName() + ']');
             try {
-                AnnotationEnhancer enhancer = new AnnotationEnhancer();
+                AnnotationEnhancer enhancer = new AnnotationEnhancer(m_handler);
                 if (enhancer.initialize(clazz.getFullyQualifiedName(), classPath)) {
                     handleClassAnnotations(enhancer, clazz);
                     //handleInnerClassAnnotations(enhancer, clazz, destDir);
@@ -337,7 +337,6 @@ public class AnnotationC {
                     "\tprocessing class annotation [" + rawAnnotation.getName() + " @ "
                     + clazz.getFullyQualifiedName() + ']'
             );
-            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
@@ -363,7 +362,6 @@ public class AnnotationC {
                     method.getName()
                     + ']'
             );
-            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
@@ -389,7 +387,6 @@ public class AnnotationC {
                     constructor.getName()
                     + ']'
             );
-            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 
@@ -410,7 +407,6 @@ public class AnnotationC {
             }
             enhancer.insertFieldAnnotation(field, rawAnnotation);
             logInfo("\tprocessing field annotation [" + rawAnnotation.getName() + " @ " + field.getName() + ']');
-            m_handler.accept(SourceLocation.render(rawAnnotation));
         }
     }
 

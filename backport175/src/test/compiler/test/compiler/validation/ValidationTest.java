@@ -110,18 +110,9 @@ public class ValidationTest extends TestCase {
                 MESSAGE_HANDLER
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
-        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
         assertEquals("org.codehaus.backport175.compiler.parser.AnnotationValidationException: value [value] in annotation [test.compiler.validation.ValidationTest$IntAnno] does not have correct type: expected [int] was [java.lang.Class]",
                      MESSAGE_HANDLER.compilerExceptions.get(0).toString());
-        assertEquals("test.compiler.validation.IntAnnoTarget:16 @test.compiler.validation.ValidationTest$IntAnno in source file [test/compiler/validation/IntAnnoTarget.class]",
-                    MESSAGE_HANDLER.acceptedLocations.get(0).toString()
-        );
-        assertEquals("test.compiler.validation.IntAnnoTarget:22 @test.compiler.validation.ValidationTest$IntAnno in source file [test/compiler/validation/IntAnnoTarget.class]",
-                    MESSAGE_HANDLER.acceptedLocations.get(1).toString()
-        );
-        assertEquals("test.compiler.validation.IntAnnoTarget:28 @test.compiler.validation.ValidationTest$IntAnno in source file [test/compiler/validation/IntAnnoTarget.class]",
-                    MESSAGE_HANDLER.acceptedLocations.get(2).toString()
-        );
     }
 
     public void testFloat() {
@@ -135,7 +126,7 @@ public class ValidationTest extends TestCase {
                 MESSAGE_HANDLER
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
-        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
         assertEquals("org.codehaus.backport175.compiler.parser.AnnotationValidationException: value [value] in annotation [test.compiler.validation.ValidationTest$FloatAnno] does not have correct type: expected [float] was [array type]",
                      MESSAGE_HANDLER.compilerExceptions.get(0).toString());
     }
@@ -151,7 +142,7 @@ public class ValidationTest extends TestCase {
                 MESSAGE_HANDLER
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
-        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
         assertTrue(MESSAGE_HANDLER.compilerExceptions.get(0).toString().startsWith(
                     "org.codehaus.backport175.compiler.parser.ParseException: cannot parse annotation [@test.compiler.validation.ValidationTest$IntArrayAnno({{1, 2, 3, 4}, 1)] due to: Encountered \")\" at line 1, column 71"
         ));
@@ -168,7 +159,7 @@ public class ValidationTest extends TestCase {
                 MESSAGE_HANDLER
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
-        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
     }
 
     public void testEnum() {
@@ -182,7 +173,7 @@ public class ValidationTest extends TestCase {
                 MESSAGE_HANDLER
         );
         assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
-        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals(0, MESSAGE_HANDLER.acceptedLocations.size());
     }
 
     public static void main(String[] args) {
