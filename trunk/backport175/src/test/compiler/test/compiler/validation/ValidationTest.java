@@ -9,14 +9,19 @@ package test.compiler.validation;
 
 import junit.framework.TestCase;
 
-import org.codehaus.backport175.compiler.parser.AnnotationValidationException;
 import org.codehaus.backport175.compiler.AnnotationC;
 import org.codehaus.backport175.compiler.MessageHandler;
+import org.codehaus.backport175.compiler.CompilerException;
+import org.codehaus.backport175.compiler.SourceLocation;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+ * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class ValidationTest extends TestCase {
 
@@ -42,7 +47,7 @@ public class ValidationTest extends TestCase {
 
     private static final String CLASSPATH = "target/testcompiler-classes";
     private static final String SOURCE_DIR = "src/test/compiler/test/compiler/validation/";
-    private static final MessageHandler MESSAGE_HANDLER = new MessageHandler.PrintWriter(true);
+    private static final BufferedMessageHandler MESSAGE_HANDLER = new BufferedMessageHandler();
 
     static {
         try {
@@ -95,88 +100,89 @@ public class ValidationTest extends TestCase {
     }
 
     public void testInt() {
-        try {
-            AnnotationC.compile(
-                    new String[]{},
-                    new String[]{SOURCE_DIR + "IntAnnoTarget.java"},
-                    new String[]{CLASSPATH},
-                    CLASSPATH,
-                    new String[]{},
-                    MESSAGE_HANDLER
-            );
-        } catch (AnnotationValidationException e) {
-            // TODO check the error message in exception
-            return;
-        }
-        fail("AnnotationValidationException should have been thrown");
+        MESSAGE_HANDLER.flush();
+        AnnotationC.compile(
+                new String[]{},
+                new String[]{SOURCE_DIR + "IntAnnoTarget.java"},
+                new String[]{CLASSPATH},
+                CLASSPATH,
+                new String[]{},
+                MESSAGE_HANDLER
+        );
+        assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
+        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals("org.codehaus.backport175.compiler.parser.AnnotationValidationException: value [value] in annotation [test.compiler.validation.ValidationTest$IntAnno] does not have correct type: expected [int] was [java.lang.Class]",
+                     MESSAGE_HANDLER.compilerExceptions.get(0).toString());
+        assertEquals("test.compiler.validation.IntAnnoTarget:16 @test.compiler.validation.ValidationTest$IntAnno in source file [test/compiler/validation/IntAnnoTarget.class]",
+                    MESSAGE_HANDLER.acceptedLocations.get(0).toString()
+        );
+        assertEquals("test.compiler.validation.IntAnnoTarget:22 @test.compiler.validation.ValidationTest$IntAnno in source file [test/compiler/validation/IntAnnoTarget.class]",
+                    MESSAGE_HANDLER.acceptedLocations.get(1).toString()
+        );
+        assertEquals("test.compiler.validation.IntAnnoTarget:28 @test.compiler.validation.ValidationTest$IntAnno in source file [test/compiler/validation/IntAnnoTarget.class]",
+                    MESSAGE_HANDLER.acceptedLocations.get(2).toString()
+        );
     }
 
     public void testFloat() {
-        try {
-            AnnotationC.compile(
-                    new String[]{},
-                    new String[]{SOURCE_DIR + "FloatAnnoTarget.java"},
-                    new String[]{CLASSPATH},
-                    CLASSPATH,
-                    new String[]{},
-                    MESSAGE_HANDLER
-            );
-        } catch (AnnotationValidationException e) {
-            // TODO check the error message in exception
-            return;
-        }
-        fail("AnnotationValidationException should have been thrown");
+        MESSAGE_HANDLER.flush();
+        AnnotationC.compile(
+                new String[]{},
+                new String[]{SOURCE_DIR + "FloatAnnoTarget.java"},
+                new String[]{CLASSPATH},
+                CLASSPATH,
+                new String[]{},
+                MESSAGE_HANDLER
+        );
+        assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
+        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertEquals("org.codehaus.backport175.compiler.parser.AnnotationValidationException: value [value] in annotation [test.compiler.validation.ValidationTest$FloatAnno] does not have correct type: expected [float] was [array type]",
+                     MESSAGE_HANDLER.compilerExceptions.get(0).toString());
     }
 
     public void testPrimitiveArray() {
-        try {
-            AnnotationC.compile(
-                    new String[]{},
-                    new String[]{SOURCE_DIR + "IntArrayAnnoTarget.java"},
-                    new String[]{CLASSPATH},
-                    CLASSPATH,
-                    new String[]{},
-                    MESSAGE_HANDLER
-            );
-        } catch (AnnotationValidationException e) {
-            // TODO check the error message in exception
-            return;
-        }
-        fail("AnnotationValidationException should have been thrown");
+        MESSAGE_HANDLER.flush();
+        AnnotationC.compile(
+                new String[]{},
+                new String[]{SOURCE_DIR + "IntArrayAnnoTarget.java"},
+                new String[]{CLASSPATH},
+                CLASSPATH,
+                new String[]{},
+                MESSAGE_HANDLER
+        );
+        assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
+        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
+        assertTrue(MESSAGE_HANDLER.compilerExceptions.get(0).toString().startsWith(
+                    "org.codehaus.backport175.compiler.parser.ParseException: cannot parse annotation [@test.compiler.validation.ValidationTest$IntArrayAnno({{1, 2, 3, 4}, 1)] due to: Encountered \")\" at line 1, column 71"
+        ));
     }
 
     public void testTypeRef() {
-        try {
-            AnnotationC.compile(
-                    new String[]{},
-                    new String[]{SOURCE_DIR + "TypeRefAnnoTarget.java"},
-                    new String[]{CLASSPATH},
-                    CLASSPATH,
-                    new String[]{},
-                    MESSAGE_HANDLER
-            );
-        } catch (AnnotationValidationException e) {
-            // TODO check the error message in exception
-            return;
-        }
-        fail("AnnotationValidationException should have been thrown");
+        MESSAGE_HANDLER.flush();
+        AnnotationC.compile(
+                new String[]{},
+                new String[]{SOURCE_DIR + "TypeRefAnnoTarget.java"},
+                new String[]{CLASSPATH},
+                CLASSPATH,
+                new String[]{},
+                MESSAGE_HANDLER
+        );
+        assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
+        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
     }
 
     public void testEnum() {
-        try {
-            AnnotationC.compile(
-                    new String[]{},
-                    new String[]{SOURCE_DIR + "EnumAnnoTarget.java"},
-                    new String[]{CLASSPATH},
-                    CLASSPATH,
-                    new String[]{},
-                    MESSAGE_HANDLER
-            );
-        } catch (AnnotationValidationException e) {
-            // TODO check the error message in exception
-            return;
-        }
-        fail("AnnotationValidationException should have been thrown");
+        MESSAGE_HANDLER.flush();
+        AnnotationC.compile(
+                new String[]{},
+                new String[]{SOURCE_DIR + "EnumAnnoTarget.java"},
+                new String[]{CLASSPATH},
+                CLASSPATH,
+                new String[]{},
+                MESSAGE_HANDLER
+        );
+        assertEquals(1, MESSAGE_HANDLER.compilerExceptions.size());
+        assertEquals(3, MESSAGE_HANDLER.acceptedLocations.size());
     }
 
     public static void main(String[] args) {
@@ -185,5 +191,50 @@ public class ValidationTest extends TestCase {
 
     public static junit.framework.Test suite() {
         return new junit.framework.TestSuite(ValidationTest.class);
+    }
+
+    /**
+     * A message handler that keeps the errors and accepted location and can be flushed
+     *
+     * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+     */
+    static class BufferedMessageHandler implements MessageHandler {
+
+        List compilerExceptions = new ArrayList();
+        List acceptedLocations = new ArrayList();
+
+        public void info(String message) {
+            ;//skip
+        }
+
+        public void error(CompilerException exception) {
+            compilerExceptions.add(exception);
+        }
+
+        public void accept(SourceLocation sourceLocation) {
+            acceptedLocations.add(sourceLocation);
+        }
+
+        /**
+         * Flush the errors and source locations
+         */
+        public void flush() {
+            compilerExceptions.clear();
+            acceptedLocations.clear();
+        }
+
+        /**
+         * Helper to stdout
+         */
+        public void dump() {
+            for (Iterator iterator = compilerExceptions.iterator(); iterator.hasNext();) {
+                CompilerException compilerException = (CompilerException) iterator.next();
+                System.out.println("ERROR: "+ compilerException.toString());
+            }
+            for (Iterator iterator = acceptedLocations.iterator(); iterator.hasNext();) {
+                SourceLocation sourceLocation = (SourceLocation) iterator.next();
+                System.out.println("OK: " + sourceLocation.toString());
+            }
+        }
     }
 }

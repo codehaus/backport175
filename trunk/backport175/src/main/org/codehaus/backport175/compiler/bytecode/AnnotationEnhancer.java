@@ -206,6 +206,7 @@ public class AnnotationEnhancer {
         }
 
         ClassWriter writer = new ClassWriter(true);
+        // note: annotation validation exception will be throwned here - if any
         m_reader.accept(new AnnotationMungingVisitor(writer), false);
 
         final String filename = destDir + File.separator + m_classFileName;

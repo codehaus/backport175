@@ -68,10 +68,14 @@ public class AnnotationParser implements AnnotationParserVisitor {
         try {
             final AnnotationParser annotationParser = new AnnotationParser(bytecodeMunger, annotationInterface);
             annotationParser.visit(PARSER.parse(representation.toString()), null);
+        } catch (AnnotationValidationException ave) {
+            // update the source location
+            ave.setLocation(SourceLocation.render(rawAnnotation));
+            throw ave;
         } catch (Throwable e) {
-            e.printStackTrace();
+            // parser grammar error
             throw new ParseException(
-                    "cannot parse annotation [" + representation.toString() + "] due to: " + e.toString(),
+                    "cannot parse annotation [" + representation.toString() + "] due to: " + e.getMessage(),
                     e,
                     SourceLocation.render(rawAnnotation)
             );

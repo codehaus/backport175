@@ -16,28 +16,21 @@ package org.codehaus.backport175.compiler;
 public interface MessageHandler {
 
     /**
-     * TODO document me
+     * Handles an information message
      *
      * @param message
      */
     void info(String message);
 
     /**
-     * TODO document me
-     *
-     * @param message
-     */
-    void warning(String message);
-
-    /**
-     * TODO document me - difference from accept()???
+     * Handles an error
      *
      * @param exception
      */
     void error(CompilerException exception);
 
     /**
-     * TODO document me - what does this method do?
+     * Handles an accepted compiled annotation
      *
      * @param sourceLocation
      */
@@ -76,7 +69,7 @@ public interface MessageHandler {
         }
 
         public void accept(final SourceLocation sourceLocation) {
-            // FIXME what does this method do?
+            ;//not needed
         }
     }
 }
