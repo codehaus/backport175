@@ -28,6 +28,8 @@ import java.lang.reflect.Constructor;
  */
 public class AnnotationReader {
 
+    private static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
+
     private static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
     private static final Map READERS = new WeakHashMap();
@@ -170,7 +172,11 @@ public class AnnotationReader {
      * @return an array with the class annotations
      */
     public Annotation[] getAnnotations() {
-        return getAnnotations(m_classAnnotationElements.values(), m_classAnnotationCache);
+        final Collection annotationElements = m_classAnnotationElements.values();
+        if (annotationElements.isEmpty()) {
+            return EMPTY_ANNOTATION_ARRAY;
+        }
+        return getAnnotations(annotationElements, m_classAnnotationCache);
     }
 
     /**
@@ -195,11 +201,7 @@ public class AnnotationReader {
      * @return the constructor annotation
      */
     public Annotation getAnnotation(final String annotationName, final Constructor constructor) {
-        Map annotationMap = (Map)m_constructorAnnotationCache.get(constructor);
-        if (annotationMap == null) {
-            annotationMap = new HashMap();
-            m_constructorAnnotationCache.put(constructor, annotationMap);
-        }
+        Map annotationMap = getAnnotationCacheFor(constructor);
         Object cachedAnnotation = annotationMap.get(annotationName);
         if (cachedAnnotation != null) {
             return (Annotation)cachedAnnotation;
@@ -226,14 +228,13 @@ public class AnnotationReader {
      * @return an array with the constructor annotations
      */
     public Annotation[] getAnnotations(final Constructor constructor) {
-        Map annotationMap = (Map)m_constructorAnnotationCache.get(constructor);
-        if (annotationMap == null) {
-            annotationMap = new HashMap();
-            m_constructorAnnotationCache.put(constructor, annotationMap);
-        }
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(constructor);
-        final Map annotationElements = (Map)m_constructorAnnotationElements.get(key);
-        return getAnnotations(annotationElements.values(), annotationMap);
+        final Collection annotationElements = ((Map)m_constructorAnnotationElements.get(key)).values();
+        if (annotationElements.isEmpty()) {
+            return EMPTY_ANNOTATION_ARRAY;
+        }
+        final Map cache = getAnnotationCacheFor(constructor);
+        return getAnnotations(annotationElements, cache);
     }
 
     /**
@@ -289,14 +290,13 @@ public class AnnotationReader {
      * @return an array with the method annotations
      */
     public Annotation[] getAnnotations(final Method method) {
-        Map annotationMap = (Map)m_methodAnnotationCache.get(method);
-        if (annotationMap == null) {
-            annotationMap = new HashMap();
-            m_methodAnnotationCache.put(method, annotationMap);
-        }
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(method);
-        final Map annotationElements = (Map)m_methodAnnotationElements.get(key);
-        return getAnnotations(annotationElements.values(), annotationMap);
+        final Collection annotationElements = ((Map)m_methodAnnotationElements.get(key)).values();
+        if (annotationElements.isEmpty()) {
+            return EMPTY_ANNOTATION_ARRAY;
+        }
+        final Map cache = getAnnotationCacheFor(method);
+        return getAnnotations(annotationElements, cache);
     }
 
     /**
@@ -352,14 +352,13 @@ public class AnnotationReader {
      * @return an array with the field annotations
      */
     public Annotation[] getAnnotations(final Field field) {
-        Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
-        if (annotationMap == null) {
-            annotationMap = new HashMap();
-            m_fieldAnnotationCache.put(field, annotationMap);
-        }
         final AnnotationReader.MemberKey key = AnnotationReader.MemberKey.newMemberKey(field);
-        Map annotationElements = (Map)m_fieldAnnotationElements.get(key);
-        return getAnnotations(annotationElements.values(), annotationMap);
+        final Collection annotationElements = ((Map)m_fieldAnnotationElements.get(key)).values();
+        if (annotationElements.isEmpty()) {
+            return EMPTY_ANNOTATION_ARRAY;
+        }
+        final Map cache = getAnnotationCacheFor(field);
+        return getAnnotations(annotationElements, cache);
     }
 
     /**
@@ -396,6 +395,51 @@ public class AnnotationReader {
             }
             return annotations;
         }
+    }
+
+    /**
+     * Returns the annotation cache for a specific constructor.
+     *
+     * @param constructor the constructor
+     * @return the cache
+     */
+    private Map getAnnotationCacheFor(final Constructor constructor) {
+        Map annotationMap = (Map)m_constructorAnnotationCache.get(constructor);
+        if (annotationMap == null) {
+            annotationMap = new HashMap();
+            m_constructorAnnotationCache.put(constructor, annotationMap);
+        }
+        return annotationMap;
+    }
+
+    /**
+     * Returns the annotation cache for a specific method.
+     *
+     * @param method the method
+     * @return the cache
+     */
+    private Map getAnnotationCacheFor(final Method method) {
+        Map annotationMap = (Map)m_methodAnnotationCache.get(method);
+        if (annotationMap == null) {
+            annotationMap = new HashMap();
+            m_methodAnnotationCache.put(method, annotationMap);
+        }
+        return annotationMap;
+    }
+
+    /**
+     * Returns the annotation cache for a specific field.
+     *
+     * @param field the field
+     * @return the cache
+     */
+    private Map getAnnotationCacheFor(final Field field) {
+        Map annotationMap = (Map)m_fieldAnnotationCache.get(field);
+        if (annotationMap == null) {
+            annotationMap = new HashMap();
+            m_fieldAnnotationCache.put(field, annotationMap);
+        }
+        return annotationMap;
     }
 
     /**
