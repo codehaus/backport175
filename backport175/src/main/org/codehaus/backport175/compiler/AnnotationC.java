@@ -355,7 +355,7 @@ public class AnnotationC {
         if (annotationInterface == null) {
             // not found
             // TODO optimize not found annotations 
-            System.out.println("?? " + annotationName);
+            logInfo("JavaDoc tag [" + annotationName + "] is not treated as an annotation - class could not be resolved");
             return null;
         }
 
@@ -371,7 +371,7 @@ public class AnnotationC {
                 "usage: java [options...] org.codehaus.backport175.compiler.AnnotationC [-verbose] -src <path to src dir> | -srcfiles <list of files> | -srcincludes <path to file> -classes <path to classes dir> [-dest <path to destination dir>] [-config <property file>]"
         );
         System.out.println(
-                "       -src <path to src dir> - provides the list of source directories separated by File.pathSeparator"
+                "       -src <path to src dir> - provides the list of source directories separated by 'File.pathSeparator'"
         );
         System.out.println("       -srcpath <list of files> - provides a comma separated list of source files");
         System.out.println(
@@ -386,7 +386,6 @@ public class AnnotationC {
         System.out.println("       -verbose - activates compilation status information");
         System.out.println("");
         System.out.println("Note: only one of -src -srcpath and -srcincludes may be used");
-
         System.exit(0);
     }
 
