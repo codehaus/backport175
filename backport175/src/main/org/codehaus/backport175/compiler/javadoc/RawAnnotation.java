@@ -17,17 +17,17 @@ import java.io.Serializable;
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  */
 public class RawAnnotation implements Serializable {
-    private final String m_name;
+    private final Class m_annotationClass;
     private final String m_value;
 
     /**
      * Creates a new raw annotation.
      *
-     * @param name the FQN of the annotation interface
+     * @param annotationClass the annotation interface
      * @param value the unparsed annotation "content"
      */
-    public RawAnnotation(final String name, final String value) {
-        m_name = name;
+    public RawAnnotation(final Class annotationClass, final String value) {
+        m_annotationClass = annotationClass;
         m_value = value;
     }
 
@@ -37,7 +37,7 @@ public class RawAnnotation implements Serializable {
      * @return
      */
     public String getName() {
-        return m_name;
+        return m_annotationClass.getName();
     }
 
     /**
@@ -47,5 +47,14 @@ public class RawAnnotation implements Serializable {
      */
     public String getValue() {
         return m_value;
+    }
+
+    /**
+     * Returns the annotation class
+     * 
+     * @return
+     */
+    public Class getAnnotationClass() {
+        return m_annotationClass;
     }
 }

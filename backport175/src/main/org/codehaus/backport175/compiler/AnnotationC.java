@@ -57,7 +57,7 @@ public class AnnotationC {
     /**
      * The class loader.
      */
-    private static URLClassLoader s_loader;
+    private static ClassLoader s_loader;
 
     /**
      * Runs the compiler from the command line.
@@ -350,11 +350,16 @@ public class AnnotationC {
         if (index != -1) {
             annotationName = annotationName.substring(0, index);
         }
-        final Class interfaceClass = AnnotationInterfaceRepository.getAnnotationInterfaceFor(annotationName, s_loader);
-        if (interfaceClass != null) {
-            return JavaDocParser.getRawAnnotation(interfaceClass.getName(), tag);
+
+        Class annotationInterface = AnnotationInterfaceRepository.getAnnotationInterfaceFor(annotationName, s_loader);
+        if (annotationInterface == null) {
+            // not found
+            // TODO optimize not found annotations 
+            System.out.println("?? " + annotationName);
+            return null;
         }
-        return null;
+
+        return JavaDocParser.getRawAnnotation(annotationInterface, tag);
     }
 
     /**
