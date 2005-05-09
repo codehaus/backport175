@@ -298,13 +298,18 @@ public class AnnotationCTask extends Task {
 
         List sourceDir = getDirectories(m_src);
         for (Iterator iterator = sourceDir.iterator(); iterator.hasNext();) {
-            String dir = (String) iterator.next();
+            String file = (String) iterator.next();
             FileSet anonFs = new FileSet();
             anonFs.setIncludes(CLASS_PATTERN);
             if (m_includePattern != null) {
                 anonFs.setIncludes(m_includePattern);
             }
-            anonFs.setDir(new File(dir));
+            File oFile = new File(file);
+            if(oFile.isDirectory()){
+                anonFs.setDir(oFile);
+            } else {
+                anonFs.setFile(oFile);
+            }
             copy.addFileset(anonFs);
         }
         copy.execute();
