@@ -44,6 +44,11 @@ public class DocletSyntaxTest extends TestCase {
      */
     int j2;
 
+    /**
+     * @test.TestAnnotations.DefaultInt(1)
+     * @DefaultString ("set(* test.fieldsetbug.TargetClass.public*) && within(test.fieldsetbug.*)")
+     */
+    int j3;
 
     public void testDocletSyntax() throws Throwable {
         for (int i =1; i <= 3; i++) {
@@ -78,6 +83,17 @@ public class DocletSyntaxTest extends TestCase {
             fail("could not find annotation on field " + fieldName);
         }
         assertEquals("execution(hello)", anno.value());
+    }
+
+    public void testDocletSyntaxWithPointcutStyleThings() throws Throwable {
+        String fieldName = "j3";
+        Field field = DocletSyntaxTest.class.getDeclaredField(fieldName);
+        TestAnnotations.DefaultString anno =
+                (TestAnnotations.DefaultString)Annotations.getAnnotation(TestAnnotations.DefaultString.class, field);
+        if (anno == null) {
+            fail("could not find annotation on field " + fieldName);
+        }
+        assertEquals("set(* test.fieldsetbug.TargetClass.public*) && within(test.fieldsetbug.*)", anno.value());
     }
 
     public static void main(String[] args) {
