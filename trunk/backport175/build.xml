@@ -31,7 +31,7 @@
     <!-- =================================================== -->
     <target name="init">
         <property name="name" value="backport175"/>
-        <property name="version" value="1.0.RC1"/>
+        <property name="version" value="1.0"/>
         <property name="basedir" value="."/>
         <property name="src.dir" value="${basedir}/src"/>
         <property name="test.reader.src.dir" value="${basedir}/src/test/reader"/>
@@ -152,7 +152,7 @@
         <!-- we embed jarjar version of ASM and QDox to remove all dependencies  -->
         <jarjar destfile="${build.dir}/${name}-${version}.jar">
             <fileset dir="${main.classes}"/>
-            <zipfileset src="${basedir}/lib/asm-2.0.RC1.jar"/>
+            <zipfileset src="${basedir}/lib/asm-2.0.jar"/>
             <zipfileset src="${basedir}/lib/qdox-1.4.jar" excludes="**/*.txt"/>
             <rule pattern="org.objectweb.asm.**" result="org.codehaus.${name}.@0"/>
             <rule pattern="com.thoughtworks.qdox.**" result="org.codehaus.${name}.@0"/>
