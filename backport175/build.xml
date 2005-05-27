@@ -153,7 +153,7 @@
         <jarjar destfile="${build.dir}/${name}-${version}.jar">
             <fileset dir="${main.classes}"/>
             <zipfileset src="${basedir}/lib/asm-2.0.jar"/>
-            <zipfileset src="${basedir}/lib/qdox-1.4.jar" excludes="**/*.txt"/>
+            <zipfileset src="${basedir}/lib/qdox-1.6-SNAPSHOT.jar" excludes="**/*.txt"/>
             <rule pattern="org.objectweb.asm.**" result="org.codehaus.${name}.@0"/>
             <rule pattern="com.thoughtworks.qdox.**" result="org.codehaus.${name}.@0"/>
         </jarjar>

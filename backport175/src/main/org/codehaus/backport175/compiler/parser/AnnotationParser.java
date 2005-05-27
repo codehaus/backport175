@@ -88,7 +88,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
                         rawAnnotation.getAnnotationClass()
                 );
             }
-            annotationParser.visit(PARSER.parse(representation.toString()), null);
+            annotationParser.visit(PARSER.parse(representation.toString().replace('\n', ' ')), null);
         } catch (AnnotationValidationException ave) {
             // update the source location
             ave.setLocation(SourceLocation.render(rawAnnotation));

@@ -10,6 +10,7 @@ package test.reader;
 import junit.framework.TestCase;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import org.codehaus.backport175.reader.Annotations;
 import test.TestAnnotations;
@@ -49,6 +50,11 @@ public class DocletSyntaxTest extends TestCase {
      * @DefaultString ("set(* test.fieldsetbug.TargetClass.public*) && within(test.fieldsetbug.*)")
      */
     int j3;
+
+    /**
+     * @test.reader.DocletSyntaxTest.Before ("execution(* backport.SingletonAspectBindingsTest.hello())")
+     */
+    void aop(Inner.Inner2 some) {}
 
     public void testDocletSyntax() throws Throwable {
         for (int i =1; i <= 3; i++) {
@@ -96,6 +102,16 @@ public class DocletSyntaxTest extends TestCase {
         assertEquals("set(* test.fieldsetbug.TargetClass.public*) && within(test.fieldsetbug.*)", anno.value());
     }
 
+    public void testAOPlike() throws Throwable {
+        String methodName = "aop";
+        Method method = DocletSyntaxTest.class.getDeclaredMethod(methodName, new Class[]{Inner.Inner2.class});
+        Before anno = (Before)Annotations.getAnnotation(Before.class, method);
+        if (anno == null) {
+            fail("could not find annotation on field " + methodName);
+        }
+        assertEquals("execution(* backport.SingletonAspectBindingsTest.hello())", anno.value());
+    }
+
     public static void main(String[] args) {
         junit.textui.TestRunner.run(suite());
     }
@@ -104,4 +120,11 @@ public class DocletSyntaxTest extends TestCase {
         return new junit.framework.TestSuite(DocletSyntaxTest.class);
     }
 
+    private static interface Before {
+        String value();
+    }
+
+    private static interface Inner {
+        static interface Inner2 {}
+    }
 }
