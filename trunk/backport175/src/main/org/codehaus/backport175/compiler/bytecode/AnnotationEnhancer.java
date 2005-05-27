@@ -256,7 +256,7 @@ public class AnnotationEnhancer {
      * @return the desc
      */
     public static String getFieldDesc(final JavaField field) {
-        return getDescForQDoxType(field.getType());
+        return getDescForQDoxType(field.getType(), null);//TODO
     }
 
     /**
@@ -270,11 +270,11 @@ public class AnnotationEnhancer {
         sig.append('(');
         final String[] methodParamTypes = new String[method.getParameters().length];
         for (int i = 0; i < methodParamTypes.length; i++) {
-            sig.append(getDescForQDoxType(method.getParameters()[i].getType()));
+            sig.append(getDescForQDoxType(method.getParameters()[i].getType(), method.getParentClass()));
         }
         sig.append(')');
         com.thoughtworks.qdox.model.Type returns = method.getReturns();
-        sig.append(getDescForQDoxType(returns));
+        sig.append(getDescForQDoxType(returns, method.getParentClass()));
         return sig.toString();
     }
 
@@ -284,7 +284,7 @@ public class AnnotationEnhancer {
      * @param type the qdox type
      * @return the desc
      */
-    public static String getDescForQDoxType(final com.thoughtworks.qdox.model.Type type) {
+    public static String getDescForQDoxType(final com.thoughtworks.qdox.model.Type type, JavaClass enclosing) {
         if (type == null) {
             return "V"; // constructor
         }
