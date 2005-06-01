@@ -7,9 +7,6 @@
  *******************************************************************************************/
 package test.java5;
 
-import test.*;
-import test.reader.Target;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
