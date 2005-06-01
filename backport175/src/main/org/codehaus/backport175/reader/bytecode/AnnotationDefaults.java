@@ -31,7 +31,7 @@ class AnnotationDefaults {
 
     /**
      * Cache of default values, key is annotationClassKey, value is Annotation whose elements are named according
-     * to the element name which have a default value.
+     * to the element name which have a default value. Element without default value are thus not present in the Annotation.
      */
     private static Map s_annotationDefaults = new HashMap();
 
