@@ -187,7 +187,8 @@ public class BpCompiler implements ClassInstrumentingCompiler {
                                         paths,
                                         destDir.getPath(),
                                                 annotationPropsFiles.length == 0 ? null : annotationPropsFiles,
-                                        m_messageHandler
+                                        m_messageHandler,
+					true//ignore unknown since markers
                                 );
                             } finally {
                                 //Thread.currentThread().setContextClassLoader(currentCL);

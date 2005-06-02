@@ -27,7 +27,7 @@
 
     <target name="init">
         <property name="name" value="backport175-intellij"/>
-        <property name="version" value="1.0.RC1"/>
+        <property name="version" value="1.0"/>
         <property environment="env"/>
 
         <fail unless="env.IDEA_HOME" message="Set IDEA_HOME !"/>
