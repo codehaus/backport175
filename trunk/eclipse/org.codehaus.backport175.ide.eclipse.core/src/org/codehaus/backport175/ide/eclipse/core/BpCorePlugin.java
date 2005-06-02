@@ -45,6 +45,14 @@ import java.util.*;
  * @author avasseur
  */
 public class BpCorePlugin extends AbstractUIPlugin {
+	
+    public static String pluginID() {
+        return id;
+    }
+    
+    private static final String id = "org.codehaus.backport175.ide.eclipse.core";
+
+    public static final String annotationFileID = "annotation.file";
 
     private static BpCorePlugin s_plugin;
 
@@ -291,7 +299,7 @@ public class BpCorePlugin extends AbstractUIPlugin {
             } else {
                 m_outerClassName = m_className;
             }
-            String[] classNameParts = Strings.splitString(m_outerClassName, ".");
+            String[] classNameParts = Strings.splitString(m_outerClassName, "/");
 	        m_sourceSuffix = classNameParts[classNameParts.length-1] + ".java";
         }
         

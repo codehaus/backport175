@@ -3,7 +3,7 @@
 <plugin
    id="org.codehaus.backport175.ide.eclipse.core"
    name="Backport175 Core Plug-in"
-   version="1.0.1"
+   version="1.0.2"
    provider-name="Jonas Bonér, Alexandre Vasseur"
    class="org.codehaus.backport175.ide.eclipse.core.BpCorePlugin">
 
@@ -11,7 +11,7 @@
       <library name="backport175-eclipse.jar">
          <export name="*"/>
       </library>
-      <library name="lib/backport175-1.0.RC1.jar">
+      <library name="lib/backport175-1.0.jar">
          <export name="*"/>
       </library>
    </runtime>
@@ -41,6 +41,7 @@
       <import plugin="org.eclipse.jdt.launching"/>
       <import plugin="org.eclipse.jdt"/>
       <import plugin="org.eclipse.ui.intro"/>
+	  <import plugin="org.eclipse.core.variables"/>      
    </requires>
 
    <extension
@@ -150,4 +151,16 @@
             class="org.codehaus.backport175.ide.eclipse.ui.AnnotationMarkerResolution">
       </markerResolutionGenerator>
    </extension>
+   
+   <extension point="org.eclipse.ui.propertyPages">
+        <page
+         id="org.codehaus.backport175.ide.eclipse.ui.property"
+         name="Java 1.3/1.4 Annotations (Backport JSR175)"
+         objectClass="org.eclipse.core.resources.IProject"
+         adaptable="true"
+         class="org.codehaus.backport175.ide.eclipse.ui.AnnotationPropertyPage">
+         <filter name="nature" value="org.eclipse.jdt.core.javanature"/>
+     </page>
+    </extension>   
+    
 </plugin>

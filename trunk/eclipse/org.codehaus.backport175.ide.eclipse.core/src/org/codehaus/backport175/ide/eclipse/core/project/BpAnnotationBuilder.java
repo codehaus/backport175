@@ -22,6 +22,8 @@ import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -125,20 +127,36 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
             m_projectClassLoader = BpCorePlugin.getDefault().getProjectClassLoader(m_jproject);
             m_eventHandler = new AnnotationEventHandler(m_jproject);
             
-            // get the annotation.properties files
-            try  {
-	            Enumeration annotationProps = m_projectClassLoader.getResources("annotation.properties");
-	            List annotationPropsFilesList = new ArrayList();
-	            while (annotationProps.hasMoreElements()) {
-	                String annFile = ((URL)annotationProps.nextElement()).getFile().toString();
-	                annotationPropsFilesList.add(annFile);
-	                BpLog.logInfo("using custom annotations " + annFile);
-	            }
-	            m_annotationPropsFiles = (String[])annotationPropsFilesList.toArray(new String[]{});
-            } catch (Throwable t) {
-                BpLog.logError("cannot access annotation.properties file(s)", t);
-                m_annotationPropsFiles = new String[0];
-            }
+            // get the annotation.properties files from classloader lookup (v1.0.1)
+//            try  {
+//	            Enumeration annotationProps = m_projectClassLoader.getResources("annotation.properties");
+//	            List annotationPropsFilesList = new ArrayList();
+//	            while (annotationProps.hasMoreElements()) {
+//	                String annFile = ((URL)annotationProps.nextElement()).getFile().toString();
+//	                annotationPropsFilesList.add(annFile);
+//	                BpLog.logInfo("using custom annotations " + annFile);
+//	            }
+//	            m_annotationPropsFiles = (String[])annotationPropsFilesList.toArray(new String[]{});
+//            } catch (Throwable t) {
+//                BpLog.logError("cannot access annotation.properties file(s)", t);
+//                m_annotationPropsFiles = new String[0];
+//            }
+
+            // get them from property panel (v1.0.2)
+            m_annotationPropsFiles = new String[0];
+            IScopeContext projectScope = new ProjectScope(BpAnnotationBuilder.this.getProject());
+            IEclipsePreferences node = projectScope.getNode(BpCorePlugin.pluginID());
+            if(node != null)
+            {
+                String value = node.get(BpCorePlugin.annotationFileID, "");
+                if(value != "")
+                {
+                    m_annotationPropsFiles = new String[1];
+                    m_annotationPropsFiles[0] = value;
+                    BpLog.logInfo("using custom annotations " + value + " for project " + BpAnnotationBuilder.this.getProject().getName());
+                }
+             }            
+            
             
             // build the classpath we will use to run AnnotationC so that it find 
             // custom annotations etc
@@ -224,7 +242,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
 ////                    //return;
 
                 // extract the file path
-                int segments = Strings.splitString(className, ".").length;
+                int segments = Strings.splitString(className, "/").length;
                 // = 2 for pack.Hello
                 IPath pathToFile = resource.getRawLocation().removeLastSegments(segments);
                 String destDir = pathToFile.toFile().toString();
@@ -250,7 +268,8 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
     	                AnnotationC.compile(new String[0],
     	                        new String[] { targetFile }, m_pathFiles, destDir,
     	                        m_annotationPropsFiles.length==0?null:m_annotationPropsFiles,
-    	                        m_eventHandler
+    	                        m_eventHandler,
+								true//ignore unknown since markers
     	                );
     	                BpLog.logTrace("annotated " + className + " from " + targetFile);
                 }
