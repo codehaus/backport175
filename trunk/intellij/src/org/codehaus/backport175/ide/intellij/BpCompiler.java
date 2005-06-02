@@ -160,10 +160,10 @@ public class BpCompiler implements ClassInstrumentingCompiler {
                             // get the annotation.properties files which must be in module root
                             // we do not support discovery thru classloader since it is VERY SLOW [5 s]
                             List annotationPropsFileList = new ArrayList();
-                            VirtualFile[] srcRoots = ModuleRootManager.getInstance(module).getSourceRoots();
-                            for (int j = 0; j < srcRoots.length; j++) {
-                                VirtualFile srcRoot = srcRoots[j];
-                                VirtualFile annoProps = srcRoot.findChild("annotation.properties");
+                            VirtualFile[] cRoots = ModuleRootManager.getInstance(module).getContentRoots();
+                            for (int j = 0; j < cRoots.length; j++) {
+                                VirtualFile cRoot = cRoots[j];
+                                VirtualFile annoProps = cRoot.findChild("annotation.properties");
                                 if (annoProps != null) {
                                     annotationPropsFileList.add(annoProps.getPath());
                                     compileContext.addMessage(
