@@ -170,7 +170,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
 
         public boolean visit(IResource resource) throws CoreException {
             if (resource.getType() == IResource.FILE) {
-                if (resource.getFileExtension().equals("class")) {
+                if ("class".equals(resource.getFileExtension())) {
                     m_monitor.subTask(resource.getName());
 
                     annotate(resource, m_monitor, m_isFull);
@@ -185,7 +185,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
             IResource resource = delta.getResource();
 
             if (resource.getType() == IResource.FILE) {
-                if (resource.getFileExtension().equals("class")) {
+                if ("class".equals(resource.getFileExtension())) {
                     m_monitor.subTask(resource.getName());
 
                     switch (delta.getKind()) {
