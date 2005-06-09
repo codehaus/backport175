@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.core.JavaModel;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.ui.plugin.*;
 import org.osgi.framework.BundleContext;
 
@@ -94,68 +95,83 @@ public class BpCorePlugin extends AbstractUIPlugin {
         return m_resourceBundle;
     }
 
+
     /**
-     * Build the given project classloader, child of the plugin classloader
-     * Note: AW classes will thus be owned by the plugin classloader
-     * 
+     * Get the entries as strings for the project classpath
      * @param project
      * @return
      */
-    public URLClassLoader getProjectClassLoader(IJavaProject project) {
-        List paths = getProjectClassPathURLs(project);
-        URL pathUrls[] = (URL[]) paths.toArray(new URL[]{});
-        return new URLClassLoader(pathUrls, getClass().getClassLoader());
+    public String[] getProjectClassPath(IJavaProject project) {
+		try {
+			return JavaRuntime.computeDefaultRuntimeClassPath(project);
+		} catch (CoreException e) {
+			BpLog.logError("Unable to compute project classpath", e);
+			return new String[0];
+		}
     }
-
-    /**
-     * Build the list of URL for the given project
-     * Resolve container (ie JRE jars) and dependancies and project output folder
-     * 
-     * @param project
-     * @return
-     */
-    public List getProjectClassPathURLs(IJavaProject project) {
-        List paths = new ArrayList();
-        try {
-            // configured classpath
-            IClasspathEntry classpath[] = project.getResolvedClasspath(false);
-            for (int i = 0; i < classpath.length; i++) {
-                IClasspathEntry path = classpath[i];
-                URL urlEntry = null;
-
-                if (path.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-            		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-            		Object target = JavaModel.getTarget(workspaceRoot, path.getPath(), false);
-            		if (target != null) {
-	            		// inside the workspace
-	            		if (target instanceof IResource) {
-	            		    urlEntry = ((IResource)target).getLocation().toFile().toURL();
-	            		} else if (target instanceof File) {
-	            		    urlEntry = ((File)target).toURL();
-	            		}
-            		}
-                } else if (path.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    IPath outPath = path.getOutputLocation();
-                    if (outPath != null) {
-                        //TODO : don't know if I ll have absolute path here
-                        urlEntry = outPath.toFile().toURL();
-                    }
-                }
-                if (urlEntry != null) {
-                    paths.add(urlEntry);
-                } else {
-                    BpLog.logTrace("project loader - ignored " + path.toString());
-                }
-            }
-            // project build output
-            IPath location = getProjectLocation(project.getProject());
-            IPath outputPath = location.append(project.getOutputLocation().removeFirstSegments(1));
-            paths.add(outputPath.toFile().toURL());
-        } catch (Exception e) {
-            BpLog.logError("Could not build project path", e);
-        }
-        return paths;
-    }
+    
+//    /**
+//     * Build the given project classloader, child of the plugin classloader
+//     * Note: AW classes will thus be owned by the plugin classloader
+//     * 
+//     * @param project
+//     * @return
+//     */
+//    public URLClassLoader getProjectClassLoader(IJavaProject project) {
+//        List paths = getProjectClassPathURLs(project);
+//        URL pathUrls[] = (URL[]) paths.toArray(new URL[]{});
+//        return new URLClassLoader(pathUrls, getClass().getClassLoader());
+//    }
+//
+//    /**
+//     * Build the list of URL for the given project
+//     * Resolve container (ie JRE jars) and dependancies and project output folder
+//     * 
+//     * @param project
+//     * @return
+//     */
+//    public List getProjectClassPathURLs(IJavaProject project) {
+//        List paths = new ArrayList();
+//        try {
+//            // configured classpath
+//            IClasspathEntry classpath[] = project.getResolvedClasspath(false);
+//            for (int i = 0; i < classpath.length; i++) {
+//                IClasspathEntry path = classpath[i];
+//                URL urlEntry = null;
+//
+//                if (path.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+//            		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+//            		Object target = JavaModel.getTarget(workspaceRoot, path.getPath(), false);
+//            		if (target != null) {
+//	            		// inside the workspace
+//	            		if (target instanceof IResource) {
+//	            		    urlEntry = ((IResource)target).getLocation().toFile().toURL();
+//	            		} else if (target instanceof File) {
+//	            		    urlEntry = ((File)target).toURL();
+//	            		}
+//            		}
+//                } else if (path.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+//                    IPath outPath = path.getOutputLocation();
+//                    if (outPath != null) {
+//                        //TODO : don't know if I ll have absolute path here
+//                        urlEntry = outPath.toFile().toURL();
+//                    }
+//                }
+//                if (urlEntry != null) {
+//                    paths.add(urlEntry);
+//                } else {
+//                    BpLog.logTrace("project loader - ignored " + path.toString());
+//                }
+//            }
+//            // project build output
+//            IPath location = getProjectLocation(project.getProject());
+//            IPath outputPath = location.append(project.getOutputLocation().removeFirstSegments(1));
+//            paths.add(outputPath.toFile().toURL());
+//        } catch (Exception e) {
+//            BpLog.logError("Could not build project path", e);
+//        }
+//        return paths;
+//    }
     
     public IPath getProjectLocation(IProject project) {
         if (project.getRawLocation() == null) {

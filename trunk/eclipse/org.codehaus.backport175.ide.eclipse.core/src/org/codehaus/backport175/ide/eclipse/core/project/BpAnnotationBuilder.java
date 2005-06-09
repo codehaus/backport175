@@ -108,7 +108,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
 
         private final boolean m_isFull;
         
-        private ClassLoader m_projectClassLoader;
+//        private ClassLoader m_projectClassLoader;
         
         private String[] m_pathFiles;
         
@@ -124,7 +124,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
             
             // get the project classloader
             m_jproject = JavaCore.create(getProject());
-            m_projectClassLoader = BpCorePlugin.getDefault().getProjectClassLoader(m_jproject);
+//            m_projectClassLoader = BpCorePlugin.getDefault().getProjectClassLoader(m_jproject);
             m_eventHandler = new AnnotationEventHandler(m_jproject);
             
             // get the annotation.properties files from classloader lookup (v1.0.1)
@@ -160,12 +160,13 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
             
             // build the classpath we will use to run AnnotationC so that it find 
             // custom annotations etc
-            List pathURLs = BpCorePlugin.getDefault().getProjectClassPathURLs(m_jproject);
-            m_pathFiles = new String[pathURLs.size()];
-            int i = 0;
-            for (Iterator urls = pathURLs.iterator(); urls.hasNext(); i++) {
-                m_pathFiles[i] = ((URL) urls.next()).getFile().toString();
-            }
+//            List pathURLs = BpCorePlugin.getDefault().getProjectClassPathURLs(m_jproject);
+//            m_pathFiles = new String[pathURLs.size()];
+//            int i = 0;
+//            for (Iterator urls = pathURLs.iterator(); urls.hasNext(); i++) {
+//                m_pathFiles[i] = ((URL) urls.next()).getFile().toString();
+//            }
+            m_pathFiles = BpCorePlugin.getDefault().getProjectClassPath(m_jproject);
         }
 
         public boolean visit(IResource resource) throws CoreException {
@@ -207,10 +208,10 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
         
         private void annotate(IResource resource, IProgressMonitor monitor, boolean isFull) {
             // change the Thread classloader
-            ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
+//            ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
             try {
                 BpLog.logInfo("annotate " + resource.getName());
-                Thread.currentThread().setContextClassLoader(m_projectClassLoader);
+//                Thread.currentThread().setContextClassLoader(m_projectClassLoader);
                 
                 File resourceFile = resource.getRawLocation().toFile();
                 String className = BpCorePlugin.getDefault().extractClassNameFromClassFile(resourceFile);
@@ -283,7 +284,7 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
             } catch (Throwable e) {
                 BpLog.logError(e);
     	    } finally {
-    	        Thread.currentThread().setContextClassLoader(currentCL);
+//    	        Thread.currentThread().setContextClassLoader(currentCL);
     	    }
         }
     }
@@ -325,7 +326,6 @@ public class BpAnnotationBuilder extends IncrementalProjectBuilder {
                     stream.close();
             } catch (IOException e) {
                 BpLog.logError(e);
-                return "";
             }
         }
     }
