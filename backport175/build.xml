@@ -37,6 +37,7 @@
         <property name="test.reader.src.dir" value="${basedir}/src/test/reader"/>
         <property name="test.compiler.src.dir" value="${basedir}/src/test/compiler"/>
         <property name="test.java5.src.dir" value="${basedir}/src/test/java5"/>
+        <property name="test.classloader.src.dir" value="${basedir}/src/test/classloader"/>
         <property name="build.dir" value="${basedir}/target"/>
         <property name="lib.dir" value="${basedir}/lib"/>
         <property name="config.dir" value="${basedir}/config"/>
@@ -59,6 +60,7 @@
         <property name="test.reader.classes" value="${build.dir}/testreader-classes"/>
         <property name="test.compiler.classes" value="${build.dir}/testcompiler-classes"/>
         <property name="test.java5.classes" value="${build.dir}/testjava5-classes"/>
+        <property name="test.classloader.classes" value="${build.dir}/testclassloader-classes"/>
         <property name="samples.classes" value="${build.dir}/samples-classes"/>
         <property environment="env"/>
         <condition property="java5" value="yes">
@@ -73,6 +75,7 @@
         <delete dir="${test.reader.classes}"/>
         <delete dir="${test.compiler.classes}"/>
         <delete dir="${test.java5.classes}"/>
+        <delete dir="${test.classloader.classes}"/>
         <delete dir="${samples.classes}"/>
         <delete dir="${build.dir}"/>
         <mkdir dir="${build.dir}"/>
@@ -80,6 +83,7 @@
         <mkdir dir="${test.reader.classes}"/>
         <mkdir dir="${test.compiler.classes}"/>
         <mkdir dir="${test.java5.classes}"/>
+        <mkdir dir="${test.classloader.classes}"/>
         <mkdir dir="${samples.classes}"/>
     </target>
     <!-- ============================================================== -->
@@ -111,6 +115,14 @@
 
         <javac destdir="${test.compiler.classes}" debug="on">
             <src path="${test.compiler.src.dir}"/>
+            <classpath>
+                <pathelement path="${main.classes}"/>
+                <path refid="project.class.path"/>
+            </classpath>
+        </javac>
+
+        <javac destdir="${test.classloader.classes}" debug="on">
+            <src path="${test.classloader.src.dir}"/>
             <classpath>
                 <pathelement path="${main.classes}"/>
                 <path refid="project.class.path"/>
@@ -185,7 +197,15 @@
             </classpath>
             <arg line="-verbose -src ${basedir}/src/test/reader -classes ${basedir}/target/testreader-classes -config ${basedir}/src/test/reader/annotation.properties"/>
         </java>
+        <java fork="true" classname="org.codehaus.${name}.compiler.AnnotationC">
+            <classpath>
+                <path refid="project.class.path"/>
+                <pathelement path="${test.classloader.classes}"/>
+            </classpath>
+            <arg line="-verbose -src ${basedir}/src/test/classloader -classes ${basedir}/target/testclassloader-classes"/>
+        </java>
     </target>
+
     <!-- =================================================== -->
     <!--  all tests -->
     <!-- =================================================== -->

@@ -39,7 +39,7 @@ public class ProxyFactory {
             throw new ResolveAnnotationException("annotation interface [" + annotation.getInterfaceName() + "] could not be found");
         }
 
-        final InvocationHandler handler = new JavaDocAnnotationInvocationHander(interfaceClass, annotation);
+        final InvocationHandler handler = new JavaDocAnnotationInvocationHander(interfaceClass, annotation, loader);
         final Object annotationProxy = Proxy.newProxyInstance(
                 loader,
                 new Class[]{Annotation.class, interfaceClass},
