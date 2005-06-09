@@ -28,9 +28,6 @@ import org.eclipse.ui.IMarkerResolutionGenerator2;
 
 /**
  * @author avasseur
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 public class AnnotationMarkerResolution implements IMarkerResolutionGenerator2 {
 
@@ -73,11 +70,7 @@ public class AnnotationMarkerResolution implements IMarkerResolutionGenerator2 {
         public AnnotationMarkerResolutionAction(SourceLocation location, IJavaProject jproject) {
             m_jproject = jproject;
             m_annotationClassName = location.getAnnnotationClassName();
-            
-            //label
-            StringBuffer sb = new StringBuffer();
-            sb.append("Go to: " + location.getAnnnotationClassName());
-            m_label = sb.toString();
+            m_label = "Go to: " + location.getAnnnotationClassName();
         }
 
         /* (non-Javadoc)
@@ -92,7 +85,16 @@ public class AnnotationMarkerResolution implements IMarkerResolutionGenerator2 {
          */
         public void run(IMarker marker) {
             try {
-                IType annotation = m_jproject.findType(m_annotationClassName.replace('/', '.'));
+                final IType annotation;
+                int dollarIndex = m_annotationClassName.indexOf('$');
+                //FIXME - won't support inner inner (Foo$Bar$Baz)
+                if (dollarIndex != -1) {
+	                IType enclosing = m_jproject.findType(m_annotationClassName.substring(0, dollarIndex));
+	                annotation = enclosing.getType(m_annotationClassName.substring(dollarIndex + 1));
+                } else {
+                	annotation = m_jproject.findType(m_annotationClassName.replace('/', '.'));
+                }                
+                
                 if (annotation != null) {
                     //IResource resource = annotation.getUnderlyingResource();
                     IEditorPart editor = JavaUI.openInEditor(annotation);
