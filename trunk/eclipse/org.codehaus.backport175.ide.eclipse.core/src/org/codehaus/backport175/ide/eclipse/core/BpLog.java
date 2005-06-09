@@ -37,7 +37,7 @@ public class BpLog {
      *            a human-readable message, localized to the current locale
      */
     public static void logTrace(String message) {
-        System.out.println("- AW - "  + message);
+        System.out.println("- Backport175 - "  + message);
     }
 
     /**
@@ -108,9 +108,9 @@ public class BpLog {
             Throwable exception) {
 
         return new Status(severity,
-        //FIXME
-                //AwCorePlugin.getDefault().getDescriptor().getUniqueIdentifier(),
-                "AspectWerkz", code, message, exception);
+                //BpCorePlugin.getDefault().getDescriptor().getUniqueIdentifier()
+        		//BpCorePlugin.getDefault().getBundle().getSymbolicName()
+        		"Backport175", code, message, exception);
     }
 
     /**
