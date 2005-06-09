@@ -44,10 +44,10 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
      * The annotated class classloader. Strong ref is ok since we use a proxy handler
      * and that one will be referenced by this classloader precisely
      */
-    private final Reference m_annotatedClassClassLoader;
+    private final ClassLoader m_annotatedClassClassLoader;
 
     private ClassLoader getAnnotatedClassClassLoader() {
-        return (ClassLoader)m_annotatedClassClassLoader.get();
+        return m_annotatedClassClassLoader;
     }
 
     /**
@@ -64,7 +64,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
         m_annotationInterface = annotationInterface;
         m_annotation = annotation;
         m_annotationName = annotationInterface.getName().replace('/', '.');
-        m_annotatedClassClassLoader = new WeakReference(annotatedClassClassLoader!=null?annotatedClassClassLoader:ClassLoader.getSystemClassLoader());
+        m_annotatedClassClassLoader = annotatedClassClassLoader!=null?annotatedClassClassLoader:ClassLoader.getSystemClassLoader();
     }
 
     /**
