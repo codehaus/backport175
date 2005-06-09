@@ -17,6 +17,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
  * Implements a strongly typed reader handler for JavaDoc annotations.
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
+ * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public class JavaDocAnnotationInvocationHander implements InvocationHandler, Serializable {
     static final long serialVersionUID = 1584167345753299421L;
@@ -38,17 +41,30 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
     private final String m_annotationName;
 
     /**
+     * The annotated class classloader. Strong ref is ok since we use a proxy handler
+     * and that one will be referenced by this classloader precisely
+     */
+    private final Reference m_annotatedClassClassLoader;
+
+    private ClassLoader getAnnotatedClassClassLoader() {
+        return (ClassLoader)m_annotatedClassClassLoader.get();
+    }
+
+    /**
      * Constructor that will trigger the parsing if required
      *
      * @param annotationInterface
      * @param annotation
+     * @param annotatedClassClassLoader classloader of the annotated class from which we can safely load all values
      */
     public JavaDocAnnotationInvocationHander(
             final Class annotationInterface,
-            final AnnotationElement.Annotation annotation) {
+            final AnnotationElement.Annotation annotation,
+            final ClassLoader annotatedClassClassLoader) {
         m_annotationInterface = annotationInterface;
         m_annotation = annotation;
         m_annotationName = annotationInterface.getName().replace('/', '.');
+        m_annotatedClassClassLoader = new WeakReference(annotatedClassClassLoader!=null?annotatedClassClassLoader:ClassLoader.getSystemClassLoader());
     }
 
     /**
@@ -116,23 +132,19 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
             return namedValue.getResolvedValue();
         }
         AnnotationElement.Type type = namedValue.getType();
-        ClassLoader loader = valueType.getClassLoader();
-        if (loader == null) {
-            loader = ClassLoader.getSystemClassLoader();
-        }
         final Object value;
         if (type.equals(AnnotationElement.Type.ANNOTATION)) {
             AnnotationElement.Annotation annotation = (AnnotationElement.Annotation)namedValue.getValue();
-            value = ProxyFactory.newAnnotationProxy(annotation, valueType.getClassLoader());
+            value = ProxyFactory.newAnnotationProxy(annotation, getAnnotatedClassClassLoader());
 
         } else if (type.equals(AnnotationElement.Type.ARRAY)) {
             value = resolveArray(namedValue, valueType);
 
         } else if (type.equals(AnnotationElement.Type.ENUM)) {
-            value = resolveEnum(namedValue, loader);
+            value = resolveEnum(namedValue);
 
         } else if (type.equals(AnnotationElement.Type.TYPE)) {
-            value = resolveType(namedValue, loader);
+            value = resolveType(namedValue);
 
         } else {
             value = namedValue.getValue();
@@ -145,10 +157,9 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
      * Returns the class of an unresolved type.
      *
      * @param namedValue
-     * @param loader
      * @return
      */
-    private Object resolveType(final AnnotationElement.NamedValue namedValue, final ClassLoader loader) {
+    private Object resolveType(final AnnotationElement.NamedValue namedValue) {
         final Object value = namedValue.getValue();
         if (value instanceof Type) {
             // type
@@ -159,15 +170,15 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
                     //if (type.getDimensions() > 0) { // Note: Bugs in ASM prevents me from using this check, first: if type is primitive -> NPE, second: dimension is wrong for non-array types (1)
                     int dimensions = type.getDimensions();
                     Type elementType = type.getElementType();
-                    Class componentType = resolveType(elementType, loader);
+                    Class componentType = resolveType(elementType);
                     resolvedType = Array.newInstance(componentType, new int[dimensions]).getClass();
                 } else {
-                    resolvedType = resolveType(type, loader);
+                    resolvedType = resolveType(type);
                 }
             } catch (ClassNotFoundException cnfe) {
                 throw new ResolveAnnotationException(
                         "class [" + type.getClassName() + "] defined in annotation can not be found in class loader [" +
-                        loader + "]", cnfe
+                        m_annotatedClassClassLoader + "]", cnfe
                 );
             }
             return resolvedType;
@@ -181,11 +192,10 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
      * Resolves a type.
      *
      * @param type
-     * @param loader
      * @return
      * @throws ClassNotFoundException
      */
-    private Class resolveType(final Type type, final ClassLoader loader) throws ClassNotFoundException {
+    private Class resolveType(final Type type) throws ClassNotFoundException {
         Class resolvedType;
         if (Type.LONG_TYPE.equals(type)) {
             resolvedType = long.class;
@@ -204,7 +214,7 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
         } else if (Type.CHAR_TYPE.equals(type)) {
             resolvedType = char.class;
         } else {
-            resolvedType = Class.forName(type.getClassName(), false, loader);
+            resolvedType = Class.forName(type.getClassName(), false, getAnnotatedClassClassLoader());
         }
         return resolvedType;
     }
@@ -213,16 +223,15 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
      * Retuns the value of an enum (static field reference).
      *
      * @param namedValue
-     * @param loader
      * @return
      */
-    private Object resolveEnum(final AnnotationElement.NamedValue namedValue, final ClassLoader loader) {
+    private Object resolveEnum(final AnnotationElement.NamedValue namedValue) {
         AnnotationElement.Enum enumElement = (AnnotationElement.Enum)namedValue.getValue();
         String className = AnnotationReader.toJavaName(enumElement.getDesc());
         String value = enumElement.getValue();
 
         try {
-            Class clazz = Class.forName(className, false, loader);
+            Class clazz = Class.forName(className, false, getAnnotatedClassClassLoader());
             Field field = clazz.getDeclaredField(value);
             try {
                 return field.get(null);
@@ -342,5 +351,6 @@ public class JavaDocAnnotationInvocationHander implements InvocationHandler, Ser
         }
         return null;
     }
+
 }
 

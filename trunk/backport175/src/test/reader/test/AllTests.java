@@ -18,6 +18,7 @@ import test.reader.DocletSyntaxTest;
 import test.primitives.PrimitiveTest;
 import test.nested.NestedTest;
 import test.defaultvalue.DefaultTest;
+import test.classloader.ClassLoaderTest;
 
 /**
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
@@ -36,6 +37,7 @@ public class AllTests extends TestCase {
         suite.addTestSuite(NestedTest.class);
         suite.addTestSuite(DefaultTest.class);
         suite.addTestSuite(DocletSyntaxTest.class);
+        suite.addTestSuite(ClassLoaderTest.class);
 
         return suite;
     }

@@ -15,6 +15,7 @@ import org.codehaus.backport175.reader.ReaderException;
 
 import java.util.*;
 import java.lang.ref.WeakReference;
+import java.lang.ref.Reference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
@@ -39,6 +40,9 @@ public class AnnotationReader {
     private static final Map CLASS_SPECIFIC_BYTECODE_PROVIDER = new HashMap();
     private static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
+    /**
+     * Key is ClassKey, value is WeakReference of AnnotationReader 
+     */
     private static final Map READERS = new WeakHashMap();
 
     private final ClassKey m_classKey;
@@ -191,10 +195,10 @@ public class AnnotationReader {
         if (value == null) {
             synchronized (READERS) {
                 reader = new AnnotationReader(classKey);
-                READERS.put(classKey, reader);
+                READERS.put(classKey, new WeakReference(reader));//reader strong refs its own key in the weakhahsmap..
             }
         } else {
-            reader = (AnnotationReader) value;
+            reader = (AnnotationReader) ((Reference)value).get();
         }
         return reader;
     }
@@ -237,7 +241,7 @@ public class AnnotationReader {
      */
     public static void refreshAll() {
         for (Iterator it = READERS.values().iterator(); it.hasNext();) {
-            AnnotationReader reader = (AnnotationReader) it.next();
+            AnnotationReader reader = (AnnotationReader) ((Reference)it.next()).get();
             synchronized (reader) {
                 reader.refresh();
             }
