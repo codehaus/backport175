@@ -22,7 +22,7 @@ public class Target {
 
     public static void test() throws Throwable {
         Anno anno = (Anno)Annotations.getAnnotation(Anno.class, Target.class);
-        if (!anno.aClass().equals(SomeClass.class)) {
+        if (anno==null || !anno.aClass().equals(SomeClass.class)) {
             throw new Exception("failed to access annotation");
         }
     }
