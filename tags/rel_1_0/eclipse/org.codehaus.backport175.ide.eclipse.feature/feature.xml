@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.codehaus.backport175.ide.eclipse.feature"
+      label="The Backport175 plugin and library for Eclipse 3"
+      version="1.0.2"
+      provider-name="Jonas Bonér, Alexandre Vasseur">
+
+   <install-handler/>
+
+   <description url="http://backport175.codehaus.org">
+      Backport175 AOP Eclipse Plugin
+Embedded Java 1.4 Annotation compiler, back port of Java 5
+JSR-175 Annotation specification.
+
+see http://backport175.codehaus.org
+   </description>
+
+   <copyright url="http://backport175.codehaus.org">
+      Copyright (c) Jonas Bonér, Alexandre Vasseur. All rights reserved.
+http://backport175.codehaus.org
+The software in this package is published under the terms of
+the Apache 2.0 license a copy of which has been included with
+this
+distribution in the license.txt file.
+   </copyright>
+
+   <license url="http://backport175.codehaus.org">
+      Copyright (c) Jonas Bonér, Alexandre Vasseur. All rights reserved.
+http://backport175.codehaus.org
+The software in this package is published under the terms of
+the Apache 2.0 license a copy of which has been included with
+this
+distribution in the license.txt file.
+   </license>
+
+   <url>
+      <update label="Backport175 Eclipse Plugin Update site" url="http://backport175.codehaus.org/downloads/eclipse"/>
+      <discovery label="Backport175 Eclipse Plugin Update site" url="http://backport175.codehaus.org/downloads/eclipse"/>
+   </url>
+
+   <requires>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.ui.intro"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.jdt"/>
+      <import plugin="org.eclipse.jdt.ui"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.debug.core"/>
+      <import plugin="org.eclipse.jdt.debug"/>
+      <import plugin="org.eclipse.jdt.debug.ui"/>
+      <import plugin="org.eclipse.debug.ui"/>
+      <import plugin="org.eclipse.jdt.launching"/>
+   </requires>
+
+   <plugin
+         id="org.codehaus.backport175.ide.eclipse.core"
+         download-size="0"
+         install-size="0"
+         version="1.0.2"/>
+
+</feature>

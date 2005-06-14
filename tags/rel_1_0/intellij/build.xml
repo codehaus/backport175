@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<!-- ========================================================================================= -->
+<!--  Copyright (c) Jonas Boner, Alexandre Vasseur. All rights reserved.                       -->
+<!--  http://backport175.codehaus.org                                                          -->
+<!--  =======================================================================================  -->
+<!--  The software in this package is published under the terms of Apache License Version 2.0  -->
+<!--  a copy of which has been included with this distribution in the license.txt file.        -->
+<!--  =======================================================================================  -->
+
+<!-- ============================================================== -->
+<!-- Ant build file for the backport175 IntelliJ plugin-->
+<!-- ============================================================== -->
+
+<project name="backport175" default="cleandist" basedir=".">
+
+    <!--    define the backport175 classpath used to compile the project -->
+    <path id="project.class.path">
+        <fileset dir="${basedir}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <!-- external classpath -->
+        <pathelement path="${java.class.path}"/>
+        <!-- IntelliJ openAPI.jar -->
+    </path>
+
+    <target name="cleandist" depends="clean, dist"/>
+
+    <target name="init">
+        <property name="name" value="backport175-intellij"/>
+        <property name="version" value="1.0"/>
+        <property environment="env"/>
+
+        <fail unless="env.IDEA_HOME" message="Set IDEA_HOME !"/>
+
+        <path id="idea.class.path">
+            <fileset dir="${env.IDEA_HOME}/lib">
+                <include name="openapi.jar"/>
+                <include name="jdom.jar"/>
+                <include name="idea.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete dir="target/${name}-${version}/lib"/>
+	<delete dir="target/${name}-${version}"/>
+	<delete dir="target/classes"/>
+        <delete dir="target"/>
+        <mkdir dir="target"/>
+        <mkdir dir="target/classes"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac destdir="target/classes" debug="on">
+            <src path="src"/>
+            <classpath>
+                <path refid="project.class.path"/>
+                <path refid="idea.class.path"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="dist" depends="compile">
+        <jar destfile="target/${name}-${version}.jar">
+            <fileset dir="target/classes" includes="**/*"/>
+            <fileset dir="." includes="META-INF/*"/>
+            <fileset dir="src" includes="icons/*"/>
+        </jar>
+	<mkdir dir="target/${name}-${version}"/>
+	<mkdir dir="target/${name}-${version}/lib"/>
+	<copy todir="target/${name}-${version}/lib">
+		<fileset dir="target" includes="*.jar"/>
+		<fileset dir="lib" includes="*.jar"/>
+	</copy>
+	<zip destfile="target/${name}-${version}.zip">
+		<fileset dir="target/${name}-${version}" includes="**/*"/>
+	</zip>
+    </target>
+
+    <target name="install" depends="dist">
+        <delete dir="${env.IDEA_HOME}/plugins/backport175/lib"/>
+        <delete dir="${env.IDEA_HOME}/plugins/backport175"/>
+        <mkdir dir="${env.IDEA_HOME}/plugins/backport175"/>
+        <mkdir dir="${env.IDEA_HOME}/plugins/backport175/lib"/>
+        <copy file="target/${name}-${version}.jar" todir="${env.IDEA_HOME}/plugins/backport175/lib"/>
+	<copy todir="${env.IDEA_HOME}/plugins/backport175/lib">
+		<fileset dir="lib" includes="*"/>
+	</copy>
+    </target>
+
+</project>
