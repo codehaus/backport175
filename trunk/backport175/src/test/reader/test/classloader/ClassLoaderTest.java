@@ -13,13 +13,14 @@ package test.classloader;
 
 import junit.framework.TestCase;
 
-import java.net.URLClassLoader;
-import java.net.URL;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 
-import test.reader.AnnotationReaderTest;
+import org.codehaus.backport175.reader.bytecode.AnnotationReader;
+import org.codehaus.backport175.reader.bytecode.spi.BytecodeProvider;
 
 /**
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
@@ -36,7 +37,9 @@ public class ClassLoaderTest extends TestCase {
             ;
         }
 
-        ClassLoader app = new URLClassLoader(new URL[]{new File(CLASSPATH).toURL()}, ClassLoaderTest.class.getClassLoader());
+        ClassLoader app = new URLClassLoader(
+                new URL[]{new File(CLASSPATH).toURL()}, ClassLoaderTest.class.getClassLoader()
+        );
         Class target = Class.forName("test.classloader.Target", false, app);
         Method m = target.getDeclaredMethod("test", new Class[0]);
         try {

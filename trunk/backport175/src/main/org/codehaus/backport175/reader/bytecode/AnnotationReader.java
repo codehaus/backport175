@@ -36,8 +36,7 @@ public class AnnotationReader {
             new AnnotationElement.Annotation[0];
     private static final String INIT_METHOD_NAME = "<init>";
 
-    // FIXME this map will leak some
-    private static final Map CLASS_SPECIFIC_BYTECODE_PROVIDER = new HashMap();
+    private static final Map CLASS_SPECIFIC_BYTECODE_PROVIDER = new WeakHashMap();
     private static BytecodeProvider BYTECODE_PROVIDER = new DefaultBytecodeProvider();
 
     /**
