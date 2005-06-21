@@ -1,14 +1,10 @@
-/*******************************************************************************
- * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- * 
- * Contributors:
- *   Alexandre Vasseur         initial implementation
- *******************************************************************************/
+/*******************************************************************************************
+ * Copyright (c) Jonas Bonér, Alexandre Vasseur. All rights reserved.                      *
+ * http://backport175.codehaus.org                                                         *
+ * --------------------------------------------------------------------------------------- *
+ * The software in this package is published under the terms of Apache License Version 2.0 *
+ * a copy of which has been included with this distribution in the license.txt file.       *
+ *******************************************************************************************/
 package test.classloader;
 
 import junit.framework.TestCase;
