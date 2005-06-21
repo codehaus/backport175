@@ -28,6 +28,8 @@ options {
 
     NODE_USES_PARSER=false;
 
+    UNICODE_INPUT = true;
+
 }
 
 
