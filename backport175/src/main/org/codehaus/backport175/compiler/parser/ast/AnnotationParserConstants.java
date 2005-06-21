@@ -11,61 +11,65 @@ package org.codehaus.backport175.compiler.parser.ast;
 
 public interface AnnotationParserConstants {
 
-    int EOF = 0;
-    int DOT = 3;
-    int INTEGER = 4;
-    int HEXNUMBER = 5;
-    int OCTNUMBER = 6;
-    int FLOAT = 7;
-    int EXPONENT = 8;
-    int DIGIT = 9;
-    int BOOLEAN = 10;
-    int STRING = 11;
-    int CHAR = 12;
-    int NEWLINE = 13;
-    int LEFT_PARENTHEZIS = 14;
-    int RIGHT_PARENTHEZIS = 15;
-    int LEFT_BRACKET = 16;
-    int RIGHT_BRACKET = 17;
-    int COMMA = 18;
-    int EQUALS = 19;
-    int AT = 20;
-    int ANNOTATION = 21;
-    int JAVA_NAME = 22;
-    int JAVA_TYPE_MAYBEARRAY = 23;
-    int JAVA_TYPE = 24;
-    int JAVA_LETTER = 25;
+  int EOF = 0;
+  int DOT = 3;
+  int INTEGER = 4;
+  int HEXNUMBER = 5;
+  int OCTNUMBER = 6;
+  int DECIMAL_LITERAL = 7;
+  int HEX_LITERAL = 8;
+  int OCTAL_LITERAL = 9;
+  int FLOAT = 10;
+  int EXPONENT = 11;
+  int BOOLEAN = 12;
+  int STRING = 13;
+  int CHAR = 14;
+  int NEWLINE = 15;
+  int LEFT_PARENTHEZIS = 16;
+  int RIGHT_PARENTHEZIS = 17;
+  int LEFT_BRACKET = 18;
+  int RIGHT_BRACKET = 19;
+  int COMMA = 20;
+  int EQUALS = 21;
+  int AT = 22;
+  int ANNOTATION = 23;
+  int JAVA_NAME = 24;
+  int JAVA_TYPE_MAYBEARRAY = 25;
+  int JAVA_TYPE = 26;
+  int JAVA_LETTER = 27;
 
-    int DEFAULT = 0;
+  int DEFAULT = 0;
 
-    String[] tokenImage = {
-        "<EOF>",
-        "\" \"",
-        "\"\\t\"",
-        "\".\"",
-        "<INTEGER>",
-        "<HEXNUMBER>",
-        "<OCTNUMBER>",
-        "<FLOAT>",
-        "<EXPONENT>",
-        "<DIGIT>",
-        "<BOOLEAN>",
-        "<STRING>",
-        "<CHAR>",
-        "\"\\n\"",
-        "\"(\"",
-        "\")\"",
-        "\"{\"",
-        "\"}\"",
-        "\",\"",
-        "\"=\"",
-        "\"@\"",
-        "<ANNOTATION>",
-        "<JAVA_NAME>",
-        "<JAVA_TYPE_MAYBEARRAY>",
-        "<JAVA_TYPE>",
-        "<JAVA_LETTER>",
-        "\"\\r\\n\"",
-    };
+  String[] tokenImage = {
+    "<EOF>",
+    "\" \"",
+    "\"\\t\"",
+    "\".\"",
+    "<INTEGER>",
+    "<HEXNUMBER>",
+    "<OCTNUMBER>",
+    "<DECIMAL_LITERAL>",
+    "<HEX_LITERAL>",
+    "<OCTAL_LITERAL>",
+    "<FLOAT>",
+    "<EXPONENT>",
+    "<BOOLEAN>",
+    "<STRING>",
+    "<CHAR>",
+    "\"\\n\"",
+    "\"(\"",
+    "\")\"",
+    "\"{\"",
+    "\"}\"",
+    "\",\"",
+    "\"=\"",
+    "\"@\"",
+    "<ANNOTATION>",
+    "<JAVA_NAME>",
+    "<JAVA_TYPE_MAYBEARRAY>",
+    "<JAVA_TYPE>",
+    "<JAVA_LETTER>",
+    "\"\\r\\n\"",
+  };
 
 }

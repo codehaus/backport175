@@ -45,4 +45,13 @@ public class TestAnnotations {
         String message();
     }
 
+    public static class SomeNestedClass {}
+
+    public static interface DefaultedClassAnno {
+        /**
+         * @org.codehaus.backport175.DefaultValue(test.defaultvalue.TestAnnotations.SomeNestedClass.class)
+         */
+        Class klass();
+    }
+
 }

@@ -542,7 +542,26 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             loader = Thread.currentThread().getContextClassLoader();
         }
-        return Class.forName(name, false, loader);
+        // handles inner class thru a failback mechanism
+        String lookupName = name;
+        ClassNotFoundException firstNfe = null;
+        while (true) {
+            try {
+                return Class.forName(lookupName, false, loader);
+            } catch (ClassNotFoundException nfe) {
+                if (firstNfe == null) firstNfe = nfe;
+                int index = lookupName.lastIndexOf('.');
+                if (index > 0) {
+                    char[] lookup = new char[lookupName.length()];
+                    lookupName.getChars(0, index, lookup, 0);
+                    lookup[index] = '$';
+                    lookupName.getChars(index+1, lookup.length, lookup, index+1);
+                    lookupName = new String(lookup);
+                } else {
+                    throw firstNfe;
+                }
+            }
+        }
     }
 
     /**
