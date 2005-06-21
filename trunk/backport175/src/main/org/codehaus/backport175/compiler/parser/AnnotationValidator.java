@@ -55,7 +55,8 @@ public class AnnotationValidator {
             return;
         }
         Class expectedType = getExpectedType(ctx);
-        if (expectedType != int.class) {
+        // lets allow int upgraded to long type as well
+        if (expectedType != int.class && expectedType != long.class) {
             throw new AnnotationValidationException(createErrorMessage(ctx, int.class.getName()));
         }
     }
