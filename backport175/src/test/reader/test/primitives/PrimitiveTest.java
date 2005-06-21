@@ -103,6 +103,7 @@ public class PrimitiveTest extends TestCase {
                 Target.DefaultedLong.class, Target.class
         );
         assertEquals(0L, ((Target.DefaultedLong)annotation).l());
+        assertEquals(0, ((Target.DefaultedLong)annotation).l2());
     }
 
     public static void main(String[] args) {

@@ -208,6 +208,10 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             integer = new Integer(value);
             AnnotationValidator.validateInteger(ctx);
+            // lets upgrade the int if we expect a long (else proxy will give us a null)
+            if (ctx.expectedType == long.class) {
+                integer = new Long(value);
+            }
         }
 
         ctx.munger.visit(ctx.elementName, integer);

@@ -47,6 +47,12 @@ public class Target {
          * @org.codehaus.backport175.DefaultValue(0L)
          */
         long l();
+
+        /**
+         * @org.codehaus.backport175.DefaultValue(0)
+         */
+        long l2();
+
     }
 
 }
