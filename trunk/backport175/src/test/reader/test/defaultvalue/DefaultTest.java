@@ -15,6 +15,7 @@ import org.codehaus.backport175.reader.Annotations;
  * @test.defaultvalue.TestAnnotations.StringAnno
  * @test.defaultvalue.TestAnnotations.FloatArrayAnno
  * @test.defaultvalue.TestAnnotations.AnnoArrayAnno
+ * @test.defaultvalue.TestAnnotations.DefaultedClassAnno
  *
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
@@ -51,6 +52,12 @@ public class DefaultTest extends TestCase {
         assertEquals(2, annos.length);
         assertEquals("one", annos[0].message());
         assertEquals("two", annos[1].message());
+    }
+
+    public void testDefaultedClassAnno() {
+        TestAnnotations.DefaultedClassAnno anno = (TestAnnotations.DefaultedClassAnno) Annotations.getAnnotation(TestAnnotations.DefaultedClassAnno.class, KLASS);
+        assertNotNull(anno);
+        assertEquals(TestAnnotations.SomeNestedClass.class, anno.klass());
     }
 
     public static void main(String[] args) {

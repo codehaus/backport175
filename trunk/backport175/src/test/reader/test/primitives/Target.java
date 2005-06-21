@@ -8,12 +8,13 @@
 package test.primitives;
 
 /**
- * @test.primitives.Target$Long(v=123456789123456789, arr={1L, 2L, 3L, 4l})
+ * @test.primitives.Target$Long(v=123456789123456789L, arr={1L, 2L, 3L, 4l})
  * @test.primitives.Target$Integer(v=1, arr={1, 2, 3, 4})
  * @test.primitives.Target.Double(v=1.123456789123456789D, arr={1.0D, 2.4D, 3.56d, 4.0D})
  * @test.primitives.Target.Float(v=1.0F, arr={1.1F, 2.3455f, 3.0F, 4F})
  * @test.primitives.Target.Boolean(v=true, arr={TRUE, false, true, FALSE})
  * @test.primitives.Target.Char(v='a', arr={'b', 'C', 'D', 'e'})
+ * @test.primitives.Target.DefaultedLong
  */
 public class Target {
 
@@ -41,4 +42,11 @@ public class Target {
         char v();
         char[] arr();
     }
+    public static interface DefaultedLong {
+        /**
+         * @org.codehaus.backport175.DefaultValue(0L)
+         */
+        long l();
+    }
+
 }

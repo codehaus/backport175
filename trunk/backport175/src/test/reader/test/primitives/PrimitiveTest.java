@@ -98,6 +98,13 @@ public class PrimitiveTest extends TestCase {
         assertEquals('e', ann.arr()[3]);
     }
 
+    public void testDefaultedLong() {
+        Annotation annotation = Annotations.getAnnotation(
+                Target.DefaultedLong.class, Target.class
+        );
+        assertEquals(0L, ((Target.DefaultedLong)annotation).l());
+    }
+
     public static void main(String[] args) {
         junit.textui.TestRunner.run(suite());
     }
