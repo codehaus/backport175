@@ -239,7 +239,7 @@
     <!-- =================================================== -->
     <target name="samples:task:annotationc" depends="init, compile:all">
         <taskdef name="annotationc"
-            classname="org.codehaus.${name}.AnnotationCTask"
+            classname="org.codehaus.${name}.compiler.task.AnnotationCTask"
             classpathref="project.class.path"/>
         <annotationc
             verbose="true"
@@ -256,5 +256,15 @@
                 <include name="**/BAZ.java"/>
             </fileset>
         </annotationc>
+    </target>
+
+    <target name="samples:task:annotationc2" depends="init, dist" >
+        <taskdef name="annotationc"
+            classname="org.codehaus.${name}.compiler.task.AnnotationCTask"
+            classpathref="project.class.path"/>
+    <annotationc verbose="false" destdir="${test.reader.classes}">
+    <src path="${test.reader.src.dir}" />
+    <classpath path="${test.reader.classes}" />
+  </annotationc>
     </target>
 </project>
