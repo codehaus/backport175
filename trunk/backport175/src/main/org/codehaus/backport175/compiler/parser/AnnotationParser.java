@@ -41,6 +41,11 @@ public class AnnotationParser implements AnnotationParserVisitor {
     protected Class m_annotationClass;
 
     /**
+     * The loader of the annotated class
+     */
+    protected ClassLoader m_annotatedClassClassLoader;
+
+    /**
      * The top level annotation bytecode munger.
      */
     protected AnnotationVisitor m_bytecodeMunger;
@@ -51,8 +56,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * @param bytecodeMunger
      * @param rawAnnotation
      */
-    public static void parse(final AnnotationVisitor bytecodeMunger, final RawAnnotation rawAnnotation) {
-        parse(bytecodeMunger, rawAnnotation, null);
+    public static void parse(final AnnotationVisitor bytecodeMunger, final RawAnnotation rawAnnotation, final ClassLoader annotatedClassClassLoader) {
+        parse(bytecodeMunger, rawAnnotation, null, annotatedClassClassLoader);
     }
 
     /**
@@ -63,7 +68,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * @param rawAnnotation
      * @param desc expected type for annotation default value. If null, assume we visit a regular annotation
      */
-    public static void parse(final AnnotationVisitor bytecodeMunger, final RawAnnotation rawAnnotation, String desc) {
+    public static void parse(final AnnotationVisitor bytecodeMunger, final RawAnnotation rawAnnotation, String desc, final ClassLoader annotatedClassClassLoader) {
         final String interfaceName = rawAnnotation.getAnnotationClass().getName().replace('/', '.');
         final String rawAnnotationValue = rawAnnotation.getValue();
 
@@ -80,12 +85,14 @@ public class AnnotationParser implements AnnotationParserVisitor {
                 annotationParser = new AnnotationDefaultValueParser(
                     bytecodeMunger,
                     rawAnnotation.getAnnotationClass(),
-                    desc
+                    desc,
+                    annotatedClassClassLoader
                 );
             } else {
                 annotationParser = new AnnotationParser(
                         bytecodeMunger,
-                        rawAnnotation.getAnnotationClass()
+                        rawAnnotation.getAnnotationClass(),
+                        annotatedClassClassLoader
                 );
             }
             annotationParser.visit(PARSER.parse(representation.toString().replace('\n', ' ')), null);
@@ -324,7 +331,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
 
         AnnotationValidator.validateAnnotation(newCtx);
 
-        AnnotationParser newParser = new AnnotationParser(newMunger, annotationType);
+        AnnotationParser newParser = new AnnotationParser(newMunger, annotationType, m_annotatedClassClassLoader);
         newParser.handleAnnotation(node, newCtx);
 
         newMunger.visitEnd();
@@ -363,7 +370,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         } else {
             isComponentPrimitive = false;
             try {
-                componentClass = forName(componentClassName, ctx.annotationType);
+                componentClass = forName(componentClassName, m_annotatedClassClassLoader);
             } catch (ClassNotFoundException e) {
                 throw new ParseException(
                         "could not load class [" + componentClassName + "] due to: " + e.toString(), e
@@ -397,7 +404,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         String className = identifier.substring(0, index);
         String fieldName = identifier.substring(index + 1, identifier.length());
         try {
-            Class clazz = forName(className, ctx.annotationType);
+            Class clazz = forName(className, m_annotatedClassClassLoader);
             ctx.munger.visitEnum(ctx.elementName, Type.getDescriptor(clazz), fieldName);
         } catch (Exception e) {
             throw new ParseException(
@@ -424,9 +431,10 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * @param bytecodeVisitor
      * @param annotationClass
      */
-    private AnnotationParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass) {
+    private AnnotationParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass, final ClassLoader annotatedClassClassLoader) {
         m_bytecodeMunger = bytecodeVisitor;
         m_annotationClass = annotationClass;
+        m_annotatedClassClassLoader = annotatedClassClassLoader;
     }
 
     /**
@@ -454,8 +462,8 @@ public class AnnotationParser implements AnnotationParserVisitor {
          * @param annotationClass
          * @param desc
          */
-        private AnnotationDefaultValueParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass, final String desc) {
-            super(bytecodeVisitor, annotationClass);
+        private AnnotationDefaultValueParser(final AnnotationVisitor bytecodeVisitor, final Class annotationClass, final String desc, final ClassLoader annotatedClassClassLoader) {
+            super(bytecodeVisitor, annotationClass, annotatedClassClassLoader);
             m_typeDesc = desc;
         }
 
@@ -477,7 +485,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
                 throw new IllegalArgumentException("value name must be 'value' for annotation default value");
             }
             if (m_typeClassLazy == null) {
-                m_typeClassLazy = getClassFromTypeDesc(m_typeDesc, m_annotationClass);
+                m_typeClassLazy = getClassFromTypeDesc(m_typeDesc, m_annotatedClassClassLoader);
             }
 
             return m_typeClassLazy;
@@ -488,10 +496,10 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * Returns the class for a given type descriptor, looking from the annotationClass class loader
      *
      * @param typeDesc
-     * @param annotationClass
+     * @param loader
      * @return
      */
-    private static Class getClassFromTypeDesc(String typeDesc, Class annotationClass) {
+    private static Class getClassFromTypeDesc(String typeDesc, ClassLoader loader) {
         Type type = Type.getType(typeDesc);
         int dimension = typeDesc.startsWith("[")?type.getDimensions():0;
         Type componentType = typeDesc.startsWith("[")?type.getElementType():type;
@@ -517,7 +525,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
             componentClass = String.class;
         } else {
             try {
-                componentClass = forName(componentType.getClassName(), annotationClass);
+                componentClass = forName(componentType.getClassName(), loader);
             } catch (ClassNotFoundException e) {
                 throw new ParseException("could not load class for type [" + typeDesc + "] due to: " + e.toString(), e);
             }
@@ -536,17 +544,10 @@ public class AnnotationParser implements AnnotationParserVisitor {
      * if the annotation belongs to boot class loader.
      *
      * @param name the class name to load
-     * @param annotationClass the annotation class to look from
+     * @param loader the loader to look from
      * @return
      */
-    private static Class forName(String name, Class annotationClass) throws ClassNotFoundException {
-        final ClassLoader loader;
-        if (annotationClass.getClassLoader() != null) {
-            loader = annotationClass.getClassLoader();
-        } else {
-            loader = Thread.currentThread().getContextClassLoader();
-        }
-        // handles inner class thru a failback mechanism
+    private static Class forName(String name, ClassLoader loader) throws ClassNotFoundException {
         String lookupName = name;
         ClassNotFoundException firstNfe = null;
         while (true) {
