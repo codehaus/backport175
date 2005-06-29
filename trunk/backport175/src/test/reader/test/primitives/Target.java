@@ -53,6 +53,15 @@ public class Target {
          */
         long l2();
 
+        /**
+         * @org.codehaus.backport175.DefaultValue(0)
+         */
+        byte b();
+
+        /**
+         * @org.codehaus.backport175.DefaultValue(0) 
+         */
+        short s();
     }
 
 }

@@ -183,7 +183,7 @@
     <!-- ============================================================== -->
     <target name="doc" depends="init">
         <mkdir dir="target/apidocs"/>
-        <javadoc destdir="target/apidocs" packagenames="org.codehaus.backport175.*" sourcepath="src/main"/> 
+        <javadoc destdir="target/apidocs" packagenames="org.codehaus.backport175.*" sourcepath="src/main"/>
     </target>
 
     <!-- =================================================== -->
@@ -225,7 +225,7 @@
         <antcall target="testJava5"/>
     </target>
 
-    <target name="testJava5"  if="java5">
+    <target name="testJava5" if="java5">
         <java fork="true" classname="test.java5.AllTests">
             <classpath>
                 <path refid="project.class.path"/>
@@ -258,13 +258,13 @@
         </annotationc>
     </target>
 
-    <target name="samples:task:annotationc2" depends="init, dist" >
+    <target name="samples:task:annotationc2" depends="init, dist">
         <taskdef name="annotationc"
             classname="org.codehaus.${name}.compiler.task.AnnotationCTask"
             classpathref="project.class.path"/>
-    <annotationc verbose="false" destdir="${test.reader.classes}">
-    <src path="${test.reader.src.dir}" />
-    <classpath path="${test.reader.classes}" />
-  </annotationc>
+        <annotationc verbose="false" destdir="${test.reader.classes}">
+            <src path="${test.reader.src.dir}"/>
+            <classpath path="${test.reader.classes}"/>
+        </annotationc>
     </target>
 </project>

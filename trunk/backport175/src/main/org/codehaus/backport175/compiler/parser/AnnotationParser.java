@@ -202,26 +202,61 @@ public class AnnotationParser implements AnnotationParserVisitor {
 
     public Object visit(ASTInteger node, Object data) {
         ParseContext ctx = (ParseContext)data;
-
+        byte b = 127;
+        //short s = java.lang.Integer.MAX_VALUE;
         String value = node.getValue();
         char lastChar = value.charAt(value.length() - 1);
 
-        Object integer;
+        Object boxed;
         if ((lastChar == 'L') || (lastChar == 'l')) {
-            integer = new Long(value.substring(0, value.length() - 1));
-        } else if (value.length() > 9) {
-            integer = new Long(value);
-            AnnotationValidator.validateLong(ctx);
+            boxed = new Long(value.substring(0, value.length() - 1));
         } else {
-            integer = new Integer(value);
-            AnnotationValidator.validateInteger(ctx);
-            // lets upgrade the int if we expect a long (else proxy will give us a null)
-            if (ctx.expectedType == long.class) {
-                integer = new Long(value);
+            boxed = new Long(value);
+            long lValue = ((Long)boxed).longValue();
+            if (lValue > Integer.MAX_VALUE || lValue < Integer.MIN_VALUE) {
+                // a real long
+                AnnotationValidator.validateLong(ctx);
+            } else if (lValue > Short.MAX_VALUE || lValue < Short.MIN_VALUE) {
+                // an int is fine
+                AnnotationValidator.validateInteger(ctx);
+                // only downgrade if expects an int
+                if (ctx.expectedType == int.class) {
+                    boxed = new Integer(value);
+                }
+            } else if (lValue > Byte.MAX_VALUE || lValue < Byte.MIN_VALUE) {
+                // a short is fine
+                AnnotationValidator.validateShort(ctx);
+                // only downgrade if expects a short
+                if (ctx.expectedType == int.class) {
+                    boxed = new Integer(value);
+                } else if (ctx.expectedType == short.class) {
+                    boxed = new Short(value);
+                }
+            } else {
+                // lets use a byte
+                AnnotationValidator.validateByte(ctx);
+                // only downgrade if expects a byte
+                if (ctx.expectedType == int.class) {
+                    boxed = new Integer(value);
+                } else if (ctx.expectedType == short.class) {
+                    boxed = new Short(value);
+                } else if (ctx.expectedType == byte.class) {
+                    boxed = new Byte(value);
+                }
             }
         }
 
-        ctx.munger.visit(ctx.elementName, integer);
+        System.err.println("?????? " + ctx.expectedType.toString() + " : " + value);
+//        else {
+//            boxed = new Integer(value);
+//            AnnotationValidator.validateInteger(ctx);
+//            // lets upgrade the int if we expect a long (else proxy will give us a null)
+//            if (ctx.expectedType == long.class) {
+//                boxed = new Long(value);
+//            }
+//        }
+
+        ctx.munger.visit(ctx.elementName, boxed);
         return null;
     }
 
@@ -258,7 +293,7 @@ public class AnnotationParser implements AnnotationParserVisitor {
         AnnotationValidator.validateArray(ctx);
 
         AnnotationVisitor newMunger = ctx.munger.visitArray(ctx.elementName);
-        ParseContext newCtx = new ParseContext(ctx.elementName, ctx.annotationType, ctx.expectedType, newMunger);
+        ParseContext newCtx = new ParseContext(ctx.elementName, ctx.annotationType, ctx.expectedType.getComponentType(), newMunger);
 
         // visit array elements
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
