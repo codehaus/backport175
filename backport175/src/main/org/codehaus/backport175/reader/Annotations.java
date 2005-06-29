@@ -12,12 +12,16 @@ import org.codehaus.backport175.reader.bytecode.AnnotationReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 
 /**
  * Helper class for reader retrieval of strongly typed JavaDoc annotations (as well as regular Java 5 {@link
  * java.lang.reader.RetentionPolicy.RUNTIME} annotations  when running Java 1.5.x).
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér </a>
+ * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
  */
 public final class Annotations {
 
@@ -29,7 +33,15 @@ public final class Annotations {
      * @return true if the annotation is present else false
      */
     public static boolean isAnnotationPresent(final Class annotationType, final Class target) {
-        return AnnotationReader.getReaderFor(target).isAnnotationPresent(getAnnnotationName(annotationType));
+        boolean isPresent = AnnotationReader.getReaderFor(target).isAnnotationPresent(getAnnnotationName(annotationType));
+        if (!isPresent && isInherited(annotationType)) {
+            if (target.getSuperclass() == null) {
+                return isPresent;
+            } else {
+                return isAnnotationPresent(annotationType, target.getSuperclass());
+            }
+        }
+        return isPresent;
     }
 
     /**
@@ -39,7 +51,20 @@ public final class Annotations {
      * @return an array with the annotations
      */
     public static Annotation[] getAnnotations(final Class target) {
-        return AnnotationReader.getReaderFor(target).getAnnotations();
+        Annotation[] declaredAnnotations = AnnotationReader.getReaderFor(target).getAnnotations();
+        if (target.getSuperclass() == null) {
+            return declaredAnnotations;
+        } else {
+            List annotations = new ArrayList(declaredAnnotations.length);
+            Annotation[] parents = getAnnotations(target.getSuperclass());
+            for (int i = 0; i < parents.length; i++) {
+                if (isInherited(parents[i].annotationType())) {
+                    annotations.add(parents[i]);
+                }
+            }
+            Collections.addAll(annotations, declaredAnnotations);
+            return (Annotation[])annotations.toArray(new Annotation[]{});
+        }
     }
 
     /**
@@ -51,7 +76,15 @@ public final class Annotations {
      */
     public static Annotation getAnnotation(final Class annotationType, final Class target) {
         final AnnotationReader reader = AnnotationReader.getReaderFor(target);
-        return reader.getAnnotation(getAnnnotationName(annotationType));
+        Annotation annotation = reader.getAnnotation(getAnnnotationName(annotationType));
+        if (annotation == null && isInherited(annotationType)) {
+            if (target.getSuperclass() == null) {
+                return annotation;
+            } else {
+                return getAnnotation(annotationType, target.getSuperclass());
+            }
+        }
+        return annotation;
     }
 
     /**
@@ -164,5 +197,14 @@ public final class Annotations {
      */
     private static String getAnnnotationName(final Class annotationType) {
         return annotationType.getName().replace('/', '.');
+    }
+
+    /**
+     * Returns true if the annotation is @Inherited
+     * @param annotationType
+     * @return
+     */
+    private static boolean isInherited(final Class annotationType) {
+        return AnnotationReader.getReaderFor(annotationType).isAnnotationPresent("java.lang.annotation.Inherited");
     }
 }

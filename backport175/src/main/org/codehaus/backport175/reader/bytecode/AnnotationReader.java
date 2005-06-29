@@ -21,10 +21,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
 
 /**
- * Reads Java 5 {@link java.lang.annotation.RetentionPolicy.RUNTIME} annotations from the class' bytecode.
+ * Reads Java 5 {@link java.lang.annotation.RetentionPolicy.RUNTIME} and
+ * {@link java.lang.annotation.RetentionPolicy.CLASS} annotations from the class' bytecode.
  * <p/>
  * Can be used with a custom implementation of the {@link org.codehaus.backport175.reader.bytecode.spi.BytecodeProvider}
  * interface.
+ * <p/>
+ * Note: does not handles {@link java.lang.annotation.Inherited} feature. This has to be done in the higher level
+ * that knows about the class hierarchy (see backport175.Annotations f.e)
  *
  * @author <a href="mailto:jboner@codehaus.org">Jonas Bonér</a>
  * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>

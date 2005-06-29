@@ -117,6 +117,25 @@ public class AnnotationReaderTest extends TestCase {
         assertEquals(false, isNested.value());
     }
 
+    public void testInherited() {
+        Annotation inhe = Annotations.getAnnotation(Target5.Inherited.class, Target5.class);
+        assertNotNull(inhe);
+        inhe = Annotations.getAnnotation(Target5.Inherited.class, Target5.SubTarget5.class);
+        assertNotNull(inhe);
+
+        assertTrue(Annotations.isAnnotationPresent(Target5.Inherited.class, Target5.SubTarget5.class));
+        Annotation[] all = Annotations.getAnnotations(Target5.SubTarget5.class);
+        boolean found = false;
+        for (int i = 0; i < all.length; i++) {
+            Annotation annotation = all[i];
+            if (annotation.annotationType().equals(Target5.Inherited.class)) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found);
+    }
+
 
     public static void main(String[] args) {
         junit.textui.TestRunner.run(suite());
