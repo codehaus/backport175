@@ -13,8 +13,15 @@ import java.lang.reflect.Constructor;
 
 @Target5.Test(test="test")
 @Target5.DefaultedTest(test2="notdefault")
-@Target5.DefaultedWithNestedTest        
+@Target5.DefaultedWithNestedTest
+@Target5.Inherited
 public class Target5 {
+
+    @java.lang.annotation.Inherited
+    public static @interface Inherited {
+    }
+
+    public static class SubTarget5 extends Target5 {}
 
     @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
     public static @interface Test {
