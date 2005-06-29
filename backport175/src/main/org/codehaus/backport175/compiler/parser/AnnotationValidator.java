@@ -62,6 +62,38 @@ public class AnnotationValidator {
     }
 
     /**
+     * Validates a short value type.
+     *
+     * @param ctx
+     */
+    public static void validateShort(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
+        // lets allow short upgraded to int and long type as well
+        if (expectedType != short.class && expectedType != int.class && expectedType != long.class) {
+            throw new AnnotationValidationException(createErrorMessage(ctx, short.class.getName()));
+        }
+    }
+
+    /**
+     * Validates a byte value type.
+     *
+     * @param ctx
+     */
+    public static void validateByte(final ParseContext ctx) {
+        if (ctx.elementName == null) {
+            return;
+        }
+        Class expectedType = getExpectedType(ctx);
+        // lets allow byte upgraded to short, int, long type as well
+        if (expectedType != byte.class && expectedType != short.class && expectedType != int.class && expectedType != long.class) {
+            throw new AnnotationValidationException(createErrorMessage(ctx, byte.class.getName()));
+        }
+    }
+
+    /**
      * Validates a double value type.
      *
      * @param ctx

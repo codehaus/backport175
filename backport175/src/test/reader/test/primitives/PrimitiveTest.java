@@ -106,6 +106,14 @@ public class PrimitiveTest extends TestCase {
         assertEquals(0, ((Target.DefaultedLong)annotation).l2());
     }
 
+    public void testDefaultedOthers() {
+        Annotation annotation = Annotations.getAnnotation(
+                Target.DefaultedLong.class, Target.class
+        );
+        assertEquals(0, ((Target.DefaultedLong)annotation).b());
+        assertEquals(0, ((Target.DefaultedLong)annotation).s());
+    }
+
     public static void main(String[] args) {
         junit.textui.TestRunner.run(suite());
     }
