@@ -202,8 +202,6 @@ public class AnnotationParser implements AnnotationParserVisitor {
 
     public Object visit(ASTInteger node, Object data) {
         ParseContext ctx = (ParseContext)data;
-        byte b = 127;
-        //short s = java.lang.Integer.MAX_VALUE;
         String value = node.getValue();
         char lastChar = value.charAt(value.length() - 1);
 
@@ -245,16 +243,6 @@ public class AnnotationParser implements AnnotationParserVisitor {
                 }
             }
         }
-
-        System.err.println("?????? " + ctx.expectedType.toString() + " : " + value);
-//        else {
-//            boxed = new Integer(value);
-//            AnnotationValidator.validateInteger(ctx);
-//            // lets upgrade the int if we expect a long (else proxy will give us a null)
-//            if (ctx.expectedType == long.class) {
-//                boxed = new Long(value);
-//            }
-//        }
 
         ctx.munger.visit(ctx.elementName, boxed);
         return null;
