@@ -8,12 +8,10 @@
 package org.codehaus.backport175.reader.proxy;
 
 import org.codehaus.backport175.reader.Annotation;
-import org.codehaus.backport175.reader.Annotations;
 import org.codehaus.backport175.reader.bytecode.AnnotationElement;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.util.Iterator;
 
 /**
  * Creates a proxy instance (Java dynamic proxy) for a given reader.
@@ -31,20 +29,23 @@ public class ProxyFactory {
      * @return the proxy for the annotation
      */
     public static Annotation newAnnotationProxy(final AnnotationElement.Annotation annotation,
-                                                final ClassLoader loader) {
+                                                 ClassLoader loader) {
+        ClassLoader backportLoader = Annotation.class.getClassLoader();     
+        if (loader != backportLoader) {
+            loader = backportLoader;
+        }
         final Class interfaceClass;
         try {
             interfaceClass = Class.forName(annotation.getInterfaceName(), false, loader);
         } catch (ClassNotFoundException e) {
             throw new ResolveAnnotationException("annotation interface [" + annotation.getInterfaceName() + "] could not be found");
         }
-
         final InvocationHandler handler = new JavaDocAnnotationInvocationHander(interfaceClass, annotation, loader);
         final Object annotationProxy = Proxy.newProxyInstance(
-                loader,
-                new Class[]{Annotation.class, interfaceClass},
-                handler
-        );
+                  loader,
+                  new Class[]{Annotation.class, interfaceClass},
+                  handler
+          );
         return (Annotation)annotationProxy;
     }
 }
