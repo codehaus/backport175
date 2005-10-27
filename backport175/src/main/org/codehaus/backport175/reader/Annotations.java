@@ -62,7 +62,9 @@ public final class Annotations {
                     annotations.add(parents[i]);
                 }
             }
-            Collections.addAll(annotations, declaredAnnotations);
+            for (int i = 0; i < declaredAnnotations.length; i++) {
+                annotations.add(declaredAnnotations[i]);
+            }
             return (Annotation[])annotations.toArray(new Annotation[]{});
         }
     }
