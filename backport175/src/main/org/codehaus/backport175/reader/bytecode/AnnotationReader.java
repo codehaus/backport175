@@ -193,7 +193,7 @@ public class AnnotationReader {
      * @return the annotation reader
      */
     public static AnnotationReader getReaderFor(final ClassKey classKey) {
-        final AnnotationReader reader;
+        AnnotationReader reader;
         Object value = READERS.get(classKey);
         if (value == null) {
             synchronized (READERS) {
@@ -202,6 +202,12 @@ public class AnnotationReader {
             }
         } else {
             reader = (AnnotationReader) ((Reference)value).get();
+            if (reader == null) {//WeakReference content can be null
+                synchronized (READERS) {
+                      reader = new AnnotationReader(classKey);
+                      READERS.put(classKey, new WeakReference(reader));
+                }
+            }
         }
         return reader;
     }
